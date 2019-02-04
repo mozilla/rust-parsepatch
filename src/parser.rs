@@ -76,7 +76,7 @@ impl<'a> Line<'a> {
         let mut x = 0;
         for (n, c) in self.buf[self.pos..].iter().enumerate() {
             if *c >= b'0' && *c <= b'9' {
-                x = x * 10 + (*c - b'0') as u64; 
+                x = x * 10 + (*c - b'0') as u64;
             } else {
                 self.pos += n;
                 return x;
@@ -158,7 +158,7 @@ impl<'a> Patch<'a> {
             },
         }
     }
-    
+
     fn parse(&mut self) -> Vec<Changes> {
         let mut all_changes = Vec::new();
         loop {
@@ -233,7 +233,7 @@ impl<'a> Patch<'a> {
                         data: Patch::get_line(&line.buf[1..]),
                     });
                     new_count += 1;
-                } else {
+                } else if !line.first_is(b'\\') {
                     old_count += 1;
                     new_count += 1;
                 }
@@ -259,13 +259,6 @@ impl<'a> Patch<'a> {
             }
         }
     }
-    
-    fn new(buf: &[u8]) -> Patch {
-        Patch {
-            buf,
-            pos: 0,
-        }
-    }
 
     fn next<F>(&mut self, filter: F, return_on_false: bool) -> Option<Line<'a>> where F: Fn(&Line) -> bool {
         if self.pos >= self.buf.len() {
@@ -275,8 +268,12 @@ impl<'a> Patch<'a> {
         let mut pos = self.pos;
         for (n, c) in self.buf[self.pos..].iter().enumerate() {
             if *c == b'\n' {
+                let mut npos = self.pos + n;
+                if npos > 0 && npos - 1 < self.buf.len() && self.buf[npos - 1] == b'\r' {
+                    npos -= 1;
+                }
                 let line = Line {
-                    buf: &self.buf[pos..self.pos + n],
+                    buf: &self.buf[pos..npos],
                     pos: 0,
                 };
                 if filter(&line) {
@@ -289,20 +286,6 @@ impl<'a> Patch<'a> {
             }
         }
         None
-    }
-
-    fn skip_lines(&mut self, to_skip: usize) {
-        let mut to_skip = to_skip;
-        for (n, c) in self.buf[self.pos..].iter().enumerate() {
-            if *c == b'\n' {
-                if to_skip == 1 {
-                    self.pos += n + 1;
-                    break;
-                } else {
-                    to_skip -= 1;
-                }
-            }
-        }
     }
 
     fn skip_until_empty_line(&mut self) {
@@ -346,16 +329,16 @@ impl<'a> Patch<'a> {
     }
 
     fn hunk_change(line: &Line) -> bool {
-        line.first_is(b'-') || line.first_is(b'+') || line.first_is(b' ')
+        line.first_is(b'-') || line.first_is(b'+') || line.first_is(b' ') || line.starts_with(&[b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e', b' '])
     }
 }
 
 #[cfg(test)]
 mod tests {
-    
+
     use std::fs::{self, DirEntry};
     use std::io::BufReader;
-    
+
     use super::*;
 
     fn compare(json: &Vec<Changes>, patch: &mut Vec<Changes>) {
@@ -363,8 +346,8 @@ mod tests {
         assert!(json.len() == patch.len(), "Not the same length");
         for (cj, cp) in json.iter().zip(patch.iter()) {
             assert!(cj.filename == cp.filename, format!("Not the same filename: {} ({} expected)", cp.filename, cj.filename));
-            //assert!(cj.renamed_from == cp.renamed_from, format!("Not the same filename: {} ({} expected)", cj.filename, cp.filename)));
-            assert!(cj.lines.len() == cp.lines.len(), "Not the same length for changed lines");
+            assert!(cj.renamed_from == cp.renamed_from, format!("Not the same filename: {:?} ({:?} expected)", cj.filename, cp.filename));
+            assert!(cj.lines.len() == cp.lines.len(), format!("Not the same length for changed lines: {} ({} expected)", cp.lines.len(), cj.lines.len()));
             for (lj, lp) in cj.lines.iter().zip(cp.lines.iter()) {
                 assert!(lj == lp, format!("Not the same line change: {:?} ({:?} expected", lp, lj));
             }
@@ -478,7 +461,7 @@ mod tests {
         for entry in fs::read_dir(PathBuf::from("./tests/output")).unwrap() {
             let entry = entry.unwrap();
             let path = entry.path();
-            if !path.is_dir() && path.extension().unwrap() == "json" {
+            if !path.is_dir() && path.extension().unwrap() == "json" {//&& path == PathBuf::from("./tests/output/1a669c064a39.json") {
                 let file = File::open(&path).unwrap();
                 let reader = BufReader::new(file);
                 let json_patch = serde_json::from_reader::<_, Vec<Changes>>(reader).unwrap();
@@ -491,5 +474,11 @@ mod tests {
                 compare(&json_patch, &mut patch);
             }
         }
+        //assert!(false);
     }
+
+    /*#[test]
+    fn test_parse1() {
+    let p = Patch::get(&PathBuf::from("./tests/patches/6f3709b38781.patch")).unwrap();
+}*/
 }
