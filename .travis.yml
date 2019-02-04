@@ -10,7 +10,7 @@ matrix:
       addons:
         apt:  
           sources:
-            - sourceline: 'deb http://deb.debian.org/debian sid main'
+            - debian-sid
           packages:
             - grcov
 
