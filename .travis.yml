@@ -2,7 +2,7 @@ sudo: false
 language: rust
 
 before_install:
-  - sudo apt-get install -y dpkg
+  - curl -L https://github.com/mozilla/grcov/releases/download/v0.4.1/grcov-linux-x86_64.tar.bz2 | tar jxf -
 
 matrix:
   include:
@@ -11,12 +11,6 @@ matrix:
 
     - os: linux
       rust: nightly
-      addons:
-        apt:  
-          sources:
-            - debian-sid
-          packages:
-            - grcov
 
 script:
     - |
@@ -30,6 +24,6 @@ script:
     - |
       if [ "$TRAVIS_RUST_VERSION" = "nightly" ] && [ -z "$TRAVIS_TAG" ]; then
         zip -0 ccov.zip `find . \( -name "rust_parsepatch*.gc*" \) -print`;
-        grcov ccov.zip -s . -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" > lcov.info;
+        ./grcov ccov.zip -s . -t lcov --llvm --branch --ignore-not-existing --ignore-dir "/*" > lcov.info;
         bash <(curl -s https://codecov.io/bash) -f lcov.info;
       fi
