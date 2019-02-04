@@ -1,0 +1,633 @@
+
+# HG changeset patch
+# User Robin Miller <mill2540@msu.edu>
+# Date 1508014837 14400
+# Node ID b184c87f760647359af35a6b4e839d6f9b0e4fcf
+# Parent  07704c3a2fde056843567b8a3d1108043b0365e7
+Bug 1403686 - Crops screenshots to a region based on a selector. Initial Impl of cropping with Chris Cho.  r=jaws
+
+Can now crop screenshots to a given list of XUL elements, which is specified by CSS selectors or custom functions.
+Also changed behavior so that if different window types are given, the application exits.
+
+MozReview-Commit-ID: CqmIJFufONw
+
+diff --git a/browser/tools/mozscreenshots/browser.ini b/browser/tools/mozscreenshots/browser.ini
+--- a/browser/tools/mozscreenshots/browser.ini
++++ b/browser/tools/mozscreenshots/browser.ini
+@@ -1,7 +1,8 @@
+ [DEFAULT]
+ subsuite = screenshots
+ support-files =
+   head.js
+ 
+ [browser_screenshots.js]
++[browser_screenshots_cropping.js]
+ [browser_boundingbox.js]
+diff --git a/browser/tools/mozscreenshots/browser_screenshots_cropping.js b/browser/tools/mozscreenshots/browser_screenshots_cropping.js
+new file mode 100644
+--- /dev/null
++++ b/browser/tools/mozscreenshots/browser_screenshots_cropping.js
+@@ -0,0 +1,82 @@
++/* This Source Code Form is subject to the terms of the Mozilla Public
++ * License, v. 2.0. If a copy of the MPL was not distributed with this
++ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
++
++"use strict";
++
++Cu.import("resource://gre/modules/Geometry.jsm", this);
++
++async function draw(window, src) {
++  const { document, Image } = window;
++
++  const promise = new Promise((resolve, reject) => {
++    const img = new Image();
++
++    img.onload = function() {
++      // Create a new offscreen canvas
++      const canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
++      canvas.width = img.naturalWidth;
++      canvas.height = img.naturalHeight;
++      const ctx = canvas.getContext("2d");
++
++      ctx.drawImage(img, 0, 0);
++
++      resolve(canvas);
++    };
++
++    img.onerror = function() {
++      reject(`error loading image ${src}`);
++    };
++
++    // Load the src image for drawing
++    img.src = src;
++  });
++
++  return promise;
++}
++
++async function compareImages(window, expected, test) {
++  const testCanvas = await draw(window, test);
++  const expectedCanvas = await draw(window, expected);
++
++  is(testCanvas.width, expectedCanvas.width, "The test and expected images must be the same size");
++  is(testCanvas.height, expectedCanvas.height, "The test and expected images must be the same size");
++
++  const nsIDOMWindowUtils = window.getInterface(Ci.nsIDOMWindowUtils);
++  return nsIDOMWindowUtils.compareCanvases(expectedCanvas, testCanvas, {});
++}
++
++async function cropAndCompare(window, src, expected, test, region) {
++  await TestRunner._cropImage(window, src, region, test);
++
++  return compareImages(window, expected, OS.Path.toFileURI(test));
++}
++
++add_task(async function crop() {
++  const window = Services.wm.getMostRecentWindow("navigator:browser");
++
++  const tmp = OS.Constants.Path.tmpDir;
++  is(await cropAndCompare(
++      window,
++      "chrome://mozscreenshots/content/lib/robot.png",
++      "chrome://mozscreenshots/content/lib/robot_upperleft.png",
++      OS.Path.join(tmp, "test_cropped_upperleft.png"),
++      new Rect(0, 0, 32, 32)
++  ), 0, "The image should be cropped to the upper left quadrant");
++
++  is(await cropAndCompare(
++      window,
++      "chrome://mozscreenshots/content/lib/robot.png",
++      "chrome://mozscreenshots/content/lib/robot_center.png",
++      OS.Path.join(tmp, "test_cropped_center.png"),
++      new Rect(16, 16, 32, 32)
++  ), 0, "The image should be cropped to the center of the image");
++
++  is(await cropAndCompare(
++      window,
++      "chrome://mozscreenshots/content/lib/robot.png",
++      "chrome://mozscreenshots/content/lib/robot_uncropped.png",
++      OS.Path.join(tmp, "test_uncropped.png"),
++      new Rect(-8, -9, 80, 80)
++  ), 0, "The image should be not be cropped, and the cropping region should be clipped to the size of the image");
++});
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/Screenshot.jsm b/browser/tools/mozscreenshots/mozscreenshots/extension/Screenshot.jsm
+--- a/browser/tools/mozscreenshots/mozscreenshots/extension/Screenshot.jsm
++++ b/browser/tools/mozscreenshots/mozscreenshots/extension/Screenshot.jsm
+@@ -59,21 +59,21 @@ this.Screenshot = {
+     }
+   },
+ 
+   _buildImagePath(baseName) {
+     return OS.Path.join(this._path, this._imagePrefix + baseName + this._imageExtension);
+   },
+ 
+   // Capture the whole screen using an external application.
+-  captureExternal(filename) {
++  async captureExternal(filename) {
+     let imagePath = this._buildImagePath(filename);
+-    return this._screenshotFunction(imagePath).then(() => {
+-      log.debug("saved screenshot: " + filename);
+-    });
++    await this._screenshotFunction(imagePath);
++    log.debug("saved screenshot: " + filename);
++    return imagePath;
+   },
+ 
+   // helpers
+ 
+   _screenshotWindows(filename) {
+     return new Promise((resolve, reject) => {
+       let exe = Services.dirsvc.get("GreBinD", Ci.nsIFile);
+       exe.append("screenshot.exe");
+@@ -97,22 +97,16 @@ this.Screenshot = {
+         let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+         file.initWithPath("/usr/sbin/screencapture");
+ 
+         let process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+         process.init(file);
+ 
+         // Run the process.
+         let args = ["-x", "-t", "png"];
+-        // Darwin version number for OS X 10.6 is 10.x
+-        if (windowID && Services.sysinfo.getProperty("version").indexOf("10.") !== 0) {
+-          // Capture only that window on 10.7+
+-          args.push("-l");
+-          args.push(windowID);
+-        }
+         args.push(filename);
+         process.runAsync(args, args.length, this._processObserver(resolve, reject));
+       });
+     };
+ 
+     function readWindowID() {
+       let decoder = new TextDecoder();
+       let promise = OS.File.read("/tmp/mozscreenshots-windowid");
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/TestRunner.jsm b/browser/tools/mozscreenshots/mozscreenshots/extension/TestRunner.jsm
+--- a/browser/tools/mozscreenshots/mozscreenshots/extension/TestRunner.jsm
++++ b/browser/tools/mozscreenshots/mozscreenshots/extension/TestRunner.jsm
+@@ -15,17 +15,17 @@ Cu.import("resource://gre/modules/FileUt
+ Cu.import("resource://gre/modules/Services.jsm");
+ Cu.import("resource://gre/modules/Timer.jsm");
+ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+ Cu.import("resource://gre/modules/osfile.jsm");
+ Cu.import("resource://gre/modules/Geometry.jsm");
+ 
+ XPCOMUtils.defineLazyModuleGetter(this, "BrowserTestUtils",
+                                   "resource://testing-common/BrowserTestUtils.jsm");
+-
++// Screenshot.jsm must be imported this way for xpcshell tests to work
+ XPCOMUtils.defineLazyModuleGetter(this, "Screenshot", "chrome://mozscreenshots/content/Screenshot.jsm");
+ 
+ // Create a new instance of the ConsoleAPI so we can control the maxLogLevel with a pref.
+ // See LOG_LEVELS in Console.jsm. Common examples: "All", "Info", "Warn", & "Error".
+ const PREF_LOG_LEVEL = "extensions.mozscreenshots@mozilla.org.loglevel";
+ XPCOMUtils.defineLazyGetter(this, "log", () => {
+   let ConsoleAPI = Cu.import("resource://gre/modules/Console.jsm", {}).ConsoleAPI;
+   let consoleOptions = {
+@@ -319,39 +319,97 @@ this.TestRunner = {
+       log.warn("\tskipped configuration: " + ex);
+       // Don't set lastCombo here so that we properly know which configurations
+       // need to be applied since the last screenshot
+ 
+       // Return so we don't take a screenshot.
+       return;
+     }
+ 
+-    await this._onConfigurationReady(combo);
++    // Collect selectors from combo configs for cropping region
++    let windowType;
++    const finalSelectors = [];
++    for (const obj of combo) {
++      if (!windowType) {
++        windowType = obj.windowType;
++      } else if (windowType !== obj.windowType) {
++        log.warn("\tConfigurations with multiple window types are not allowed");
++        return;
++      }
++      for (const selector of obj.selectors) {
++        finalSelectors.push(selector);
++      }
++    }
++
++    const rect = this._findBoundingBox(finalSelectors, windowType);
++    await this._onConfigurationReady(combo, rect);
+   },
+ 
+-  _onConfigurationReady(combo) {
+-    let delayedScreenshot = () => {
+-      let filename = padLeft(this.currentComboIndex + 1,
+-                             String(this.combos.length).length) + this._comboName(combo);
+-      return Screenshot.captureExternal(filename)
+-        .then(() => {
+-          this.completedCombos++;
+-        });
+-    };
++  async _onConfigurationReady(combo, rect) {
++    let filename = padLeft(this.currentComboIndex + 1,
++                           String(this.combos.length).length) + this._comboName(combo);
++    const imagePath = await Screenshot.captureExternal(filename);
+ 
++    let browserWindow = Services.wm.getMostRecentWindow("navigator:browser");
++    await this._cropImage(browserWindow, OS.Path.toFileURI(imagePath), rect, imagePath);
++    this.completedCombos++;
+     log.debug("_onConfigurationReady");
+-    return delayedScreenshot();
+   },
+ 
+   _comboName(combo) {
+     return combo.reduce(function(a, b) {
+       return a + "_" + b.name;
+     }, "");
+   },
+ 
++  async _cropImage(window, srcPath, rect, targetPath) {
++    const { document, Image } = window;
++    const promise = new Promise((resolve, reject) => {
++      const img = new Image();
++      img.onload = function() {
++        // Clip the cropping region to the size of the screenshot
++        // This is necessary mostly to deal with offscreen windows, since we
++        // are capturing an image of the operating system's desktop.
++        rect.left = Math.max(0, rect.left);
++        rect.right = Math.min(img.naturalWidth, rect.right);
++        rect.top = Math.max(0, rect.top);
++        rect.bottom = Math.min(img.naturalHeight, rect.bottom);
++
++        // Create a new offscreen canvas with the width and height given by the
++        // size of the region we want to crop to
++        const canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
++        canvas.width = rect.width;
++        canvas.height = rect.height;
++        const ctx = canvas.getContext("2d");
++        // By drawing the image with the negative offset, the unwanted regions
++        // are drawn off canvas, and are not captured when the canvas is saved.
++        ctx.drawImage(img, -rect.x, -rect.y);
++        // Converts the canvas to a binary blob, which can be saved to a png
++        canvas.toBlob((blob) => {
++          // Use a filereader to convert the raw binary blob into a writable buffer
++          const fr = new FileReader();
++          fr.onload = function(e) {
++            const buffer = new Uint8Array(e.target.result);
++            // Save the file and complete the promise
++            OS.File.writeAtomic(targetPath, buffer, {}).then(resolve);
++          };
++          // Do the conversion
++          fr.readAsArrayBuffer(blob);
++        });
++      };
++
++      img.onerror = function() {
++        reject(`error loading image ${srcPath}`);
++      };
++      // Load the src image for drawing
++      img.src = srcPath;
++    });
++    return promise;
++  },
++
+   /**
+    * Finds the index of the first comma that is not enclosed within square brackets.
+    * @param {String} envVar - the string that needs to be searched
+    * @return {Integer} index of valid comma or -1 if not found.
+    */
+   findComma(envVar) {
+     let nestingDepth = 0;
+     for (let i = 0; i < envVar.length; i++) {
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/configurations/TabsInTitlebar.jsm b/browser/tools/mozscreenshots/mozscreenshots/extension/configurations/TabsInTitlebar.jsm
+--- a/browser/tools/mozscreenshots/mozscreenshots/extension/configurations/TabsInTitlebar.jsm
++++ b/browser/tools/mozscreenshots/mozscreenshots/extension/configurations/TabsInTitlebar.jsm
+@@ -24,16 +24,16 @@ this.TabsInTitlebar = {
+           return Promise.reject("TabsInTitlebar isn't supported on Linux");
+         }
+         Services.prefs.setBoolPref(PREF_TABS_IN_TITLEBAR, true);
+         return undefined;
+       },
+     },
+ 
+     tabsOutsideTitlebar: {
+-      selectors: ["#navigator-toolbox", "#titlebar"],
++      selectors: ["#navigator-toolbox"].concat(Services.appinfo.OS == "Linux" ? [] : ["#titlebar"]),
+       async applyConfig() {
+         Services.prefs.setBoolPref(PREF_TABS_IN_TITLEBAR, false);
+       },
+     },
+ 
+   },
+ };
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_center.png b/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_center.png
+new file mode 100644
+index e69de29bb2d1d6434b8b29ae775ad8c2e48c5391..ecaaf1b02e2228a912b57bd4cf7c3ce79215a382
+GIT binary patch
+literal 3441
+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
+Tf6Ye300000NkvXXu0mjfJiVRw
+
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_uncropped.png b/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_uncropped.png
+new file mode 100644
+index e69de29bb2d1d6434b8b29ae775ad8c2e48c5391..ce271b1007e0ffc028a471ee39f95a036b3d1966
+GIT binary patch
+literal 9807
+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
+W=!0|G+v$RW{D5L|qSe9%{{I8OLqm%I
+
+diff --git a/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_upperleft.png b/browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_upperleft.png
+new file mode 100644
+index e69de29bb2d1d6434b8b29ae775ad8c2e48c5391..f1f0a04412e66a12f89d580c4ad1e44b0b2c4ffc
+GIT binary patch
+literal 2137
+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
+P00000NkvXXu0mjf`~@pt
+
+

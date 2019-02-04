@@ -1,0 +1,2631 @@
+
+# HG changeset patch
+# User Sebastian Hengst <archaeopteryx@coole-files.de>
+# Date 1511564501 -7200
+# Node ID d7a700707ddb8ffe9b1297868cb664868350c0db
+# Parent  ca8c86e229df948fe7d06590b7435ddb9e13a1a6
+Backed out 15 changesets (bug 951793) because it landed before the necessary servo changes. r=backout requested by emilio on a CLOSED TREE
+
+Backed out changeset ca8c86e229df (bug 951793)
+Backed out changeset 6eef6403fa71 (bug 951793)
+Backed out changeset a5e529f52fb1 (bug 951793)
+Backed out changeset 054e837609d0 (bug 951793)
+Backed out changeset 713a3c9617ce (bug 951793)
+Backed out changeset 884913aa1668 (bug 951793)
+Backed out changeset c3340b84e534 (bug 951793)
+Backed out changeset 50fe3c6ac486 (bug 951793)
+Backed out changeset be4e22e5c257 (bug 951793)
+Backed out changeset 7055bd5dfc4e (bug 951793)
+Backed out changeset fa6da1e723cf (bug 951793)
+Backed out changeset 386f77004d89 (bug 951793)
+Backed out changeset fa82cdc01408 (bug 951793)
+Backed out changeset 867d8ea5355c (bug 951793)
+Backed out changeset e61ac8e48971 (bug 951793)
+
+diff --git a/devtools/shared/css/generated/properties-db.js b/devtools/shared/css/generated/properties-db.js
+--- a/devtools/shared/css/generated/properties-db.js
++++ b/devtools/shared/css/generated/properties-db.js
+@@ -3128,18 +3128,16 @@ exports.CSS_PROPERTIES = {
+       "pointer-events",
+       "position",
+       "quotes",
+       "resize",
+       "right",
+       "ruby-align",
+       "ruby-position",
+       "scroll-behavior",
+-      "overscroll-behavior-x",
+-      "overscroll-behavior-y",
+       "scroll-snap-coordinate",
+       "scroll-snap-destination",
+       "scroll-snap-points-x",
+       "scroll-snap-points-y",
+       "scroll-snap-type-x",
+       "scroll-snap-type-y",
+       "shape-outside",
+       "shape-rendering",
+@@ -8310,62 +8308,16 @@ exports.CSS_PROPERTIES = {
+       "hidden",
+       "inherit",
+       "initial",
+       "scroll",
+       "unset",
+       "visible"
+     ]
+   },
+-  "overscroll-behavior": {
+-    "isInherited": false,
+-    "subproperties": [
+-      "overscroll-behavior-x",
+-      "overscroll-behavior-y"
+-    ],
+-    "supports": [],
+-    "values": [
+-      "auto",
+-      "contain",
+-      "inherit",
+-      "initial",
+-      "none",
+-      "unset"
+-    ]
+-  },
+-  "overscroll-behavior-x": {
+-    "isInherited": false,
+-    "subproperties": [
+-      "overscroll-behavior-x"
+-    ],
+-    "supports": [],
+-    "values": [
+-      "auto",
+-      "contain",
+-      "inherit",
+-      "initial",
+-      "none",
+-      "unset"
+-    ]
+-  },
+-  "overscroll-behavior-y": {
+-    "isInherited": false,
+-    "subproperties": [
+-      "overscroll-behavior-y"
+-    ],
+-    "supports": [],
+-    "values": [
+-      "auto",
+-      "contain",
+-      "inherit",
+-      "initial",
+-      "none",
+-      "unset"
+-    ]
+-  },
+   "padding": {
+     "isInherited": false,
+     "subproperties": [
+       "padding-top",
+       "padding-right",
+       "padding-bottom",
+       "padding-left"
+     ],
+@@ -10014,28 +9966,16 @@ exports.PREFERENCES = [
+     "paint-order",
+     "svg.paint-order.enabled"
+   ],
+   [
+     "scroll-behavior",
+     "layout.css.scroll-behavior.property-enabled"
+   ],
+   [
+-    "overscroll-behavior",
+-    "layout.css.overscroll-behavior.enabled"
+-  ],
+-  [
+-    "overscroll-behavior-x",
+-    "layout.css.overscroll-behavior.enabled"
+-  ],
+-  [
+-    "overscroll-behavior-y",
+-    "layout.css.overscroll-behavior.enabled"
+-  ],
+-  [
+     "scroll-snap-coordinate",
+     "layout.css.scroll-snap.enabled"
+   ],
+   [
+     "scroll-snap-destination",
+     "layout.css.scroll-snap.enabled"
+   ],
+   [
+diff --git a/gfx/layers/FrameMetrics.cpp b/gfx/layers/FrameMetrics.cpp
+--- a/gfx/layers/FrameMetrics.cpp
++++ b/gfx/layers/FrameMetrics.cpp
+@@ -1,50 +1,24 @@
+ /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+ /* vim: set ts=8 sts=2 et sw=2 tw=80: */
+ /* This Source Code Form is subject to the terms of the Mozilla Public
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ #include "FrameMetrics.h"
+ #include "gfxPrefs.h"
+-#include "nsStyleConsts.h"
+ 
+ namespace mozilla {
+ namespace layers {
+ 
+ const FrameMetrics::ViewID FrameMetrics::NULL_SCROLL_ID = 0;
+ 
+ void
+ ScrollMetadata::SetUsesContainerScrolling(bool aValue) {
+   MOZ_ASSERT_IF(aValue, gfxPrefs::LayoutUseContainersForRootFrames());
+   mUsesContainerScrolling = aValue;
+ }
+ 
+-static OverscrollBehavior
+-ToOverscrollBehavior(StyleOverscrollBehavior aBehavior)
+-{
+-  switch (aBehavior) {
+-  case StyleOverscrollBehavior::Auto:
+-    return OverscrollBehavior::Auto;
+-  case StyleOverscrollBehavior::Contain:
+-    return OverscrollBehavior::Contain;
+-  case StyleOverscrollBehavior::None:
+-    return OverscrollBehavior::None;
+-  }
+-  MOZ_ASSERT_UNREACHABLE("Invalid overscroll behavior");
+-  return OverscrollBehavior::Auto;
+-}
+-
+-OverscrollBehaviorInfo
+-OverscrollBehaviorInfo::FromStyleConstants(StyleOverscrollBehavior aBehaviorX,
+-                                           StyleOverscrollBehavior aBehaviorY)
+-{
+-  OverscrollBehaviorInfo result;
+-  result.mBehaviorX = ToOverscrollBehavior(aBehaviorX);
+-  result.mBehaviorY = ToOverscrollBehavior(aBehaviorY);
+-  return result;
+-}
+-
+ StaticAutoPtr<const ScrollMetadata> ScrollMetadata::sNullMetadata;
+ 
+ }
+ }
+diff --git a/gfx/layers/FrameMetrics.h b/gfx/layers/FrameMetrics.h
+--- a/gfx/layers/FrameMetrics.h
++++ b/gfx/layers/FrameMetrics.h
+@@ -716,42 +716,16 @@ struct ScrollSnapInfo {
+   // shipping the raw nsStyleCoord::CalcValue over IPC).
+   nsPoint mScrollSnapDestination;
+ 
+   // The scroll-snap-coordinates of any descendant frames of the scroll frame,
+   // relative to the origin of the scrolled frame.
+   nsTArray<nsPoint> mScrollSnapCoordinates;
+ };
+ 
+-MOZ_DEFINE_ENUM_CLASS_WITH_BASE(
+-  OverscrollBehavior, uint8_t, (
+-    Auto,
+-    Contain,
+-    None
+-));
+-
+-struct OverscrollBehaviorInfo {
+-  OverscrollBehaviorInfo()
+-    : mBehaviorX(OverscrollBehavior::Auto)
+-    , mBehaviorY(OverscrollBehavior::Auto)
+-  {}
+-
+-  // Construct from StyleOverscrollBehavior values.
+-  static OverscrollBehaviorInfo FromStyleConstants(StyleOverscrollBehavior aBehaviorX,
+-                                                   StyleOverscrollBehavior aBehaviorY);
+-
+-  bool operator==(const OverscrollBehaviorInfo& aOther) const {
+-    return mBehaviorX == aOther.mBehaviorX &&
+-           mBehaviorY == aOther.mBehaviorY;
+-  }
+-
+-  OverscrollBehavior mBehaviorX;
+-  OverscrollBehavior mBehaviorY;
+-};
+-
+ /**
+  * A clip that applies to a layer, that may be scrolled by some of the
+  * scroll frames associated with the layer.
+  */
+ struct LayerClip {
+   friend struct IPC::ParamTraits<mozilla::layers::LayerClip>;
+ 
+ public:
+@@ -818,35 +792,33 @@ public:
+     , mLineScrollAmount(0, 0)
+     , mPageScrollAmount(0, 0)
+     , mScrollClip()
+     , mHasScrollgrab(false)
+     , mAllowVerticalScrollWithWheel(false)
+     , mIsLayersIdRoot(false)
+     , mUsesContainerScrolling(false)
+     , mForceDisableApz(false)
+-    , mOverscrollBehavior()
+   {}
+ 
+   bool operator==(const ScrollMetadata& aOther) const
+   {
+     return mMetrics == aOther.mMetrics &&
+            mSnapInfo == aOther.mSnapInfo &&
+            mScrollParentId == aOther.mScrollParentId &&
+            mBackgroundColor == aOther.mBackgroundColor &&
+            // don't compare mContentDescription
+            mLineScrollAmount == aOther.mLineScrollAmount &&
+            mPageScrollAmount == aOther.mPageScrollAmount &&
+            mScrollClip == aOther.mScrollClip &&
+            mHasScrollgrab == aOther.mHasScrollgrab &&
+            mAllowVerticalScrollWithWheel == aOther.mAllowVerticalScrollWithWheel &&
+            mIsLayersIdRoot == aOther.mIsLayersIdRoot &&
+            mUsesContainerScrolling == aOther.mUsesContainerScrolling &&
+-           mForceDisableApz == aOther.mForceDisableApz &&
+-           mOverscrollBehavior == aOther.mOverscrollBehavior;
++           mForceDisableApz == aOther.mForceDisableApz;
+   }
+ 
+   bool operator!=(const ScrollMetadata& aOther) const
+   {
+     return !operator==(aOther);
+   }
+ 
+   bool IsDefault() const
+@@ -946,23 +918,16 @@ public:
+   }
+   void SetForceDisableApz(bool aForceDisable) {
+     mForceDisableApz = aForceDisable;
+   }
+   bool IsApzForceDisabled() const {
+     return mForceDisableApz;
+   }
+ 
+-  void SetOverscrollBehavior(const OverscrollBehaviorInfo& aOverscrollBehavior) {
+-    mOverscrollBehavior = aOverscrollBehavior;
+-  }
+-  const OverscrollBehaviorInfo& GetOverscrollBehavior() const {
+-    return mOverscrollBehavior;
+-  }
+-
+ private:
+   FrameMetrics mMetrics;
+ 
+   // Information used to determine where to snap to for a given scroll.
+   ScrollSnapInfo mSnapInfo;
+ 
+   // The ViewID of the scrollable frame to which overscroll should be handed off.
+   ViewID mScrollParentId;
+@@ -1002,19 +967,16 @@ private:
+   // True if scrolling using containers, false otherwise. This can be removed
+   // when containerful scrolling is eliminated.
+   bool mUsesContainerScrolling:1;
+ 
+   // Whether or not the compositor should actually do APZ-scrolling on this
+   // scrollframe.
+   bool mForceDisableApz:1;
+ 
+-  // The overscroll behavior for this scroll frame.
+-  OverscrollBehaviorInfo mOverscrollBehavior;
+-
+   // WARNING!!!!
+   //
+   // When adding new fields to ScrollMetadata, the following places should be
+   // updated to include them (as needed):
+   //    ScrollMetadata::operator ==
+   //    AsyncPanZoomController::NotifyLayersUpdated
+   //    The ParamTraits specialization in GfxMessageUtils.h
+   //
+diff --git a/gfx/layers/LayersLogging.cpp b/gfx/layers/LayersLogging.cpp
+--- a/gfx/layers/LayersLogging.cpp
++++ b/gfx/layers/LayersLogging.cpp
+@@ -173,65 +173,31 @@ AppendToString(std::stringstream& aStrea
+   }
+   if (!e.mVerticalPanRegion.IsEmpty()) {
+     AppendToString(aStream, e.mVerticalPanRegion, " VerticalPanRegion=", "");
+   }
+   aStream << "}" << sfx;
+ }
+ 
+ void
+-AppendToString(std::stringstream& aStream, OverscrollBehavior aBehavior,
+-               const char* pfx, const char* sfx)
+-{
+-  aStream << pfx;
+-  switch (aBehavior) {
+-  case OverscrollBehavior::Auto: {
+-    aStream << "auto";
+-    break;
+-  }
+-  case OverscrollBehavior::Contain: {
+-    aStream << "contain";
+-    break;
+-  }
+-  case OverscrollBehavior::None: {
+-    aStream << "none";
+-    break;
+-  }
+-  }
+-  aStream << sfx;
+-}
+-
+-void
+ AppendToString(std::stringstream& aStream, const ScrollMetadata& m,
+                const char* pfx, const char* sfx)
+ {
+   aStream << pfx;
+   AppendToString(aStream, m.GetMetrics(), "{ [metrics=");
+   AppendToString(aStream, m.GetBackgroundColor(), "] [color=");
+   if (m.GetScrollParentId() != FrameMetrics::NULL_SCROLL_ID) {
+     AppendToString(aStream, m.GetScrollParentId(), "] [scrollParent=");
+   }
+   if (m.HasScrollClip()) {
+     AppendToString(aStream, m.ScrollClip().GetClipRect(), "] [clip=");
+   }
+   if (m.HasMaskLayer()) {
+     AppendToString(aStream, m.ScrollClip().GetMaskLayerIndex().value(), "] [mask=");
+   }
+-  OverscrollBehavior overscrollX = m.GetOverscrollBehavior().mBehaviorX;
+-  OverscrollBehavior overscrollY = m.GetOverscrollBehavior().mBehaviorY;
+-  if (overscrollX == overscrollY && overscrollX != OverscrollBehavior::Auto) {
+-    AppendToString(aStream, overscrollX, "] [overscroll=");
+-  } else {
+-    if (overscrollX != OverscrollBehavior::Auto) {
+-      AppendToString(aStream, overscrollX, "] [overscroll-x=");
+-    }
+-    if (overscrollY != OverscrollBehavior::Auto) {
+-      AppendToString(aStream, overscrollY, "] [overscroll-y=");
+-    }
+-  }
+   aStream << "] }" << sfx;
+ }
+ 
+ void
+ AppendToString(std::stringstream& aStream, const FrameMetrics& m,
+                const char* pfx, const char* sfx, bool detailed)
+ {
+   aStream << pfx;
+diff --git a/gfx/layers/LayersLogging.h b/gfx/layers/LayersLogging.h
+--- a/gfx/layers/LayersLogging.h
++++ b/gfx/layers/LayersLogging.h
+@@ -167,20 +167,16 @@ AppendToString(std::stringstream& aStrea
+   aStream << ", covers=" << r.CoversBounds() << ")" << sfx;
+ }
+ 
+ void
+ AppendToString(std::stringstream& aStream, const EventRegions& e,
+                const char* pfx="", const char* sfx="");
+ 
+ void
+-AppendToString(std::stringstream& aStream, OverscrollBehavior aBehavior,
+-               const char* pfx="", const char* sfx="");
+-
+-void
+ AppendToString(std::stringstream& aStream, const ScrollMetadata& m,
+                const char* pfx="", const char* sfx="");
+ 
+ void
+ AppendToString(std::stringstream& aStream, const FrameMetrics& m,
+                const char* pfx="", const char* sfx="", bool detailed = false);
+ 
+ void
+diff --git a/gfx/layers/apz/src/APZCTreeManager.cpp b/gfx/layers/apz/src/APZCTreeManager.cpp
+--- a/gfx/layers/apz/src/APZCTreeManager.cpp
++++ b/gfx/layers/apz/src/APZCTreeManager.cpp
+@@ -1193,19 +1193,16 @@ APZCTreeManager::ReceiveInputEvent(Input
+             apzc,
+             /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,
+             panInput, aOutInputBlockId);
+ 
+         // Update the out-parameters so they are what the caller expects.
+         apzc->GetGuid(aOutTargetGuid);
+         panInput.mPanStartPoint = *untransformedStartPoint;
+         panInput.mPanDisplacement = *untransformedDisplacement;
+-
+-        panInput.mOverscrollBehaviorAllowsSwipe =
+-            apzc->OverscrollBehaviorAllowsSwipe();
+       }
+       break;
+     } case PINCHGESTURE_INPUT: {  // note: no one currently sends these
+       PinchGestureInput& pinchInput = aEvent.AsPinchGestureInput();
+       RefPtr<AsyncPanZoomController> apzc = GetTargetAPZC(pinchInput.mFocusPoint,
+                                                             &hitResult);
+       if (apzc) {
+         MOZ_ASSERT(hitResult != HitNothing);
+@@ -2027,121 +2024,110 @@ APZCTreeManager::DispatchScroll(AsyncPan
+     // displacement in its own coordinate space, and make use of it
+     // (e.g. by going into overscroll).
+     if (!TransformDisplacement(this, next, aPrev, aStartPoint, aEndPoint)) {
+       NS_WARNING("Failed to untransform scroll points during dispatch");
+     }
+   }
+ }
+ 
+-ParentLayerPoint
++void
+ APZCTreeManager::DispatchFling(AsyncPanZoomController* aPrev,
+-                               const FlingHandoffState& aHandoffState)
++                               FlingHandoffState& aHandoffState)
+ {
+   // If immediate handoff is disallowed, do not allow handoff beyond the
+   // single APZC that's scrolled by the input block that triggered this fling.
+   if (aHandoffState.mIsHandoff &&
+       !gfxPrefs::APZAllowImmediateHandoff() &&
+       aHandoffState.mScrolledApzc == aPrev) {
+-    return aHandoffState.mVelocity;
++    return;
+   }
+ 
+   const OverscrollHandoffChain* chain = aHandoffState.mChain;
+   RefPtr<AsyncPanZoomController> current;
+   uint32_t overscrollHandoffChainLength = chain->Length();
+   uint32_t startIndex;
+ 
++  // This will store any velocity left over after the entire handoff.
++  ParentLayerPoint finalResidualVelocity = aHandoffState.mVelocity;
++
+   // The fling's velocity needs to be transformed from the screen coordinates
+   // of |aPrev| to the screen coordinates of |next|. To transform a velocity
+   // correctly, we need to convert it to a displacement. For now, we do this
+   // by anchoring it to a start point of (0, 0).
+   // TODO: For this to be correct in the presence of 3D transforms, we should
+   // use the end point of the touch that started the fling as the start point
+   // rather than (0, 0).
+   ParentLayerPoint startPoint;  // (0, 0)
+   ParentLayerPoint endPoint;
+ 
+   if (aHandoffState.mIsHandoff) {
+     startIndex = chain->IndexOf(aPrev) + 1;
+ 
+     // IndexOf will return aOverscrollHandoffChain->Length() if
+     // |aPrev| is not found.
+     if (startIndex >= overscrollHandoffChainLength) {
+-      return aHandoffState.mVelocity;
++      return;
+     }
+   } else {
+     startIndex = 0;
+   }
+ 
+-  // This will store any velocity left over after the entire handoff.
+-  ParentLayerPoint finalResidualVelocity = aHandoffState.mVelocity;
+-
+-  ParentLayerPoint currentVelocity = aHandoffState.mVelocity;
+   for (; startIndex < overscrollHandoffChainLength; startIndex++) {
+     current = chain->GetApzcAtIndex(startIndex);
+ 
+-    // Make sure the apzc about to be handled can be handled
++    // Make sure the apcz about to be handled can be handled
+     if (current == nullptr || current->IsDestroyed()) {
+-      break;
++      return;
+     }
+ 
+-    endPoint = startPoint + currentVelocity;
++    endPoint = startPoint + aHandoffState.mVelocity;
+ 
+-    RefPtr<AsyncPanZoomController> prevApzc = (startIndex > 0)
+-                                            ? chain->GetApzcAtIndex(startIndex - 1)
+-                                            : nullptr;
+-
+-    // Only transform when current apzc can be transformed with previous
+-    if (prevApzc) {
++    // Only transform when current apcz can be transformed with previous
++    if (startIndex > 0) {
+       if (!TransformDisplacement(this,
+-                                 prevApzc,
++                                 chain->GetApzcAtIndex(startIndex - 1),
+                                  current,
+                                  startPoint,
+                                  endPoint)) {
+-        break;
++        return;
+       }
+     }
+ 
+-    ParentLayerPoint availableVelocity = (endPoint - startPoint);
+-    ParentLayerPoint residualVelocity;
++    ParentLayerPoint transformedVelocity = endPoint - startPoint;
++    aHandoffState.mVelocity = transformedVelocity;
+ 
+-    FlingHandoffState transformedHandoffState = aHandoffState;
+-    transformedHandoffState.mVelocity = availableVelocity;
++    if (current->AttemptFling(aHandoffState)) {
++      // Coming out of AttemptFling(), the handoff state's velocity is the
++      // residual velocity after attempting to fling |current|.
++      ParentLayerPoint residualVelocity = aHandoffState.mVelocity;
+ 
+-    // Obey overscroll-behavior.
+-    if (prevApzc) {
+-      residualVelocity += prevApzc->AdjustHandoffVelocityForOverscrollBehavior(transformedHandoffState.mVelocity);
+-    }
++      // If there's no residual velocity, there's nothing more to hand off.
++      if (IsZero(residualVelocity)) {
++        finalResidualVelocity = ParentLayerPoint();
++        break;
++      }
+ 
+-    residualVelocity += current->AttemptFling(transformedHandoffState);
+-
+-    // If there's no residual velocity, there's nothing more to hand off.
+-    if (IsZero(residualVelocity)) {
+-      return ParentLayerPoint();
++      // If there is residual velocity, subtract the proportion of used
++      // velocity from finalResidualVelocity and continue handoff along the
++      // chain.
++      if (!FuzzyEqualsAdditive(transformedVelocity.x,
++                               residualVelocity.x, COORDINATE_EPSILON)) {
++        finalResidualVelocity.x *= (residualVelocity.x / transformedVelocity.x);
++      }
++      if (!FuzzyEqualsAdditive(transformedVelocity.y,
++                               residualVelocity.y, COORDINATE_EPSILON)) {
++        finalResidualVelocity.y *= (residualVelocity.y / transformedVelocity.y);
++      }
+     }
+-
+-    // If any of the velocity available to be handed off was consumed,
+-    // subtract the proportion of consumed velocity from finalResidualVelocity.
+-    // Note: it's important to compare |residualVelocity| to |availableVelocity|
+-    // here and not to |transformedHandoffState.mVelocity|, since the latter
+-    // may have been modified by AdjustHandoffVelocityForOverscrollBehavior().
+-    if (!FuzzyEqualsAdditive(availableVelocity.x,
+-                             residualVelocity.x, COORDINATE_EPSILON)) {
+-      finalResidualVelocity.x *= (residualVelocity.x / availableVelocity.x);
+-    }
+-    if (!FuzzyEqualsAdditive(availableVelocity.y,
+-                             residualVelocity.y, COORDINATE_EPSILON)) {
+-      finalResidualVelocity.y *= (residualVelocity.y / availableVelocity.y);
+-    }
+-
+-    currentVelocity = residualVelocity;
+   }
+ 
+-  // Return any residual velocity left over after the entire handoff process.
+-  return finalResidualVelocity;
++  // Set the handoff state's velocity to any residual velocity left over
++  // after the entire handoff process.
++  aHandoffState.mVelocity = finalResidualVelocity;
+ }
+ 
+ bool
+ APZCTreeManager::HitTestAPZC(const ScreenIntPoint& aPoint)
+ {
+   RefPtr<AsyncPanZoomController> target = GetTargetAPZC(aPoint, nullptr);
+   return target != nullptr;
+ }
+diff --git a/gfx/layers/apz/src/APZCTreeManager.h b/gfx/layers/apz/src/APZCTreeManager.h
+--- a/gfx/layers/apz/src/APZCTreeManager.h
++++ b/gfx/layers/apz/src/APZCTreeManager.h
+@@ -417,24 +417,23 @@ public:
+    *        mChain the chain of APZCs along which the fling
+    *                   should be handed off
+    *        mIsHandoff is true if |aApzc| is handing off an existing fling (in
+    *                   this case the fling is given to the next APZC in the
+    *                   handoff chain after |aApzc|), and false is |aApzc| wants
+    *                   start a fling (in this case the fling is given to the
+    *                   first APZC in the chain)
+    *
+-   * The return value is the "residual velocity", the portion of
+-   * |aHandoffState.mVelocity| that was not consumed by APZCs in the
+-   * handoff chain doing flings.
++   * aHandoffState.mVelocity will be modified depending on how much of that
++   * velocity has been consumed by APZCs in the overscroll hand-off chain.
+    * The caller can use this value to determine whether it should consume
+-   * the excess velocity by going into overscroll.
++   * the excess velocity by going into an overscroll fling.
+    */
+-  ParentLayerPoint DispatchFling(AsyncPanZoomController* aApzc,
+-                                 const FlingHandoffState& aHandoffState);
++  void DispatchFling(AsyncPanZoomController* aApzc,
++                     FlingHandoffState& aHandoffState);
+ 
+   void StartScrollbarDrag(
+       const ScrollableLayerGuid& aGuid,
+       const AsyncDragMetrics& aDragMetrics) override;
+ 
+   bool StartAutoscroll(const ScrollableLayerGuid& aGuid,
+                        const ScreenPoint& aAnchorLocation) override;
+ 
+diff --git a/gfx/layers/apz/src/APZUtils.h b/gfx/layers/apz/src/APZUtils.h
+--- a/gfx/layers/apz/src/APZUtils.h
++++ b/gfx/layers/apz/src/APZUtils.h
+@@ -6,17 +6,16 @@
+ 
+ #ifndef mozilla_layers_APZUtils_h
+ #define mozilla_layers_APZUtils_h
+ 
+ #include <stdint.h>                     // for uint32_t
+ #include "LayersTypes.h"
+ #include "UnitTransforms.h"
+ #include "mozilla/gfx/Point.h"
+-#include "mozilla/EnumSet.h"
+ #include "mozilla/FloatingPoint.h"
+ 
+ namespace mozilla {
+ namespace layers {
+ 
+ enum HitTestResult {
+   HitNothing,
+   HitLayer,
+@@ -38,18 +37,16 @@ enum CancelAnimationFlags : uint32_t {
+ 
+ inline CancelAnimationFlags
+ operator|(CancelAnimationFlags a, CancelAnimationFlags b)
+ {
+   return static_cast<CancelAnimationFlags>(static_cast<int>(a)
+                                          | static_cast<int>(b));
+ }
+ 
+-typedef EnumSet<ScrollDirection> ScrollDirections;
+-
+ enum class ScrollSource {
+   // scrollTo() or something similar.
+   DOM,
+ 
+   // Touch-screen or trackpad with gesture support.
+   Touch,
+ 
+   // Mouse wheel.
+diff --git a/gfx/layers/apz/src/AsyncPanZoomController.cpp b/gfx/layers/apz/src/AsyncPanZoomController.cpp
+--- a/gfx/layers/apz/src/AsyncPanZoomController.cpp
++++ b/gfx/layers/apz/src/AsyncPanZoomController.cpp
+@@ -1587,20 +1587,20 @@ nsEventStatus AsyncPanZoomController::Ha
+     GetCurrentTouchBlock()->GetOverscrollHandoffChain()->SnapBackOverscrolledApzc(this);
+     return nsEventStatus_eConsumeNoDefault;
+   }
+ 
+   // Make a local copy of the tree manager pointer and check that it's not
+   // null before calling DispatchFling(). This is necessary because Destroy(),
+   // which nulls out mTreeManager, could be called concurrently.
+   if (APZCTreeManager* treeManagerLocal = GetApzcTreeManager()) {
+-    const FlingHandoffState handoffState{flingVelocity,
+-                                         GetCurrentTouchBlock()->GetOverscrollHandoffChain(),
+-                                         false /* not handoff */,
+-                                         GetCurrentTouchBlock()->GetScrolledApzc()};
++    FlingHandoffState handoffState{flingVelocity,
++                                  GetCurrentTouchBlock()->GetOverscrollHandoffChain(),
++                                  false /* not handoff */,
++                                  GetCurrentTouchBlock()->GetScrolledApzc()};
+     treeManagerLocal->DispatchFling(this, handoffState);
+   }
+   return nsEventStatus_eConsumeNoDefault;
+ }
+ 
+ bool
+ AsyncPanZoomController::ConvertToGecko(const ScreenIntPoint& aPoint, LayoutDevicePoint* aOut)
+ {
+@@ -1909,55 +1909,34 @@ AsyncPanZoomController::GetKeyboardDesti
+       }
+       break;
+     }
+   }
+ 
+   return scrollDestination;
+ }
+ 
+-ParentLayerPoint
+-AsyncPanZoomController::GetDeltaForEvent(const InputData& aEvent) const
++// Return whether or not the underlying layer can be scrolled on either axis.
++bool
++AsyncPanZoomController::CanScroll(const InputData& aEvent) const
+ {
+   ParentLayerPoint delta;
+   if (aEvent.mInputType == SCROLLWHEEL_INPUT) {
+     delta = GetScrollWheelDelta(aEvent.AsScrollWheelInput());
+   } else if (aEvent.mInputType == PANGESTURE_INPUT) {
+     const PanGestureInput& panInput = aEvent.AsPanGestureInput();
+     delta = ToParentLayerCoordinates(panInput.UserMultipliedPanDisplacement(), panInput.mPanStartPoint);
+   }
+-  return delta;
+-}
+-
+-// Return whether or not the underlying layer can be scrolled on either axis.
+-bool
+-AsyncPanZoomController::CanScroll(const InputData& aEvent) const
+-{
+-  ParentLayerPoint delta = GetDeltaForEvent(aEvent);
+   if (!delta.x && !delta.y) {
+     return false;
+   }
+ 
+   return CanScrollWithWheel(delta);
+ }
+ 
+-ScrollDirections
+-AsyncPanZoomController::GetAllowedHandoffDirections() const
+-{
+-  ScrollDirections result;
+-  RecursiveMutexAutoLock lock(mRecursiveMutex);
+-  if (mX.OverscrollBehaviorAllowsHandoff()) {
+-    result += ScrollDirection::eHorizontal;
+-  }
+-  if (mY.OverscrollBehaviorAllowsHandoff()) {
+-    result += ScrollDirection::eVertical;
+-  }
+-  return result;
+-}
+-
+ bool
+ AsyncPanZoomController::CanScrollWithWheel(const ParentLayerPoint& aDelta) const
+ {
+   RecursiveMutexAutoLock lock(mRecursiveMutex);
+   if (mX.CanScroll(aDelta.x)) {
+     return true;
+   }
+   if (mY.CanScroll(aDelta.y) && mScrollMetadata.AllowVerticalScrollWithWheel()) {
+@@ -2015,29 +1994,16 @@ ScrollInputMethodForWheelDeltaType(Scrol
+     case ScrollWheelInput::SCROLLDELTA_PIXEL: {
+       return ScrollInputMethod::ApzWheelPixel;
+     }
+   }
+   MOZ_ASSERT_UNREACHABLE("Invalid value");
+   return ScrollInputMethod::ApzWheelLine;
+ }
+ 
+-static void
+-AdjustDeltaForAllowedScrollDirections(
+-    ParentLayerPoint& aDelta,
+-    const ScrollDirections& aAllowedScrollDirections)
+-{
+-  if (!aAllowedScrollDirections.contains(ScrollDirection::eHorizontal)) {
+-    aDelta.x = 0;
+-  }
+-  if (!aAllowedScrollDirections.contains(ScrollDirection::eVertical)) {
+-    aDelta.y = 0;
+-  }
+-}
+-
+ nsEventStatus AsyncPanZoomController::OnScrollWheel(const ScrollWheelInput& aEvent)
+ {
+   ParentLayerPoint delta = GetScrollWheelDelta(aEvent);
+   APZC_LOG("%p got a scroll-wheel with delta %s\n", this, Stringify(delta).c_str());
+ 
+   if ((delta.x || delta.y) && !CanScrollWithWheel(delta)) {
+     // We can't scroll this apz anymore, so we simply drop the event.
+     if (mInputQueue->GetActiveWheelTransaction() &&
+@@ -2046,20 +2012,16 @@ nsEventStatus AsyncPanZoomController::On
+         controller->NotifyMozMouseScrollEvent(
+           mFrameMetrics.GetScrollId(),
+           NS_LITERAL_STRING("MozMouseScrollFailed"));
+       }
+     }
+     return nsEventStatus_eConsumeNoDefault;
+   }
+ 
+-  MOZ_ASSERT(mInputQueue->GetCurrentWheelBlock());
+-  AdjustDeltaForAllowedScrollDirections(delta,
+-      mInputQueue->GetCurrentWheelBlock()->GetAllowedScrollDirections());
+-
+   if (delta.x == 0 && delta.y == 0) {
+     // Avoid spurious state changes and unnecessary work
+     return nsEventStatus_eIgnore;
+   }
+ 
+   mozilla::Telemetry::Accumulate(mozilla::Telemetry::SCROLL_INPUT_METHODS,
+       (uint32_t) ScrollInputMethodForWheelDeltaType(aEvent.mDeltaType));
+ 
+@@ -2073,16 +2035,17 @@ nsEventStatus AsyncPanZoomController::On
+       CSSPoint startPosition = mFrameMetrics.GetScrollOffset();
+       MaybeAdjustDeltaForScrollSnapping(aEvent, delta, startPosition);
+ 
+       ScreenPoint distance = ToScreenCoordinates(
+         ParentLayerPoint(fabs(delta.x), fabs(delta.y)), aEvent.mLocalOrigin);
+ 
+       CancelAnimation();
+ 
++      MOZ_ASSERT(mInputQueue->GetCurrentWheelBlock());
+       OverscrollHandoffState handoffState(
+           *mInputQueue->GetCurrentWheelBlock()->GetOverscrollHandoffChain(),
+           distance,
+           ScrollSource::Wheel);
+       ParentLayerPoint startPoint = aEvent.mLocalOrigin;
+       ParentLayerPoint endPoint = aEvent.mLocalOrigin - delta;
+       CallDispatchScroll(startPoint, endPoint, handoffState);
+ 
+@@ -2249,33 +2212,30 @@ nsEventStatus AsyncPanZoomController::On
+   // Note that there is a multiplier that applies onto the "physical" pan
+   // displacement (how much the user's fingers moved) that produces the "logical"
+   // pan displacement (how much the page should move). For some of the code
+   // below it makes more sense to use the physical displacement rather than
+   // the logical displacement, and vice-versa.
+   ScreenPoint physicalPanDisplacement = aEvent.mPanDisplacement;
+   ParentLayerPoint logicalPanDisplacement = aEvent.UserMultipliedLocalPanDisplacement();
+ 
+-  MOZ_ASSERT(GetCurrentPanGestureBlock());
+-  AdjustDeltaForAllowedScrollDirections(logicalPanDisplacement,
+-      GetCurrentPanGestureBlock()->GetAllowedScrollDirections());
+-
+   // We need to update the axis velocity in order to get a useful display port
+   // size and position. We need to do so even if this is a momentum pan (i.e.
+   // aFingersOnTouchpad == false); in that case the "with touch" part is not
+   // really appropriate, so we may want to rethink this at some point.
+   mX.UpdateWithTouchAtDevicePoint(aEvent.mLocalPanStartPoint.x, logicalPanDisplacement.x, aEvent.mTime);
+   mY.UpdateWithTouchAtDevicePoint(aEvent.mLocalPanStartPoint.y, logicalPanDisplacement.y, aEvent.mTime);
+ 
+   HandlePanningUpdate(physicalPanDisplacement);
+ 
+   mozilla::Telemetry::Accumulate(mozilla::Telemetry::SCROLL_INPUT_METHODS,
+       (uint32_t) ScrollInputMethod::ApzPanGesture);
+ 
+   ScreenPoint panDistance(fabs(physicalPanDisplacement.x), fabs(physicalPanDisplacement.y));
++  MOZ_ASSERT(GetCurrentPanGestureBlock());
+   OverscrollHandoffState handoffState(
+       *GetCurrentPanGestureBlock()->GetOverscrollHandoffChain(),
+       panDistance,
+       ScrollSource::Wheel);
+ 
+   // Create fake "touch" positions that will result in the desired scroll motion.
+   // Note that the pan displacement describes the change in scroll position:
+   // positive displacement values mean that the scroll position increases.
+@@ -2804,117 +2764,87 @@ void AsyncPanZoomController::OverscrollB
+   RecursiveMutexAutoLock lock(mRecursiveMutex);
+   // Do not go into overscroll in a direction in which we have no room to
+   // scroll to begin with.
+   bool xCanScroll = mX.CanScroll();
+   bool yCanScroll = mY.CanScroll();
+   bool xConsumed = FuzzyEqualsAdditive(aOverscroll.x, 0.0f, COORDINATE_EPSILON);
+   bool yConsumed = FuzzyEqualsAdditive(aOverscroll.y, 0.0f, COORDINATE_EPSILON);
+ 
+-  bool shouldOverscrollX = xCanScroll && !xConsumed && mX.OverscrollBehaviorAllowsOverscrollEffect();
+-  bool shouldOverscrollY = yCanScroll && !yConsumed && mY.OverscrollBehaviorAllowsOverscrollEffect();
++  bool shouldOverscrollX = xCanScroll && !xConsumed;
++  bool shouldOverscrollY = yCanScroll && !yConsumed;
+ 
+   mOverscrollEffect->ConsumeOverscroll(aOverscroll, shouldOverscrollX, shouldOverscrollY);
+ }
+ 
+ RefPtr<const OverscrollHandoffChain> AsyncPanZoomController::BuildOverscrollHandoffChain() {
+   if (APZCTreeManager* treeManagerLocal = GetApzcTreeManager()) {
+     return treeManagerLocal->BuildOverscrollHandoffChain(this);
+   }
+ 
+   // This APZC IsDestroyed(). To avoid callers having to special-case this
+   // scenario, just build a 1-element chain containing ourselves.
+   OverscrollHandoffChain* result = new OverscrollHandoffChain;
+   result->Add(this);
+   return result;
+ }
+ 
+-ParentLayerPoint AsyncPanZoomController::AttemptFling(const FlingHandoffState& aHandoffState) {
++void AsyncPanZoomController::AcceptFling(FlingHandoffState& aHandoffState) {
+   RecursiveMutexAutoLock lock(mRecursiveMutex);
+ 
+-  if (!IsPannable()) {
+-    return aHandoffState.mVelocity;
+-  }
+-
+   // We may have a pre-existing velocity for whatever reason (for example,
+   // a previously handed off fling). We don't want to clobber that.
+   APZC_LOG("%p accepting fling with velocity %s\n", this,
+            Stringify(aHandoffState.mVelocity).c_str());
+-  ParentLayerPoint residualVelocity = aHandoffState.mVelocity;
+   if (mX.CanScroll()) {
+     mX.SetVelocity(mX.GetVelocity() + aHandoffState.mVelocity.x);
+-    residualVelocity.x = 0;
++    aHandoffState.mVelocity.x = 0;
+   }
+   if (mY.CanScroll()) {
+     mY.SetVelocity(mY.GetVelocity() + aHandoffState.mVelocity.y);
+-    residualVelocity.y = 0;
++    aHandoffState.mVelocity.y = 0;
+   }
+ 
+   // If there's a scroll snap point near the predicted fling destination,
+   // scroll there using a smooth scroll animation. Otherwise, start a
+   // fling animation.
+   ScrollSnapToDestination();
+   if (mState != SMOOTH_SCROLL) {
+     SetState(FLING);
+     FlingAnimation *fling = new FlingAnimation(*this,
+         GetPlatformSpecificState(),
+         aHandoffState.mChain,
+         aHandoffState.mIsHandoff,
+         aHandoffState.mScrolledApzc);
+     StartAnimation(fling);
+   }
+-
+-  return residualVelocity;
+ }
+ 
+-ParentLayerPoint AsyncPanZoomController::AdjustHandoffVelocityForOverscrollBehavior(ParentLayerPoint& aHandoffVelocity) const
+-{
+-  RecursiveMutexAutoLock lock(mRecursiveMutex);
+-  ParentLayerPoint residualVelocity;
+-  if (!mX.OverscrollBehaviorAllowsHandoff()) {
+-    residualVelocity.x = aHandoffVelocity.x;
+-    aHandoffVelocity.x = 0;
++bool AsyncPanZoomController::AttemptFling(FlingHandoffState& aHandoffState) {
++  // If we are pannable, take over the fling ourselves.
++  if (IsPannable()) {
++    AcceptFling(aHandoffState);
++    return true;
+   }
+-  if (!mY.OverscrollBehaviorAllowsHandoff()) {
+-    residualVelocity.y = aHandoffVelocity.y;
+-    aHandoffVelocity.y = 0;
+-  }
+-  return residualVelocity;
+-}
+-
+-bool AsyncPanZoomController::OverscrollBehaviorAllowsSwipe() const
+-{
+-  RecursiveMutexAutoLock lock(mRecursiveMutex);
+-  // Swipe navigation is a "non-local" overscroll behavior like handoff.
+-  return mX.OverscrollBehaviorAllowsHandoff();
++
++  return false;
+ }
+ 
+ void AsyncPanZoomController::HandleFlingOverscroll(const ParentLayerPoint& aVelocity,
+                                                    const RefPtr<const OverscrollHandoffChain>& aOverscrollHandoffChain,
+                                                    const RefPtr<const AsyncPanZoomController>& aScrolledApzc) {
+   APZCTreeManager* treeManagerLocal = GetApzcTreeManager();
+   if (treeManagerLocal) {
+-    const FlingHandoffState handoffState{aVelocity,
+-                                         aOverscrollHandoffChain,
+-                                         true /* handoff */,
+-                                         aScrolledApzc};
+-    ParentLayerPoint residualVelocity = treeManagerLocal->DispatchFling(this, handoffState);
+-    if (!IsZero(residualVelocity) && IsPannable() && gfxPrefs::APZOverscrollEnabled()) {
+-      // Obey overscroll-behavior.
+-      RecursiveMutexAutoLock lock(mRecursiveMutex);
+-      if (!mX.OverscrollBehaviorAllowsOverscrollEffect()) {
+-        residualVelocity.x = 0;
+-      }
+-      if (!mY.OverscrollBehaviorAllowsOverscrollEffect()) {
+-        residualVelocity.y = 0;
+-      }
+-
+-      if (!IsZero(residualVelocity)) {
+-        mOverscrollEffect->HandleFlingOverscroll(residualVelocity);
+-      }
++    FlingHandoffState handoffState{aVelocity,
++                                   aOverscrollHandoffChain,
++                                   true /* handoff */,
++                                   aScrolledApzc};
++    treeManagerLocal->DispatchFling(this, handoffState);
++    if (!IsZero(handoffState.mVelocity) && IsPannable() && gfxPrefs::APZOverscrollEnabled()) {
++      mOverscrollEffect->HandleFlingOverscroll(handoffState.mVelocity);
+     }
+   }
+ }
+ 
+ void AsyncPanZoomController::HandleSmoothScrollOverscroll(const ParentLayerPoint& aVelocity) {
+   // We must call BuildOverscrollHandoffChain from this deferred callback
+   // function in order to avoid a deadlock when acquiring the tree lock.
+   HandleFlingOverscroll(aVelocity, BuildOverscrollHandoffChain(), nullptr);
+@@ -2958,35 +2888,18 @@ void AsyncPanZoomController::CallDispatc
+                                                 OverscrollHandoffState& aOverscrollHandoffState) {
+   // Make a local copy of the tree manager pointer and check if it's not
+   // null before calling DispatchScroll(). This is necessary because
+   // Destroy(), which nulls out mTreeManager, could be called concurrently.
+   APZCTreeManager* treeManagerLocal = GetApzcTreeManager();
+   if (!treeManagerLocal) {
+     return;
+   }
+-
+-  // Obey overscroll-behavior.
+-  ParentLayerPoint endPoint = aEndPoint;
+-  if (aOverscrollHandoffState.mChainIndex > 0) {
+-    RecursiveMutexAutoLock lock(mRecursiveMutex);
+-    if (!mX.OverscrollBehaviorAllowsHandoff()) {
+-      endPoint.x = aStartPoint.x;
+-    }
+-    if (!mY.OverscrollBehaviorAllowsHandoff()) {
+-      endPoint.y = aStartPoint.y;
+-    }
+-    if (aStartPoint == endPoint) {
+-      // Handoff not allowed in either direction - don't even bother.
+-      return;
+-    }
+-  }
+-
+   treeManagerLocal->DispatchScroll(this,
+-                                   aStartPoint, endPoint,
++                                   aStartPoint, aEndPoint,
+                                    aOverscrollHandoffState);
+ }
+ 
+ void AsyncPanZoomController::TrackTouch(const MultiTouchInput& aEvent) {
+   ParentLayerPoint prevTouchPoint(mX.GetPos(), mY.GetPos());
+   ParentLayerPoint touchPoint = GetFirstTouchPoint(aEvent);
+ 
+   ScreenPoint panDistance = ToScreenCoordinates(
+@@ -3941,17 +3854,16 @@ void AsyncPanZoomController::NotifyLayer
+     // The scroll clip can differ between layers associated a given scroll frame,
+     // so APZC (which keeps a single copy of ScrollMetadata per scroll frame)
+     // has no business using it.
+     mScrollMetadata.SetScrollClip(Nothing());
+     mScrollMetadata.SetIsLayersIdRoot(aScrollMetadata.IsLayersIdRoot());
+     mScrollMetadata.SetUsesContainerScrolling(aScrollMetadata.UsesContainerScrolling());
+     mFrameMetrics.SetIsScrollInfoLayer(aLayerMetrics.IsScrollInfoLayer());
+     mScrollMetadata.SetForceDisableApz(aScrollMetadata.IsApzForceDisabled());
+-    mScrollMetadata.SetOverscrollBehavior(aScrollMetadata.GetOverscrollBehavior());
+ 
+     if (scrollOffsetUpdated) {
+       APZC_LOG("%p updating scroll offset from %s to %s\n", this,
+         ToString(mFrameMetrics.GetScrollOffset()).c_str(),
+         ToString(aLayerMetrics.GetScrollOffset()).c_str());
+ 
+       // Send an acknowledgement with the new scroll generation so that any
+       // repaint requests later in this function go through.
+@@ -4011,21 +3923,16 @@ void AsyncPanZoomController::NotifyLayer
+   UpdateSharedCompositorFrameMetrics();
+ }
+ 
+ const FrameMetrics& AsyncPanZoomController::GetFrameMetrics() const {
+   mRecursiveMutex.AssertCurrentThreadIn();
+   return mFrameMetrics;
+ }
+ 
+-const ScrollMetadata& AsyncPanZoomController::GetScrollMetadata() const {
+-  mRecursiveMutex.AssertCurrentThreadIn();
+-  return mScrollMetadata;
+-}
+-
+ APZCTreeManager* AsyncPanZoomController::GetApzcTreeManager() const {
+   mRecursiveMutex.AssertNotCurrentThreadIn();
+   return mTreeManager;
+ }
+ 
+ void AsyncPanZoomController::ZoomToRect(CSSRect aRect, const uint32_t aFlags) {
+   if (!aRect.IsFinite()) {
+     NS_WARNING("ZoomToRect got called with a non-finite rect; ignoring...");
+diff --git a/gfx/layers/apz/src/AsyncPanZoomController.h b/gfx/layers/apz/src/AsyncPanZoomController.h
+--- a/gfx/layers/apz/src/AsyncPanZoomController.h
++++ b/gfx/layers/apz/src/AsyncPanZoomController.h
+@@ -415,20 +415,16 @@ public:
+    */
+   ParentLayerPoint ToParentLayerCoordinates(const ScreenPoint& aVector,
+                                             const ScreenPoint& aAnchor) const;
+ 
+   // Return whether or not a wheel event will be able to scroll in either
+   // direction.
+   bool CanScroll(const InputData& aEvent) const;
+ 
+-  // Return the directions in which this APZC allows handoff (as governed by
+-  // overscroll-behavior).
+-  ScrollDirections GetAllowedHandoffDirections() const;
+-
+   // Return whether or not a scroll delta will be able to scroll in either
+   // direction.
+   bool CanScrollWithWheel(const ParentLayerPoint& aDelta) const;
+ 
+   // Return whether or not there is room to scroll this APZC
+   // in the given direction.
+   bool CanScroll(ScrollDirection aDirection) const;
+ 
+@@ -437,18 +433,16 @@ public:
+    * to CSS coordinates relative to the beginning of the scroll track.
+    * Only the component in the direction of scrolling is returned.
+    */
+   CSSCoord ConvertScrollbarPoint(const ParentLayerPoint& aScrollbarPoint,
+                                  const ScrollThumbData& aThumbData) const;
+ 
+   void NotifyMozMouseScrollEvent(const nsString& aString) const;
+ 
+-  bool OverscrollBehaviorAllowsSwipe() const;
+-
+ protected:
+   // Protected destructor, to discourage deletion outside of Release():
+   virtual ~AsyncPanZoomController();
+ 
+   // Returns the cached current frame time.
+   TimeStamp GetFrameTime() const;
+ 
+   /**
+@@ -670,22 +664,16 @@ protected:
+ 
+   /**
+    * Gets the current frame metrics. This is *not* the Gecko copy stored in the
+    * layers code.
+    */
+   const FrameMetrics& GetFrameMetrics() const;
+ 
+   /**
+-   * Gets the current scroll metadata. This is *not* the Gecko copy stored in
+-   * the layers code/
+-   */
+-  const ScrollMetadata& GetScrollMetadata() const;
+-
+-  /**
+    * Gets the pointer to the apzc tree manager. All the access to tree manager
+    * should be made via this method and not via private variable since this method
+    * ensures that no lock is set.
+    */
+   APZCTreeManager* GetApzcTreeManager() const;
+ 
+   /**
+    * Convert ScreenPoint relative to the screen to LayoutDevicePoint relative
+@@ -1003,26 +991,26 @@ private:
+   /* ===================================================================
+    * The functions and members in this section are used to manage
+    * fling animations, smooth scroll animations, and overscroll
+    * during a fling or smooth scroll.
+    */
+ public:
+   /**
+    * Attempt a fling with the velocity specified in |aHandoffState|.
++   * If we are not pannable, the fling is handed off to the next APZC in
++   * the handoff chain via mTreeManager->DispatchFling().
++   * Returns true iff. the entire velocity of the fling was consumed by
++   * this APZC. |aHandoffState.mVelocity| is modified to contain any
++   * unused, residual velocity.
+    * |aHandoffState.mIsHandoff| should be true iff. the fling was handed off
+    * from a previous APZC, and determines whether acceleration is applied
+    * to the fling.
+-   * We only accept the fling in the direction(s) in which we are pannable.
+-   * Returns the "residual velocity", i.e. the portion of
+-   * |aHandoffState.mVelocity| that this APZC did not consume.
+    */
+-  ParentLayerPoint AttemptFling(const FlingHandoffState& aHandoffState);
+-
+-  ParentLayerPoint AdjustHandoffVelocityForOverscrollBehavior(ParentLayerPoint& aHandoffVelocity) const;
++  bool AttemptFling(FlingHandoffState& aHandoffState);
+ 
+ private:
+   friend class AndroidFlingAnimation;
+   friend class AutoscrollAnimation;
+   friend class GenericFlingAnimation;
+   friend class OverscrollAnimation;
+   friend class SmoothScrollAnimation;
+   friend class GenericScrollAnimation;
+@@ -1045,16 +1033,19 @@ private:
+   // later in the handoff chain, or if there are no takers, continuing the
+   // fling and entering an overscrolled state.
+   void HandleFlingOverscroll(const ParentLayerPoint& aVelocity,
+                              const RefPtr<const OverscrollHandoffChain>& aOverscrollHandoffChain,
+                              const RefPtr<const AsyncPanZoomController>& aScrolledApzc);
+ 
+   void HandleSmoothScrollOverscroll(const ParentLayerPoint& aVelocity);
+ 
++  // Helper function used by AttemptFling().
++  void AcceptFling(FlingHandoffState& aHandoffState);
++
+   // Start an overscroll animation with the given initial velocity.
+   void StartOverscrollAnimation(const ParentLayerPoint& aVelocity);
+ 
+   void SmoothScrollTo(const CSSPoint& aDestination);
+ 
+   // Returns whether overscroll is allowed during an event.
+   bool AllowScrollHandoffInCurrentBlock() const;
+ 
+@@ -1183,18 +1174,16 @@ private:
+ 
+   /**
+    * Try to overscroll by 'aOverscroll'.
+    * If we are pannable on a particular axis, that component of 'aOverscroll'
+    * is transferred to any existing overscroll.
+    */
+   void OverscrollBy(ParentLayerPoint& aOverscroll);
+ 
+-  // Helper function for CanScroll().
+-  ParentLayerPoint GetDeltaForEvent(const InputData& aEvent) const;
+ 
+   /* ===================================================================
+    * The functions and members in this section are used to maintain the
+    * area that this APZC instance is responsible for. This is used when
+    * hit-testing to see which APZC instance should handle touch events.
+    */
+ public:
+   void SetAncestorTransform(const Matrix4x4& aTransformToLayer) {
+diff --git a/gfx/layers/apz/src/Axis.cpp b/gfx/layers/apz/src/Axis.cpp
+--- a/gfx/layers/apz/src/Axis.cpp
++++ b/gfx/layers/apz/src/Axis.cpp
+@@ -486,31 +486,16 @@ bool Axis::ScaleWillOverscrollBothSides(
+                                           / ParentLayerToParentLayerScale(aScale);
+   return GetRectLength(screenCompositionBounds) - GetPageLength() > COORDINATE_EPSILON;
+ }
+ 
+ const FrameMetrics& Axis::GetFrameMetrics() const {
+   return mAsyncPanZoomController->GetFrameMetrics();
+ }
+ 
+-const ScrollMetadata& Axis::GetScrollMetadata() const {
+-  return mAsyncPanZoomController->GetScrollMetadata();
+-}
+-
+-bool Axis::OverscrollBehaviorAllowsHandoff() const {
+-  // Scroll handoff is a "non-local" overscroll behavior, so it's allowed
+-  // with "auto" and disallowed with "contain" and "none".
+-  return GetOverscrollBehavior() == OverscrollBehavior::Auto;
+-}
+-
+-bool Axis::OverscrollBehaviorAllowsOverscrollEffect() const {
+-  // An overscroll effect is a "local" overscroll behavior, so it's allowed
+-  // with "auto" and "contain" and disallowed with "none".
+-  return GetOverscrollBehavior() != OverscrollBehavior::None;
+-}
+ 
+ AxisX::AxisX(AsyncPanZoomController* aAsyncPanZoomController)
+   : Axis(aAsyncPanZoomController)
+ {
+ 
+ }
+ 
+ ParentLayerCoord AxisX::GetPointOffset(const ParentLayerPoint& aPoint) const
+@@ -538,21 +523,16 @@ ScreenPoint AxisX::MakePoint(ScreenCoord
+   return ScreenPoint(aCoord, 0);
+ }
+ 
+ const char* AxisX::Name() const
+ {
+   return "X";
+ }
+ 
+-OverscrollBehavior AxisX::GetOverscrollBehavior() const
+-{
+-  return GetScrollMetadata().GetOverscrollBehavior().mBehaviorX;
+-}
+-
+ AxisY::AxisY(AsyncPanZoomController* aAsyncPanZoomController)
+   : Axis(aAsyncPanZoomController)
+ {
+ 
+ }
+ 
+ ParentLayerCoord AxisY::GetPointOffset(const ParentLayerPoint& aPoint) const
+ {
+@@ -579,15 +559,10 @@ ScreenPoint AxisY::MakePoint(ScreenCoord
+   return ScreenPoint(0, aCoord);
+ }
+ 
+ const char* AxisY::Name() const
+ {
+   return "Y";
+ }
+ 
+-OverscrollBehavior AxisY::GetOverscrollBehavior() const
+-{
+-  return GetScrollMetadata().GetOverscrollBehavior().mBehaviorY;
+-}
+-
+ } // namespace layers
+ } // namespace mozilla
+diff --git a/gfx/layers/apz/src/Axis.h b/gfx/layers/apz/src/Axis.h
+--- a/gfx/layers/apz/src/Axis.h
++++ b/gfx/layers/apz/src/Axis.h
+@@ -244,19 +244,16 @@ public:
+   ParentLayerCoord GetPageStart() const;
+   ParentLayerCoord GetPageLength() const;
+   ParentLayerCoord GetCompositionEnd() const;
+   ParentLayerCoord GetPageEnd() const;
+   ParentLayerCoord GetScrollRangeEnd() const;
+ 
+   ParentLayerCoord GetPos() const { return mPos; }
+ 
+-  bool OverscrollBehaviorAllowsHandoff() const;
+-  bool OverscrollBehaviorAllowsOverscrollEffect() const;
+-
+   virtual ParentLayerCoord GetPointOffset(const ParentLayerPoint& aPoint) const = 0;
+   virtual ParentLayerCoord GetRectLength(const ParentLayerRect& aRect) const = 0;
+   virtual ParentLayerCoord GetRectOffset(const ParentLayerRect& aRect) const = 0;
+   virtual CSSToParentLayerScale GetScaleForAxis(const CSSToParentLayerScale2D& aScale) const = 0;
+ 
+   virtual ScreenPoint MakePoint(ScreenCoord aCoord) const = 0;
+ 
+   virtual const char* Name() const = 0;
+@@ -284,19 +281,16 @@ protected:
+ 
+   // A queue of (timestamp, velocity) pairs; these are the historical
+   // velocities at the given timestamps. Timestamps are in milliseconds,
+   // velocities are in screen pixels per ms. This member can only be
+   // accessed on the controller/UI thread.
+   nsTArray<std::pair<uint32_t, float> > mVelocityQueue;
+ 
+   const FrameMetrics& GetFrameMetrics() const;
+-  const ScrollMetadata& GetScrollMetadata() const;
+-
+-  virtual OverscrollBehavior GetOverscrollBehavior() const = 0;
+ 
+   // Adjust a requested overscroll amount for resistance, yielding a smaller
+   // actual overscroll amount.
+   ParentLayerCoord ApplyResistance(ParentLayerCoord aOverscroll) const;
+ 
+   // Helper function for SampleOverscrollAnimation().
+   void StepOverscrollAnimation(double aStepDurationMilliseconds);
+ 
+@@ -308,29 +302,25 @@ class AxisX : public Axis {
+ public:
+   explicit AxisX(AsyncPanZoomController* mAsyncPanZoomController);
+   virtual ParentLayerCoord GetPointOffset(const ParentLayerPoint& aPoint) const override;
+   virtual ParentLayerCoord GetRectLength(const ParentLayerRect& aRect) const override;
+   virtual ParentLayerCoord GetRectOffset(const ParentLayerRect& aRect) const override;
+   virtual CSSToParentLayerScale GetScaleForAxis(const CSSToParentLayerScale2D& aScale) const override;
+   virtual ScreenPoint MakePoint(ScreenCoord aCoord) const override;
+   virtual const char* Name() const override;
+-private:
+-  virtual OverscrollBehavior GetOverscrollBehavior() const override;
+ };
+ 
+ class AxisY : public Axis {
+ public:
+   explicit AxisY(AsyncPanZoomController* mAsyncPanZoomController);
+   virtual ParentLayerCoord GetPointOffset(const ParentLayerPoint& aPoint) const override;
+   virtual ParentLayerCoord GetRectLength(const ParentLayerRect& aRect) const override;
+   virtual ParentLayerCoord GetRectOffset(const ParentLayerRect& aRect) const override;
+   virtual CSSToParentLayerScale GetScaleForAxis(const CSSToParentLayerScale2D& aScale) const override;
+   virtual ScreenPoint MakePoint(ScreenCoord aCoord) const override;
+   virtual const char* Name() const override;
+-private:
+-  virtual OverscrollBehavior GetOverscrollBehavior() const override;
+ };
+ 
+ } // namespace layers
+ } // namespace mozilla
+ 
+ #endif
+diff --git a/gfx/layers/apz/src/InputBlockState.cpp b/gfx/layers/apz/src/InputBlockState.cpp
+--- a/gfx/layers/apz/src/InputBlockState.cpp
++++ b/gfx/layers/apz/src/InputBlockState.cpp
+@@ -317,18 +317,17 @@ WheelBlockState::WheelBlockState(const R
+   sLastWheelBlockId = GetBlockId();
+ 
+   if (aTargetConfirmed) {
+     // Find the nearest APZC in the overscroll handoff chain that is scrollable.
+     // If we get a content confirmation later that the apzc is different, then
+     // content should have found a scrollable apzc, so we don't need to handle
+     // that case.
+     RefPtr<AsyncPanZoomController> apzc =
+-      mOverscrollHandoffChain->FindFirstScrollable(
+-          aInitialEvent, &mAllowedScrollDirections);
++      mOverscrollHandoffChain->FindFirstScrollable(aInitialEvent);
+ 
+     // If nothing is scrollable, we don't consider this block as starting a
+     // transaction.
+     if (!apzc) {
+       EndTransaction();
+       return;
+     }
+ 
+@@ -352,18 +351,17 @@ WheelBlockState::SetConfirmedTargetApzc(
+                                         TargetConfirmationState aState,
+                                         InputData* aFirstInput)
+ {
+   // The APZC that we find via APZCCallbackHelpers may not be the same APZC
+   // ESM or OverscrollHandoff would have computed. Make sure we get the right
+   // one by looking for the first apzc the next pending event can scroll.
+   RefPtr<AsyncPanZoomController> apzc = aTargetApzc;
+   if (apzc && aFirstInput) {
+-    apzc = apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(
+-        *aFirstInput, &mAllowedScrollDirections);
++    apzc = apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(*aFirstInput);
+   }
+ 
+   InputBlockState::SetConfirmedTargetApzc(apzc, aState, aFirstInput);
+   return true;
+ }
+ 
+ void
+ WheelBlockState::Update(ScrollWheelInput& aEvent)
+@@ -550,18 +548,17 @@ PanGestureBlockState::PanGestureBlockSta
+   , mWaitingForContentResponse(false)
+ {
+   if (aTargetConfirmed) {
+     // Find the nearest APZC in the overscroll handoff chain that is scrollable.
+     // If we get a content confirmation later that the apzc is different, then
+     // content should have found a scrollable apzc, so we don't need to handle
+     // that case.
+     RefPtr<AsyncPanZoomController> apzc =
+-      mOverscrollHandoffChain->FindFirstScrollable(
+-          aInitialEvent, &mAllowedScrollDirections);
++      mOverscrollHandoffChain->FindFirstScrollable(aInitialEvent);
+ 
+     if (apzc && apzc != GetTargetApzc()) {
+       UpdateTargetApzc(apzc);
+     }
+   }
+ }
+ 
+ bool
+@@ -570,18 +567,17 @@ PanGestureBlockState::SetConfirmedTarget
+                                              InputData* aFirstInput)
+ {
+   // The APZC that we find via APZCCallbackHelpers may not be the same APZC
+   // ESM or OverscrollHandoff would have computed. Make sure we get the right
+   // one by looking for the first apzc the next pending event can scroll.
+   RefPtr<AsyncPanZoomController> apzc = aTargetApzc;
+   if (apzc && aFirstInput) {
+     RefPtr<AsyncPanZoomController> scrollableApzc =
+-      apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(
+-          *aFirstInput, &mAllowedScrollDirections);
++      apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(*aFirstInput);
+     if (scrollableApzc) {
+       apzc = scrollableApzc;
+     }
+   }
+ 
+   InputBlockState::SetConfirmedTargetApzc(apzc, aState, aFirstInput);
+   return true;
+ }
+diff --git a/gfx/layers/apz/src/InputBlockState.h b/gfx/layers/apz/src/InputBlockState.h
+--- a/gfx/layers/apz/src/InputBlockState.h
++++ b/gfx/layers/apz/src/InputBlockState.h
+@@ -277,27 +277,24 @@ public:
+    */
+   bool MaybeTimeout(const TimeStamp& aTimeStamp);
+ 
+   /**
+    * Update the wheel transaction state for a new event.
+    */
+   void Update(ScrollWheelInput& aEvent);
+ 
+-  ScrollDirections GetAllowedScrollDirections() const { return mAllowedScrollDirections; }
+-
+ protected:
+   void UpdateTargetApzc(const RefPtr<AsyncPanZoomController>& aTargetApzc) override;
+ 
+ private:
+   TimeStamp mLastEventTime;
+   TimeStamp mLastMouseMove;
+   uint32_t mScrollSeriesCounter;
+   bool mTransactionEnded;
+-  ScrollDirections mAllowedScrollDirections;
+ };
+ 
+ /**
+  * A block of mouse events that are part of a drag
+  */
+ class DragBlockState : public CancelableBlockState
+ {
+ public:
+@@ -352,22 +349,19 @@ public:
+    * @return Whether or not overscrolling is prevented for this block.
+    */
+   bool AllowScrollHandoff() const;
+ 
+   bool WasInterrupted() const { return mInterrupted; }
+ 
+   void SetNeedsToWaitForContentResponse(bool aWaitForContentResponse);
+ 
+-  ScrollDirections GetAllowedScrollDirections() const { return mAllowedScrollDirections; }
+-
+ private:
+   bool mInterrupted;
+   bool mWaitingForContentResponse;
+-  ScrollDirections mAllowedScrollDirections;
+ };
+ 
+ /**
+  * This class represents a single touch block. A touch block is
+  * a set of touch events that can be cancelled by web content via
+  * touch event listeners.
+  *
+  * Every touch-start event creates a new touch block. In this case, the
+diff --git a/gfx/layers/apz/src/InputQueue.cpp b/gfx/layers/apz/src/InputQueue.cpp
+--- a/gfx/layers/apz/src/InputQueue.cpp
++++ b/gfx/layers/apz/src/InputQueue.cpp
+@@ -313,23 +313,19 @@ InputQueue::ReceiveKeyboardInput(const R
+ }
+ 
+ static bool
+ CanScrollTargetHorizontally(const PanGestureInput& aInitialEvent,
+                             PanGestureBlockState* aBlock)
+ {
+   PanGestureInput horizontalComponent = aInitialEvent;
+   horizontalComponent.mPanDisplacement.y = 0;
+-  ScrollDirections allowedScrollDirections;
+   RefPtr<AsyncPanZoomController> horizontallyScrollableAPZC =
+-    aBlock->GetOverscrollHandoffChain()->FindFirstScrollable(
+-        horizontalComponent, &allowedScrollDirections);
+-  return horizontallyScrollableAPZC &&
+-      horizontallyScrollableAPZC == aBlock->GetTargetApzc() &&
+-      allowedScrollDirections.contains(ScrollDirection::eHorizontal);
++    aBlock->GetOverscrollHandoffChain()->FindFirstScrollable(horizontalComponent);
++  return horizontallyScrollableAPZC && horizontallyScrollableAPZC == aBlock->GetTargetApzc();
+ }
+ 
+ nsEventStatus
+ InputQueue::ReceivePanGestureInput(const RefPtr<AsyncPanZoomController>& aTarget,
+                                    bool aTargetConfirmed,
+                                    const PanGestureInput& aEvent,
+                                    uint64_t* aOutInputBlockId) {
+   if (aEvent.mType == PanGestureInput::PANGESTURE_MAYSTART ||
+diff --git a/gfx/layers/apz/src/OverscrollHandoffState.cpp b/gfx/layers/apz/src/OverscrollHandoffState.cpp
+--- a/gfx/layers/apz/src/OverscrollHandoffState.cpp
++++ b/gfx/layers/apz/src/OverscrollHandoffState.cpp
+@@ -156,32 +156,20 @@ OverscrollHandoffChain::HasOverscrolledA
+ 
+ bool
+ OverscrollHandoffChain::HasFastFlungApzc() const
+ {
+   return AnyApzc(&AsyncPanZoomController::IsFlingingFast);
+ }
+ 
+ RefPtr<AsyncPanZoomController>
+-OverscrollHandoffChain::FindFirstScrollable(
+-    const InputData& aInput,
+-    ScrollDirections* aOutAllowedScrollDirections) const
++OverscrollHandoffChain::FindFirstScrollable(const InputData& aInput) const
+ {
+-  // Start by allowing scrolling in both directions. As we do handoff
+-  // overscroll-behavior may restrict one or both of the directions.
+-  *aOutAllowedScrollDirections += ScrollDirection::eVertical;
+-  *aOutAllowedScrollDirections += ScrollDirection::eHorizontal;
+-
+   for (size_t i = 0; i < Length(); i++) {
+     if (mChain[i]->CanScroll(aInput)) {
+       return mChain[i];
+     }
+-
+-    *aOutAllowedScrollDirections &= mChain[i]->GetAllowedHandoffDirections();
+-    if (aOutAllowedScrollDirections->isEmpty()) {
+-      return nullptr;
+-    }
+   }
+   return nullptr;
+ }
+ 
+ } // namespace layers
+ } // namespace mozilla
+diff --git a/gfx/layers/apz/src/OverscrollHandoffState.h b/gfx/layers/apz/src/OverscrollHandoffState.h
+--- a/gfx/layers/apz/src/OverscrollHandoffState.h
++++ b/gfx/layers/apz/src/OverscrollHandoffState.h
+@@ -84,23 +84,17 @@ public:
+                             ScrollDirection aDirection) const;
+ 
+   // Determine whether any APZC along this handoff chain is overscrolled.
+   bool HasOverscrolledApzc() const;
+ 
+   // Determine whether any APZC along this handoff chain has been flung fast.
+   bool HasFastFlungApzc() const;
+ 
+-  // Find the first APZC in this handoff chain that can be scrolled by |aInput|.
+-  // Since overscroll-behavior can restrict handoff in some directions,
+-  // |aOutAllowedScrollDirections| is populated with the scroll directions
+-  // in which scrolling of the returned APZC is allowed.
+-  RefPtr<AsyncPanZoomController> FindFirstScrollable(
+-      const InputData& aInput,
+-      ScrollDirections* aOutAllowedScrollDirections) const;
++  RefPtr<AsyncPanZoomController> FindFirstScrollable(const InputData& aInput) const;
+ 
+ private:
+   std::vector<RefPtr<AsyncPanZoomController>> mChain;
+ 
+   typedef void (AsyncPanZoomController::*APZCMethod)();
+   typedef bool (AsyncPanZoomController::*APZCPredicate)() const;
+   void ForEachApzc(APZCMethod aMethod) const;
+   bool AnyApzc(APZCPredicate aPredicate) const;
+diff --git a/gfx/layers/ipc/LayersMessageUtils.h b/gfx/layers/ipc/LayersMessageUtils.h
+--- a/gfx/layers/ipc/LayersMessageUtils.h
++++ b/gfx/layers/ipc/LayersMessageUtils.h
+@@ -73,24 +73,16 @@ struct ParamTraits<mozilla::layers::Scro
+ template<>
+ struct ParamTraits<mozilla::layers::FrameMetrics::ScrollOffsetUpdateType>
+   : public ContiguousEnumSerializerInclusive<
+              mozilla::layers::FrameMetrics::ScrollOffsetUpdateType,
+              mozilla::layers::FrameMetrics::ScrollOffsetUpdateType::eNone,
+              mozilla::layers::FrameMetrics::sHighestScrollOffsetUpdateType>
+ {};
+ 
+-template <>
+-struct ParamTraits<mozilla::layers::OverscrollBehavior>
+-  : public ContiguousEnumSerializerInclusive<
+-            mozilla::layers::OverscrollBehavior,
+-            mozilla::layers::OverscrollBehavior::Auto,
+-            mozilla::layers::kHighestOverscrollBehavior>
+-{};
+-
+ template<>
+ struct ParamTraits<mozilla::layers::LayerHandle>
+ {
+   typedef mozilla::layers::LayerHandle paramType;
+ 
+   static void Write(Message* msg, const paramType& param) {
+     WriteParam(msg, param.mHandle);
+   }
+@@ -228,37 +220,16 @@ struct ParamTraits<mozilla::layers::Scro
+             ReadParam(aMsg, aIter, &aResult->mScrollSnapIntervalX) &&
+             ReadParam(aMsg, aIter, &aResult->mScrollSnapIntervalY) &&
+             ReadParam(aMsg, aIter, &aResult->mScrollSnapDestination) &&
+             ReadParam(aMsg, aIter, &aResult->mScrollSnapCoordinates));
+   }
+ };
+ 
+ template <>
+-struct ParamTraits<mozilla::layers::OverscrollBehaviorInfo>
+-{
+-  // Not using PlainOldDataSerializer so we get enum validation
+-  // for the members.
+-
+-  typedef mozilla::layers::OverscrollBehaviorInfo paramType;
+-
+-  static void Write(Message* aMsg, const paramType& aParam)
+-  {
+-    WriteParam(aMsg, aParam.mBehaviorX);
+-    WriteParam(aMsg, aParam.mBehaviorY);
+-  }
+-
+-  static bool Read(const Message* aMsg, PickleIterator* aIter, paramType* aResult)
+-  {
+-    return (ReadParam(aMsg, aIter, &aResult->mBehaviorX) &&
+-            ReadParam(aMsg, aIter, &aResult->mBehaviorY));
+-  }
+-};
+-
+-template <>
+ struct ParamTraits<mozilla::layers::LayerClip>
+ {
+   typedef mozilla::layers::LayerClip paramType;
+ 
+   static void Write(Message* aMsg, const paramType& aParam)
+   {
+     WriteParam(aMsg, aParam.mClipRect);
+     WriteParam(aMsg, aParam.mMaskLayerIndex);
+@@ -287,17 +258,16 @@ struct ParamTraits<mozilla::layers::Scro
+     WriteParam(aMsg, aParam.mLineScrollAmount);
+     WriteParam(aMsg, aParam.mPageScrollAmount);
+     WriteParam(aMsg, aParam.mScrollClip);
+     WriteParam(aMsg, aParam.mHasScrollgrab);
+     WriteParam(aMsg, aParam.mAllowVerticalScrollWithWheel);
+     WriteParam(aMsg, aParam.mIsLayersIdRoot);
+     WriteParam(aMsg, aParam.mUsesContainerScrolling);
+     WriteParam(aMsg, aParam.mForceDisableApz);
+-    WriteParam(aMsg, aParam.mOverscrollBehavior);
+   }
+ 
+   static bool ReadContentDescription(const Message* aMsg, PickleIterator* aIter, paramType* aResult)
+   {
+     nsCString str;
+     if (!ReadParam(aMsg, aIter, &str)) {
+       return false;
+     }
+@@ -314,18 +284,17 @@ struct ParamTraits<mozilla::layers::Scro
+             ReadContentDescription(aMsg, aIter, aResult) &&
+             ReadParam(aMsg, aIter, &aResult->mLineScrollAmount) &&
+             ReadParam(aMsg, aIter, &aResult->mPageScrollAmount) &&
+             ReadParam(aMsg, aIter, &aResult->mScrollClip) &&
+             ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetHasScrollgrab) &&
+             ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetAllowVerticalScrollWithWheel) &&
+             ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetIsLayersIdRoot) &&
+             ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetUsesContainerScrolling) &&
+-            ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetForceDisableApz) &&
+-            ReadParam(aMsg, aIter, &aResult->mOverscrollBehavior));
++            ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetForceDisableApz));
+   }
+ };
+ 
+ template<>
+ struct ParamTraits<mozilla::layers::TextureFactoryIdentifier>
+ {
+   typedef mozilla::layers::TextureFactoryIdentifier paramType;
+ 
+diff --git a/ipc/glue/IPCMessageUtils.h b/ipc/glue/IPCMessageUtils.h
+--- a/ipc/glue/IPCMessageUtils.h
++++ b/ipc/glue/IPCMessageUtils.h
+@@ -251,21 +251,16 @@ struct BitFlagsEnumSerializer
+ 
+ /**
+  * A helper class for serializing plain-old data (POD) structures.
+  * The memory representation of the structure is written to and read from
+  * the serialized stream directly, without individual processing of the
+  * structure's members.
+  *
+  * Derive ParamTraits<T> from PlainOldDataSerializer<T> if T is POD.
+- *
+- * Note: For POD structures with enumeration fields, this will not do
+- *   validation of the enum values the way serializing the fields
+- *   individually would. Prefer serializing the fields individually
+- *   in such cases.
+  */
+ template <typename T>
+ struct PlainOldDataSerializer
+ {
+   // TODO: Once the mozilla::IsPod trait is in good enough shape (bug 900042),
+   //       static_assert that mozilla::IsPod<T>::value is true.
+   typedef T paramType;
+ 
+diff --git a/layout/base/ScrollbarStyles.cpp b/layout/base/ScrollbarStyles.cpp
+--- a/layout/base/ScrollbarStyles.cpp
++++ b/layout/base/ScrollbarStyles.cpp
+@@ -8,30 +8,26 @@
+ #include "nsStyleStruct.h" // for nsStyleDisplay and nsStyleBackground::Position
+ 
+ namespace mozilla {
+ 
+   ScrollbarStyles::ScrollbarStyles(uint8_t aH, uint8_t aV,
+                                    const nsStyleDisplay* aDisplay)
+     : mHorizontal(aH), mVertical(aV),
+       mScrollBehavior(aDisplay->mScrollBehavior),
+-      mOverscrollBehaviorX(aDisplay->mOverscrollBehaviorX),
+-      mOverscrollBehaviorY(aDisplay->mOverscrollBehaviorY),
+       mScrollSnapTypeX(aDisplay->mScrollSnapTypeX),
+       mScrollSnapTypeY(aDisplay->mScrollSnapTypeY),
+       mScrollSnapPointsX(aDisplay->mScrollSnapPointsX),
+       mScrollSnapPointsY(aDisplay->mScrollSnapPointsY),
+       mScrollSnapDestinationX(aDisplay->mScrollSnapDestination.mXPosition),
+       mScrollSnapDestinationY(aDisplay->mScrollSnapDestination.mYPosition) {}
+ 
+   ScrollbarStyles::ScrollbarStyles(const nsStyleDisplay* aDisplay)
+     : mHorizontal(aDisplay->mOverflowX), mVertical(aDisplay->mOverflowY),
+       mScrollBehavior(aDisplay->mScrollBehavior),
+-      mOverscrollBehaviorX(aDisplay->mOverscrollBehaviorX),
+-      mOverscrollBehaviorY(aDisplay->mOverscrollBehaviorY),
+       mScrollSnapTypeX(aDisplay->mScrollSnapTypeX),
+       mScrollSnapTypeY(aDisplay->mScrollSnapTypeY),
+       mScrollSnapPointsX(aDisplay->mScrollSnapPointsX),
+       mScrollSnapPointsY(aDisplay->mScrollSnapPointsY),
+       mScrollSnapDestinationX(aDisplay->mScrollSnapDestination.mXPosition),
+       mScrollSnapDestinationY(aDisplay->mScrollSnapDestination.mYPosition) {}
+ 
+ } // namespace mozilla
+diff --git a/layout/base/ScrollbarStyles.h b/layout/base/ScrollbarStyles.h
+--- a/layout/base/ScrollbarStyles.h
++++ b/layout/base/ScrollbarStyles.h
+@@ -21,32 +21,28 @@ struct ScrollbarStyles
+ {
+   // Always one of NS_STYLE_OVERFLOW_SCROLL, NS_STYLE_OVERFLOW_HIDDEN,
+   // or NS_STYLE_OVERFLOW_AUTO.
+   uint8_t mHorizontal;
+   uint8_t mVertical;
+   // Always one of NS_STYLE_SCROLL_BEHAVIOR_AUTO or
+   // NS_STYLE_SCROLL_BEHAVIOR_SMOOTH
+   uint8_t mScrollBehavior;
+-  mozilla::StyleOverscrollBehavior mOverscrollBehaviorX;
+-  mozilla::StyleOverscrollBehavior mOverscrollBehaviorY;
+   // Always one of NS_STYLE_SCROLL_SNAP_NONE, NS_STYLE_SCROLL_SNAP_MANDATORY,
+   // or NS_STYLE_SCROLL_SNAP_PROXIMITY.
+   uint8_t mScrollSnapTypeX;
+   uint8_t mScrollSnapTypeY;
+   nsStyleCoord mScrollSnapPointsX;
+   nsStyleCoord mScrollSnapPointsY;
+   nsStyleCoord::CalcValue mScrollSnapDestinationX;
+   nsStyleCoord::CalcValue mScrollSnapDestinationY;
+ 
+   ScrollbarStyles(uint8_t aH, uint8_t aV)
+     : mHorizontal(aH), mVertical(aV),
+       mScrollBehavior(NS_STYLE_SCROLL_BEHAVIOR_AUTO),
+-      mOverscrollBehaviorX(StyleOverscrollBehavior::Auto),
+-      mOverscrollBehaviorY(StyleOverscrollBehavior::Auto),
+       mScrollSnapTypeX(NS_STYLE_SCROLL_SNAP_TYPE_NONE),
+       mScrollSnapTypeY(NS_STYLE_SCROLL_SNAP_TYPE_NONE),
+       mScrollSnapPointsX(nsStyleCoord(eStyleUnit_None)),
+       mScrollSnapPointsY(nsStyleCoord(eStyleUnit_None)) {
+ 
+     mScrollSnapDestinationX.mPercent = 0;
+     mScrollSnapDestinationX.mLength = nscoord(0.0f);
+     mScrollSnapDestinationX.mHasPercent = false;
+@@ -55,18 +51,16 @@ struct ScrollbarStyles
+     mScrollSnapDestinationY.mHasPercent = false;
+   }
+ 
+   explicit ScrollbarStyles(const nsStyleDisplay* aDisplay);
+   ScrollbarStyles(uint8_t aH, uint8_t aV, const nsStyleDisplay* aDisplay);
+   bool operator==(const ScrollbarStyles& aStyles) const {
+     return aStyles.mHorizontal == mHorizontal && aStyles.mVertical == mVertical &&
+            aStyles.mScrollBehavior == mScrollBehavior &&
+-           aStyles.mOverscrollBehaviorX == mOverscrollBehaviorX &&
+-           aStyles.mOverscrollBehaviorY == mOverscrollBehaviorY &&
+            aStyles.mScrollSnapTypeX == mScrollSnapTypeX &&
+            aStyles.mScrollSnapTypeY == mScrollSnapTypeY &&
+            aStyles.mScrollSnapPointsX == mScrollSnapPointsX &&
+            aStyles.mScrollSnapPointsY == mScrollSnapPointsY &&
+            aStyles.mScrollSnapDestinationX == mScrollSnapDestinationX &&
+            aStyles.mScrollSnapDestinationY == mScrollSnapDestinationY;
+   }
+   bool operator!=(const ScrollbarStyles& aStyles) const {
+diff --git a/layout/base/nsLayoutUtils.cpp b/layout/base/nsLayoutUtils.cpp
+--- a/layout/base/nsLayoutUtils.cpp
++++ b/layout/base/nsLayoutUtils.cpp
+@@ -9352,21 +9352,16 @@ nsLayoutUtils::ComputeScrollMetadata(nsI
+         EventStateManager::CanVerticallyScrollFrameWithWheel(aScrollFrame->GetParent()))
+     {
+       metadata.SetAllowVerticalScrollWithWheel(true);
+     }
+ 
+     metadata.SetUsesContainerScrolling(scrollableFrame->UsesContainerScrolling());
+ 
+     metadata.SetSnapInfo(scrollableFrame->GetScrollSnapInfo());
+-
+-    ScrollbarStyles scrollbarStyles = scrollableFrame->GetScrollbarStyles();
+-    metadata.SetOverscrollBehavior(OverscrollBehaviorInfo::FromStyleConstants(
+-        scrollbarStyles.mOverscrollBehaviorX,
+-        scrollbarStyles.mOverscrollBehaviorY));
+   }
+ 
+   // If we have the scrollparent being the same as the scroll id, the
+   // compositor-side code could get into an infinite loop while building the
+   // overscroll handoff chain.
+   MOZ_ASSERT(aScrollParentId == FrameMetrics::NULL_SCROLL_ID || scrollId != aScrollParentId);
+   metrics.SetScrollId(scrollId);
+   metrics.SetIsRootContent(aIsRootContent);
+diff --git a/layout/style/Declaration.cpp b/layout/style/Declaration.cpp
+--- a/layout/style/Declaration.cpp
++++ b/layout/style/Declaration.cpp
+@@ -1463,28 +1463,16 @@ Declaration::GetPropertyValueInternal(
+       // shorthands that are just aliases with different parsing rules
+       const nsCSSPropertyID* subprops =
+         nsCSSProps::SubpropertyEntryFor(aProperty);
+       MOZ_ASSERT(subprops[1] == eCSSProperty_UNKNOWN,
+                  "must have exactly one subproperty");
+       AppendValueToString(subprops[0], aValue);
+       break;
+     }
+-    case eCSSProperty_overscroll_behavior: {
+-      const nsCSSValue& xValue =
+-        *data->ValueFor(eCSSProperty_overscroll_behavior_x);
+-      const nsCSSValue& yValue =
+-        *data->ValueFor(eCSSProperty_overscroll_behavior_y);
+-      AppendValueToString(eCSSProperty_overscroll_behavior_x, aValue);
+-      if (yValue != xValue) {
+-        aValue.Append(char16_t(' '));
+-        AppendValueToString(eCSSProperty_overscroll_behavior_y, aValue);
+-      }
+-      break;
+-    }
+     case eCSSProperty_scroll_snap_type: {
+       const nsCSSValue& xValue =
+         *data->ValueFor(eCSSProperty_scroll_snap_type_x);
+       const nsCSSValue& yValue =
+         *data->ValueFor(eCSSProperty_scroll_snap_type_y);
+       if (xValue == yValue) {
+         AppendValueToString(eCSSProperty_scroll_snap_type_x, aValue);
+       }
+diff --git a/layout/style/ServoBindings.toml b/layout/style/ServoBindings.toml
+--- a/layout/style/ServoBindings.toml
++++ b/layout/style/ServoBindings.toml
+@@ -168,17 +168,16 @@ rusty-enums = [
+     "StyleBoxOrient",
+     "StyleBoxAlign",
+     "StyleUserFocus",
+     "StyleUserSelect",
+     "StyleImageLayerRepeat",
+     "StyleBoxDecorationBreak",
+     "StyleRuleInclusion",
+     "StyleGridTrackBreadth",
+-    "StyleOverscrollBehavior",
+     "nsStyleImageType",
+     "StyleWhiteSpace",
+     "nsStyleSVGPaintType",
+     "nsStyleSVGFallbackType",
+     # ".*Style.*",
+     "nsINode_BooleanFlag",
+     "CSSPseudoElementType",
+     "CSSPseudoClassType",
+diff --git a/layout/style/nsCSSParser.cpp b/layout/style/nsCSSParser.cpp
+--- a/layout/style/nsCSSParser.cpp
++++ b/layout/style/nsCSSParser.cpp
+@@ -991,17 +991,16 @@ protected:
+   bool ParseDasharray();
+   bool ParseMarker();
+   bool ParsePaintOrder();
+   bool ParseAll();
+   bool ParseScrollSnapType();
+   bool ParseScrollSnapPoints(nsCSSValue& aValue, nsCSSPropertyID aPropID);
+   bool ParseScrollSnapDestination(nsCSSValue& aValue);
+   bool ParseScrollSnapCoordinate(nsCSSValue& aValue);
+-  bool ParseOverscrollBehavior();
+   bool ParseWebkitTextStroke();
+ 
+   /**
+    * Parses a variable value from a custom property declaration.
+    *
+    * @param aType Out parameter into which will be stored the type of variable
+    *   value, indicating whether the parsed value was a token stream or one of
+    *   the CSS-wide keywords.
+@@ -10654,17 +10653,17 @@ CSSParserImpl::ParseWebkitGradientRadius
+ //  from(color)
+ //  to(color)
+ //
+ // Quoting https://www.webkit.org/blog/175/introducing-css-gradients/ :
+ //   A stop is a function, color-stop, that takes two arguments, the stop value
+ //   (either a percentage or a number between 0 and 1.0), and a color (any
+ //   valid CSS color). In addition the shorthand functions from and to are
+ //   supported. These functions only require a color argument and are
+-//   equivalent to color-stop(0, ...) and color-stop(1.0, ...) respectively.
++//   equivalent to color-stop(0, ...) and color-stop(1.0, …) respectively.
+ bool
+ CSSParserImpl::ParseWebkitGradientColorStop(nsCSSValueGradient* aGradient)
+ {
+   MOZ_ASSERT(aGradient, "null gradient");
+ 
+   if (!GetToken(true)) {
+     return false;
+   }
+@@ -11807,18 +11806,16 @@ CSSParserImpl::ParsePropertyByFunction(n
+   case eCSSProperty_stroke:
+     return ParsePaint(aPropID);
+   case eCSSProperty_stroke_dasharray:
+     return ParseDasharray();
+   case eCSSProperty_marker:
+     return ParseMarker();
+   case eCSSProperty_paint_order:
+     return ParsePaintOrder();
+-  case eCSSProperty_overscroll_behavior:
+-    return ParseOverscrollBehavior();
+   case eCSSProperty_scroll_snap_type:
+     return ParseScrollSnapType();
+   case eCSSProperty_mask:
+     return ParseImageLayers(nsStyleImageLayers::kMaskLayerTable);
+   case eCSSProperty_mask_repeat:
+     return ParseImageLayerRepeat(eCSSProperty_mask_repeat);
+   case eCSSProperty_mask_position:
+     return ParseImageLayerPosition(nsStyleImageLayers::kMaskLayerTable);
+@@ -17491,41 +17488,16 @@ CSSParserImpl::ParseVariableDeclaration(
+   }
+ 
+   *aType = type;
+   aValue = variableValue;
+   return true;
+ }
+ 
+ bool
+-CSSParserImpl::ParseOverscrollBehavior()
+-{
+-  static const nsCSSPropertyID ids[] = {
+-    eCSSProperty_overscroll_behavior_x,
+-    eCSSProperty_overscroll_behavior_y
+-  };
+-  const int32_t numProps = MOZ_ARRAY_LENGTH(ids);
+-
+-  nsCSSValue values[numProps];
+-  int32_t found = ParseChoice(values, ids, numProps);
+-  if (found < 1) {
+-    return false;
+-  }
+-
+-  // If only one value is specified, it's used for both axes.
+-  if (found == 1) {
+-    values[1] = values[0];
+-  }
+-
+-  AppendValue(eCSSProperty_overscroll_behavior_x, values[0]);
+-  AppendValue(eCSSProperty_overscroll_behavior_y, values[1]);
+-  return true;
+-}
+-
+-bool
+ CSSParserImpl::ParseScrollSnapType()
+ {
+   nsCSSValue value;
+   if (!ParseSingleTokenVariant(value, VARIANT_HK,
+                                nsCSSProps::kScrollSnapTypeKTable)) {
+     return false;
+   }
+   AppendValue(eCSSProperty_scroll_snap_type_x, value);
+diff --git a/layout/style/nsCSSPropList.h b/layout/style/nsCSSPropList.h
+--- a/layout/style/nsCSSPropList.h
++++ b/layout/style/nsCSSPropList.h
+@@ -3652,42 +3652,16 @@ CSS_PROP_DISPLAY(
+     scroll_behavior,
+     ScrollBehavior,
+     CSS_PROPERTY_PARSE_VALUE,
+     "layout.css.scroll-behavior.property-enabled",
+     VARIANT_HK,
+     kScrollBehaviorKTable,
+     CSS_PROP_NO_OFFSET,
+     eStyleAnimType_Discrete)
+-CSS_PROP_SHORTHAND(
+-    overscroll-behavior,
+-    overscroll_behavior,
+-    OverscrollBehavior,
+-    CSS_PROPERTY_PARSE_FUNCTION,
+-    "layout.css.overscroll-behavior.enabled")
+-CSS_PROP_DISPLAY(
+-    overscroll-behavior-x,
+-    overscroll_behavior_x,
+-    OverscrollBehaviorX,
+-    CSS_PROPERTY_PARSE_VALUE,
+-    "layout.css.overscroll-behavior.enabled",
+-    VARIANT_HK,
+-    kOverscrollBehaviorKTable,
+-    CSS_PROP_NO_OFFSET,
+-    eStyleAnimType_Discrete)
+-CSS_PROP_DISPLAY(
+-    overscroll-behavior-y,
+-    overscroll_behavior_y,
+-    OverscrollBehaviorY,
+-    CSS_PROPERTY_PARSE_VALUE,
+-    "layout.css.overscroll-behavior.enabled",
+-    VARIANT_HK,
+-    kOverscrollBehaviorKTable,
+-    CSS_PROP_NO_OFFSET,
+-    eStyleAnimType_Discrete)
+ CSS_PROP_DISPLAY(
+     scroll-snap-coordinate,
+     scroll_snap_coordinate,
+     ScrollSnapCoordinate,
+     CSS_PROPERTY_PARSE_VALUE |
+         CSS_PROPERTY_VALUE_PARSER_FUNCTION |
+         CSS_PROPERTY_VALUE_LIST_USES_COMMAS |
+         CSS_PROPERTY_STORES_CALC,
+diff --git a/layout/style/nsCSSProps.cpp b/layout/style/nsCSSProps.cpp
+--- a/layout/style/nsCSSProps.cpp
++++ b/layout/style/nsCSSProps.cpp
+@@ -1934,23 +1934,16 @@ const KTableEntry nsCSSProps::kRubyPosit
+ };
+ 
+ const KTableEntry nsCSSProps::kScrollBehaviorKTable[] = {
+   { eCSSKeyword_auto,       NS_STYLE_SCROLL_BEHAVIOR_AUTO },
+   { eCSSKeyword_smooth,     NS_STYLE_SCROLL_BEHAVIOR_SMOOTH },
+   { eCSSKeyword_UNKNOWN,    -1 }
+ };
+ 
+-const KTableEntry nsCSSProps::kOverscrollBehaviorKTable[] = {
+-  { eCSSKeyword_auto,       StyleOverscrollBehavior::Auto },
+-  { eCSSKeyword_contain,    StyleOverscrollBehavior::Contain },
+-  { eCSSKeyword_none,       StyleOverscrollBehavior::None },
+-  { eCSSKeyword_UNKNOWN,    -1 }
+-};
+-
+ const KTableEntry nsCSSProps::kScrollSnapTypeKTable[] = {
+   { eCSSKeyword_none,      NS_STYLE_SCROLL_SNAP_TYPE_NONE },
+   { eCSSKeyword_mandatory, NS_STYLE_SCROLL_SNAP_TYPE_MANDATORY },
+   { eCSSKeyword_proximity, NS_STYLE_SCROLL_SNAP_TYPE_PROXIMITY },
+   { eCSSKeyword_UNKNOWN,   -1 }
+ };
+ 
+ const KTableEntry nsCSSProps::kStackSizingKTable[] = {
+@@ -3005,22 +2998,16 @@ static const nsCSSPropertyID gPlaceSelfS
+ 
+ // Subproperty tables for shorthands that are just aliases with
+ // different parsing rules.
+ static const nsCSSPropertyID gMozTransformSubpropTable[] = {
+   eCSSProperty_transform,
+   eCSSProperty_UNKNOWN
+ };
+ 
+-static const nsCSSPropertyID gOverscrollBehaviorSubpropTable[] = {
+-  eCSSProperty_overscroll_behavior_x,
+-  eCSSProperty_overscroll_behavior_y,
+-  eCSSProperty_UNKNOWN
+-};
+-
+ static const nsCSSPropertyID gScrollSnapTypeSubpropTable[] = {
+   eCSSProperty_scroll_snap_type_x,
+   eCSSProperty_scroll_snap_type_y,
+   eCSSProperty_UNKNOWN
+ };
+ 
+ static const nsCSSPropertyID gMaskSubpropTable[] = {
+   eCSSProperty_mask_image,
+diff --git a/layout/style/nsCSSProps.h b/layout/style/nsCSSProps.h
+--- a/layout/style/nsCSSProps.h
++++ b/layout/style/nsCSSProps.h
+@@ -832,17 +832,16 @@ public:
+   static const KTableEntry kPositionKTable[];
+   static const KTableEntry kRadialGradientShapeKTable[];
+   static const KTableEntry kRadialGradientSizeKTable[];
+   static const KTableEntry kRadialGradientLegacySizeKTable[];
+   static const KTableEntry kResizeKTable[];
+   static const KTableEntry kRubyAlignKTable[];
+   static const KTableEntry kRubyPositionKTable[];
+   static const KTableEntry kScrollBehaviorKTable[];
+-  static const KTableEntry kOverscrollBehaviorKTable[];
+   static const KTableEntry kScrollSnapTypeKTable[];
+   static const KTableEntry kSpeakKTable[];
+   static const KTableEntry kSpeakHeaderKTable[];
+   static const KTableEntry kSpeakNumeralKTable[];
+   static const KTableEntry kSpeakPunctuationKTable[];
+   static const KTableEntry kSpeechRateKTable[];
+   static const KTableEntry kStackSizingKTable[];
+   static const KTableEntry kTableLayoutKTable[];
+diff --git a/layout/style/nsComputedDOMStyle.cpp b/layout/style/nsComputedDOMStyle.cpp
+--- a/layout/style/nsComputedDOMStyle.cpp
++++ b/layout/style/nsComputedDOMStyle.cpp
+@@ -3618,36 +3618,16 @@ nsComputedDOMStyle::DoGetScrollBehavior(
+   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
+   val->SetIdent(
+     nsCSSProps::ValueToKeywordEnum(StyleDisplay()->mScrollBehavior,
+                                    nsCSSProps::kScrollBehaviorKTable));
+   return val.forget();
+ }
+ 
+ already_AddRefed<CSSValue>
+-nsComputedDOMStyle::DoGetOverscrollBehaviorX()
+-{
+-  RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
+-  val->SetIdent(
+-    nsCSSProps::ValueToKeywordEnum(StyleDisplay()->mOverscrollBehaviorX,
+-                                   nsCSSProps::kOverscrollBehaviorKTable));
+-  return val.forget();
+-}
+-
+-already_AddRefed<CSSValue>
+-nsComputedDOMStyle::DoGetOverscrollBehaviorY()
+-{
+-  RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
+-  val->SetIdent(
+-    nsCSSProps::ValueToKeywordEnum(StyleDisplay()->mOverscrollBehaviorY,
+-                                   nsCSSProps::kOverscrollBehaviorKTable));
+-  return val.forget();
+-}
+-
+-already_AddRefed<CSSValue>
+ nsComputedDOMStyle::DoGetScrollSnapType()
+ {
+   const nsStyleDisplay* display = StyleDisplay();
+   if (display->mScrollSnapTypeX != display->mScrollSnapTypeY) {
+     // No value to return.  We can't express this combination of
+     // values as a shorthand.
+     return nullptr;
+   }
+diff --git a/layout/style/nsComputedDOMStyle.h b/layout/style/nsComputedDOMStyle.h
+--- a/layout/style/nsComputedDOMStyle.h
++++ b/layout/style/nsComputedDOMStyle.h
+@@ -511,18 +511,16 @@ private:
+   already_AddRefed<CSSValue> DoGetTransformBox();
+   already_AddRefed<CSSValue> DoGetTransformOrigin();
+   already_AddRefed<CSSValue> DoGetPerspective();
+   already_AddRefed<CSSValue> DoGetBackfaceVisibility();
+   already_AddRefed<CSSValue> DoGetPerspectiveOrigin();
+   already_AddRefed<CSSValue> DoGetTransformStyle();
+   already_AddRefed<CSSValue> DoGetOrient();
+   already_AddRefed<CSSValue> DoGetScrollBehavior();
+-  already_AddRefed<CSSValue> DoGetOverscrollBehaviorX();
+-  already_AddRefed<CSSValue> DoGetOverscrollBehaviorY();
+   already_AddRefed<CSSValue> DoGetScrollSnapType();
+   already_AddRefed<CSSValue> DoGetScrollSnapTypeX();
+   already_AddRefed<CSSValue> DoGetScrollSnapTypeY();
+   already_AddRefed<CSSValue> DoGetScrollSnapPointsX();
+   already_AddRefed<CSSValue> DoGetScrollSnapPointsY();
+   already_AddRefed<CSSValue> DoGetScrollSnapDestination();
+   already_AddRefed<CSSValue> DoGetScrollSnapCoordinate();
+   already_AddRefed<CSSValue> DoGetShapeOutside();
+diff --git a/layout/style/nsComputedDOMStylePropertyList.h b/layout/style/nsComputedDOMStylePropertyList.h
+--- a/layout/style/nsComputedDOMStylePropertyList.h
++++ b/layout/style/nsComputedDOMStylePropertyList.h
+@@ -198,18 +198,16 @@ COMPUTED_STYLE_PROP(outline_color,      
+ COMPUTED_STYLE_PROP(outline_offset,                OutlineOffset)
+ COMPUTED_STYLE_PROP(outline_style,                 OutlineStyle)
+ COMPUTED_STYLE_PROP(outline_width,                 OutlineWidth)
+ COMPUTED_STYLE_PROP(overflow,                      Overflow)
+ COMPUTED_STYLE_PROP(overflow_clip_box,             OverflowClipBox)
+ COMPUTED_STYLE_PROP(overflow_wrap,                 OverflowWrap)
+ COMPUTED_STYLE_PROP(overflow_x,                    OverflowX)
+ COMPUTED_STYLE_PROP(overflow_y,                    OverflowY)
+-COMPUTED_STYLE_PROP(overscroll_behavior_x,         OverscrollBehaviorX)
+-COMPUTED_STYLE_PROP(overscroll_behavior_y,         OverscrollBehaviorY)
+ //// COMPUTED_STYLE_PROP(padding,                  Padding)
+ COMPUTED_STYLE_PROP(padding_bottom,                PaddingBottom)
+ COMPUTED_STYLE_PROP(padding_left,                  PaddingLeft)
+ COMPUTED_STYLE_PROP(padding_right,                 PaddingRight)
+ COMPUTED_STYLE_PROP(padding_top,                   PaddingTop)
+ // COMPUTED_STYLE_PROP(page,                       Page)
+ COMPUTED_STYLE_PROP(page_break_after,              PageBreakAfter)
+ COMPUTED_STYLE_PROP(page_break_before,             PageBreakBefore)
+diff --git a/layout/style/nsRuleNode.cpp b/layout/style/nsRuleNode.cpp
+--- a/layout/style/nsRuleNode.cpp
++++ b/layout/style/nsRuleNode.cpp
+@@ -1432,17 +1432,16 @@ struct SetEnumValueHelper
+   DEFINE_ENUM_CLASS_SETTER(StyleBoxPack, Start, Justify)
+   DEFINE_ENUM_CLASS_SETTER(StyleBoxSizing, Content, Border)
+   DEFINE_ENUM_CLASS_SETTER(StyleClear, None, Both)
+   DEFINE_ENUM_CLASS_SETTER(StyleContent, OpenQuote, AltContent)
+   DEFINE_ENUM_CLASS_SETTER(StyleFillRule, Nonzero, Evenodd)
+   DEFINE_ENUM_CLASS_SETTER(StyleFloat, None, InlineEnd)
+   DEFINE_ENUM_CLASS_SETTER(StyleFloatEdge, ContentBox, MarginBox)
+   DEFINE_ENUM_CLASS_SETTER(StyleHyphens, None, Auto)
+-  DEFINE_ENUM_CLASS_SETTER(StyleOverscrollBehavior, Auto, None)
+   DEFINE_ENUM_CLASS_SETTER(StyleStackSizing, Ignore, IgnoreVertical)
+   DEFINE_ENUM_CLASS_SETTER(StyleTextJustify, None, InterCharacter)
+   DEFINE_ENUM_CLASS_SETTER(StyleUserFocus, None, SelectMenu)
+   DEFINE_ENUM_CLASS_SETTER(StyleUserSelect, None, MozText)
+   DEFINE_ENUM_CLASS_SETTER(StyleUserInput, None, Auto)
+   DEFINE_ENUM_CLASS_SETTER(StyleUserModify, ReadOnly, WriteOnly)
+   DEFINE_ENUM_CLASS_SETTER(StyleWindowDragging, Default, NoDrag)
+   DEFINE_ENUM_CLASS_SETTER(StyleOrient, Inline, Vertical)
+@@ -5807,32 +5806,16 @@ nsRuleNode::ComputeDisplayData(void* aSt
+            NS_STYLE_CONTAIN_NONE, Unused, Unused);
+ 
+   // scroll-behavior: enum, inherit, initial
+   SetValue(*aRuleData->ValueForScrollBehavior(), display->mScrollBehavior,
+            conditions,
+            SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,
+            parentDisplay->mScrollBehavior, NS_STYLE_SCROLL_BEHAVIOR_AUTO);
+ 
+-  // overscroll-behavior-x: none, enum, inherit, initial
+-  SetValue(*aRuleData->ValueForOverscrollBehaviorX(),
+-           display->mOverscrollBehaviorX,
+-           conditions,
+-           SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,
+-           parentDisplay->mOverscrollBehaviorX,
+-           StyleOverscrollBehavior::Auto);
+-
+-  // overscroll-behavior-y: none, enum, inherit, initial
+-  SetValue(*aRuleData->ValueForOverscrollBehaviorY(),
+-           display->mOverscrollBehaviorY,
+-           conditions,
+-           SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,
+-           parentDisplay->mOverscrollBehaviorY,
+-           StyleOverscrollBehavior::Auto);
+-
+   // scroll-snap-type-x: none, enum, inherit, initial
+   SetValue(*aRuleData->ValueForScrollSnapTypeX(), display->mScrollSnapTypeX,
+            conditions,
+            SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,
+            parentDisplay->mScrollSnapTypeX, NS_STYLE_SCROLL_SNAP_TYPE_NONE);
+ 
+   // scroll-snap-type-y: none, enum, inherit, initial
+   SetValue(*aRuleData->ValueForScrollSnapTypeY(), display->mScrollSnapTypeY,
+diff --git a/layout/style/nsStyleConsts.h b/layout/style/nsStyleConsts.h
+--- a/layout/style/nsStyleConsts.h
++++ b/layout/style/nsStyleConsts.h
+@@ -1183,23 +1183,16 @@ enum class StyleWhiteSpace : uint8_t {
+ #define NS_STYLE_COUNTER_SPEAKAS_WORDS      2
+ #define NS_STYLE_COUNTER_SPEAKAS_SPELL_OUT  3
+ #define NS_STYLE_COUNTER_SPEAKAS_OTHER      255 // refer to another style
+ 
+ // See nsStyleDisplay::mScrollBehavior
+ #define NS_STYLE_SCROLL_BEHAVIOR_AUTO       0
+ #define NS_STYLE_SCROLL_BEHAVIOR_SMOOTH     1
+ 
+-// See nsStyleDisplay::mOverscrollBehavior{X,Y}
+-enum class StyleOverscrollBehavior : uint8_t {
+-  Auto = 0,
+-  Contain,
+-  None,
+-};
+-
+ // See nsStyleDisplay::mScrollSnapType{X,Y}
+ #define NS_STYLE_SCROLL_SNAP_TYPE_NONE              0
+ #define NS_STYLE_SCROLL_SNAP_TYPE_MANDATORY         1
+ #define NS_STYLE_SCROLL_SNAP_TYPE_PROXIMITY         2
+ 
+ /*****************************************************************************
+  * Constants for media features.                                             *
+  *****************************************************************************/
+diff --git a/layout/style/nsStyleStruct.cpp b/layout/style/nsStyleStruct.cpp
+--- a/layout/style/nsStyleStruct.cpp
++++ b/layout/style/nsStyleStruct.cpp
+@@ -3563,18 +3563,16 @@ nsStyleDisplay::nsStyleDisplay(const nsP
+   , mOverflowClipBox(NS_STYLE_OVERFLOW_CLIP_BOX_PADDING_BOX)
+   , mResize(NS_STYLE_RESIZE_NONE)
+   , mOrient(StyleOrient::Inline)
+   , mIsolation(NS_STYLE_ISOLATION_AUTO)
+   , mTopLayer(NS_STYLE_TOP_LAYER_NONE)
+   , mWillChangeBitField(0)
+   , mTouchAction(NS_STYLE_TOUCH_ACTION_AUTO)
+   , mScrollBehavior(NS_STYLE_SCROLL_BEHAVIOR_AUTO)
+-  , mOverscrollBehaviorX(StyleOverscrollBehavior::Auto)
+-  , mOverscrollBehaviorY(StyleOverscrollBehavior::Auto)
+   , mScrollSnapTypeX(NS_STYLE_SCROLL_SNAP_TYPE_NONE)
+   , mScrollSnapTypeY(NS_STYLE_SCROLL_SNAP_TYPE_NONE)
+   , mScrollSnapPointsX(eStyleUnit_None)
+   , mScrollSnapPointsY(eStyleUnit_None)
+   , mBackfaceVisibility(NS_STYLE_BACKFACE_VISIBILITY_VISIBLE)
+   , mTransformStyle(NS_STYLE_TRANSFORM_STYLE_FLAT)
+   , mTransformBox(StyleGeometryBox::BorderBox)
+   , mSpecifiedTransform(nullptr)
+@@ -3628,18 +3626,16 @@ nsStyleDisplay::nsStyleDisplay(const nsS
+   , mResize(aSource.mResize)
+   , mOrient(aSource.mOrient)
+   , mIsolation(aSource.mIsolation)
+   , mTopLayer(aSource.mTopLayer)
+   , mWillChangeBitField(aSource.mWillChangeBitField)
+   , mWillChange(aSource.mWillChange)
+   , mTouchAction(aSource.mTouchAction)
+   , mScrollBehavior(aSource.mScrollBehavior)
+-  , mOverscrollBehaviorX(aSource.mOverscrollBehaviorX)
+-  , mOverscrollBehaviorY(aSource.mOverscrollBehaviorY)
+   , mScrollSnapTypeX(aSource.mScrollSnapTypeX)
+   , mScrollSnapTypeY(aSource.mScrollSnapTypeY)
+   , mScrollSnapPointsX(aSource.mScrollSnapPointsX)
+   , mScrollSnapPointsY(aSource.mScrollSnapPointsY)
+   , mScrollSnapDestination(aSource.mScrollSnapDestination)
+   , mScrollSnapCoordinate(aSource.mScrollSnapCoordinate)
+   , mBackfaceVisibility(aSource.mBackfaceVisibility)
+   , mTransformStyle(aSource.mTransformStyle)
+@@ -3894,23 +3890,16 @@ nsStyleDisplay::CalcDifference(const nsS
+   }
+ 
+   // If touch-action is changed, we need to regenerate the event regions on
+   // the layers and send it over to the compositor for APZ to handle.
+   if (mTouchAction != aNewData.mTouchAction) {
+     hint |= nsChangeHint_RepaintFrame;
+   }
+ 
+-  // If overscroll-behavior has changed, the changes are picked up
+-  // during a repaint.
+-  if (mOverscrollBehaviorX != aNewData.mOverscrollBehaviorX ||
+-      mOverscrollBehaviorY != aNewData.mOverscrollBehaviorY) {
+-    hint |= nsChangeHint_SchedulePaint;
+-  }
+-
+   // Note:  Our current behavior for handling changes to the
+   // transition-duration, transition-delay, and transition-timing-function
+   // properties is to do nothing.  In other words, the transition
+   // property that matters is what it is when the transition begins, and
+   // we don't stop a transition later because the transition property
+   // changed.
+   // We do handle changes to transition-property, but we don't need to
+   // bother with anything here, since the transition manager is notified
+diff --git a/layout/style/nsStyleStruct.h b/layout/style/nsStyleStruct.h
+--- a/layout/style/nsStyleStruct.h
++++ b/layout/style/nsStyleStruct.h
+@@ -2582,18 +2582,16 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsSt
+                                 // that are frequently queried. This should
+                                 // match mWillChange. Also tracks if any of the
+                                 // properties in the will-change list require
+                                 // a stacking context.
+   nsTArray<RefPtr<nsAtom>> mWillChange;
+ 
+   uint8_t mTouchAction;         // [reset] see nsStyleConsts.h
+   uint8_t mScrollBehavior;      // [reset] see nsStyleConsts.h NS_STYLE_SCROLL_BEHAVIOR_*
+-  mozilla::StyleOverscrollBehavior mOverscrollBehaviorX;  // [reset] see nsStyleConsts.h
+-  mozilla::StyleOverscrollBehavior mOverscrollBehaviorY;  // [reset] see nsStyleConsts.h
+   uint8_t mScrollSnapTypeX;     // [reset] see nsStyleConsts.h NS_STYLE_SCROLL_SNAP_TYPE_*
+   uint8_t mScrollSnapTypeY;     // [reset] see nsStyleConsts.h NS_STYLE_SCROLL_SNAP_TYPE_*
+   nsStyleCoord mScrollSnapPointsX; // [reset]
+   nsStyleCoord mScrollSnapPointsY; // [reset]
+   mozilla::Position mScrollSnapDestination; // [reset]
+   nsTArray<mozilla::Position> mScrollSnapCoordinate; // [reset]
+ 
+   // mSpecifiedTransform is the list of transform functions as
+diff --git a/layout/style/test/mochitest.ini b/layout/style/test/mochitest.ini
+--- a/layout/style/test/mochitest.ini
++++ b/layout/style/test/mochitest.ini
+@@ -250,17 +250,16 @@ skip-if = android_version == '18' #debug
+ [test_media_queries_dynamic.html]
+ [test_media_queries_dynamic_xbl.html]
+ [test_media_query_list.html]
+ [test_media_query_serialization.html]
+ [test_moz_device_pixel_ratio.html]
+ [test_namespace_rule.html]
+ [test_non_content_accessible_properties.html]
+ [test_of_type_selectors.xhtml]
+-[test_overscroll_behavior_pref.html]
+ [test_page_parser.html]
+ [test_parse_eof.html]
+ [test_parse_ident.html]
+ [test_parse_rule.html]
+ [test_parse_url.html]
+ [test_parser_diagnostics_unprintables.html]
+ [test_pixel_lengths.html]
+ [test_pointer-events.html]
+diff --git a/layout/style/test/property_database.js b/layout/style/test/property_database.js
+--- a/layout/style/test/property_database.js
++++ b/layout/style/test/property_database.js
+@@ -7447,44 +7447,16 @@ if (IsCSSPropertyPrefEnabled("layout.css
+     inherited: false,
+     type: CSS_TYPE_LONGHAND,
+     initial_values: [ "auto" ],
+     other_values: [ "smooth" ],
+     invalid_values: [ "none",  "1px" ]
+   };
+ }
+ 
+-if (IsCSSPropertyPrefEnabled("layout.css.overscroll-behavior.enabled")) {
+-  gCSSProperties["overscroll-behavior-x"] = {
+-    domProp: "overscrollBehaviorX",
+-    inherited: false,
+-    type: CSS_TYPE_LONGHAND,
+-    initial_values: [ "auto" ],
+-    other_values: [ "contain", "none" ],
+-    invalid_values: [ "left", "1px" ]
+-  };
+-  gCSSProperties["overscroll-behavior-y"] = {
+-    domProp: "overscrollBehaviorY",
+-    inherited: false,
+-    type: CSS_TYPE_LONGHAND,
+-    initial_values: [ "auto" ],
+-    other_values: [ "contain", "none" ],
+-    invalid_values: [ "left", "1px" ]
+-  };
+-  gCSSProperties["overscroll-behavior"] = {
+-    domProp: "overscrollBehavior",
+-    inherited: false,
+-    type: CSS_TYPE_TRUE_SHORTHAND,
+-    subproperties: [ "overscroll-behavior-x", "overscroll-behavior-y" ],
+-    initial_values: [ "auto" ],
+-    other_values: [ "contain", "none", "contain contain", "contain auto", "none contain" ],
+-    invalid_values: [ "left", "1px", "contain auto none", "contain nonsense" ]
+-  };
+-}
+-
+ if (IsCSSPropertyPrefEnabled("layout.css.scroll-snap.enabled")) {
+   gCSSProperties["scroll-snap-coordinate"] = {
+     domProp: "scrollSnapCoordinate",
+     inherited: false,
+     type: CSS_TYPE_LONGHAND,
+     initial_values: [ "none" ],
+     other_values: [ "25% 25%", "top", "0px 100px, 10em 50%",
+                     "top left, top right, bottom left, bottom right, center",
+diff --git a/layout/style/test/test_overscroll_behavior_pref.html b/layout/style/test/test_overscroll_behavior_pref.html
+deleted file mode 100644
+--- a/layout/style/test/test_overscroll_behavior_pref.html
++++ /dev/null
+@@ -1,24 +0,0 @@
+-<!doctype html>
+-<html>
+-  <head>
+-    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+-    <title>Test pref for overscroll-behavior property</title>
+-    <script type="text/javascript" src="/tests/SimpleTest/SimpleTest.js"></script>
+-  </head>
+-<script class="testbody" type="text/javascript">
+-function runTest() {
+-  let css = "div { overscroll-behavior: auto; }";
+-  let style = document.createElement('style');
+-  style.appendChild(document.createTextNode(css));
+-  document.head.appendChild(style);
+-
+-  is(document.styleSheets[0].cssRules[0].style.length,
+-     0,
+-     "overscroll-behavior shouldn't be parsed if the pref is off");
+-  SimpleTest.finish();
+-}
+-SpecialPowers.pushPrefEnv({ set: [["layout.css.overscroll-behavior.enabled", false]] },
+-                          runTest);
+-SimpleTest.waitForExplicitFinish();
+-</script>
+-</html>
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -3026,23 +3026,16 @@ pref("layout.css.control-characters.visi
+ #endif
+ 
+ // Is support for column-span enabled?
+ pref("layout.css.column-span.enabled", false);
+ 
+ // Are inter-character ruby annotations enabled?
+ pref("layout.css.ruby.intercharacter.enabled", false);
+ 
+-// Is support for overscroll-behavior enabled?
+-#ifdef RELEASE_OR_BETA
+-pref("layout.css.overscroll-behavior.enabled", false);
+-#else
+-pref("layout.css.overscroll-behavior.enabled", true);
+-#endif
+-
+ // pref for which side vertical scrollbars should be on
+ // 0 = end-side in UI direction
+ // 1 = end-side in document/content direction
+ // 2 = right
+ // 3 = left
+ pref("layout.scrollbar.side", 0);
+ 
+ // pref to stop overlay scrollbars from fading out, for testing purposes
+diff --git a/testing/web-platform/tests/css/cssom-view/overscrollBehavior-manual.html b/testing/web-platform/tests/css/cssom-view/overscrollBehavior-manual.html
+--- a/testing/web-platform/tests/css/cssom-view/overscrollBehavior-manual.html
++++ b/testing/web-platform/tests/css/cssom-view/overscrollBehavior-manual.html
+@@ -47,17 +47,16 @@
+   <li id="i1">Make two scrolls on <span style="color: blue">BLUE</span>, in this order: scroll UP (or drag down), then scroll LEFT (or drag right). Scroll (or drag) until nothing is scrolling. Then tap on DONE.</li>
+   <li id="i2">Repeat the same scrolls as in step 1 and then tap on DONE.</li>
+   <li id="i3">Repeat the same scrolls as in step 1 and then tap on DONE.</li>
+   <li id="i4">Make two separate scrolls on <span style="color: green">GREEN</span>, in this order: scroll UP (or drag down), then scroll LEFT (or drag right). Scroll (or drag) until nothing is scrolling. Then tap on DONE.</li>
+ </ol>
+ 
+ 
+ <script>
+-setup({explicit_timeout: true});
+ const container = document.getElementById('container');
+ const non_scrollable = document.getElementById('non_scrollable');
+ const root = document.getElementById('root');
+ var test = async_test("overscroll-behavior prevents scroll-propagation in the area and direction as specified");
+ var instruction1 = document.getElementById("i1");
+ var instruction2 = document.getElementById("i2");
+ var instruction3 = document.getElementById("i3");
+ var instruction4 = document.getElementById("i4");
+diff --git a/widget/InputData.cpp b/widget/InputData.cpp
+--- a/widget/InputData.cpp
++++ b/widget/InputData.cpp
+@@ -485,17 +485,16 @@ PanGestureInput::PanGestureInput()
+   : InputData(PANGESTURE_INPUT)
+   , mLineOrPageDeltaX(0)
+   , mLineOrPageDeltaY(0)
+   , mUserDeltaMultiplierX(1.0)
+   , mUserDeltaMultiplierY(1.0)
+   , mHandledByAPZ(false)
+   , mFollowedByMomentum(false)
+   , mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection(false)
+-  , mOverscrollBehaviorAllowsSwipe(false)
+ {
+ }
+ 
+ PanGestureInput::PanGestureInput(PanGestureType aType, uint32_t aTime,
+                                  TimeStamp aTimeStamp,
+                                  const ScreenPoint& aPanStartPoint,
+                                  const ScreenPoint& aPanDisplacement,
+                                  Modifiers aModifiers)
+@@ -505,17 +504,16 @@ PanGestureInput::PanGestureInput(PanGest
+   , mPanDisplacement(aPanDisplacement)
+   , mLineOrPageDeltaX(0)
+   , mLineOrPageDeltaY(0)
+   , mUserDeltaMultiplierX(1.0)
+   , mUserDeltaMultiplierY(1.0)
+   , mHandledByAPZ(false)
+   , mFollowedByMomentum(false)
+   , mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection(false)
+-  , mOverscrollBehaviorAllowsSwipe(false)
+ {
+ }
+ 
+ bool
+ PanGestureInput::IsMomentum() const
+ {
+   switch (mType) {
+     case PanGestureInput::PANGESTURE_MOMENTUMSTART:
+diff --git a/widget/InputData.h b/widget/InputData.h
+--- a/widget/InputData.h
++++ b/widget/InputData.h
+@@ -380,24 +380,16 @@ public:
+ 
+   // If this is true, and this event started a new input block that couldn't
+   // find a scrollable target which is scrollable in the horizontal component
+   // of the scroll start direction, then this input block needs to be put on
+   // hold until a content response has arrived, even if the block has a
+   // confirmed target.
+   // This is used by events that can result in a swipe instead of a scroll.
+   bool mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection;
+-
+-  // This is used by APZ to communicate to the macOS widget code whether
+-  // the overscroll-behavior of the scroll frame handling this swipe allows
+-  // non-local overscroll behaviors in the horizontal direction (such as
+-  // swipe navigation).
+-  bool mOverscrollBehaviorAllowsSwipe;
+-
+-  // XXX: If adding any more bools, switch to using bitfields instead.
+ };
+ 
+ /**
+  * Encapsulation class for pinch events. In general, these will be generated by
+  * a gesture listener by looking at SingleTouchData/MultiTouchInput instances and
+  * determining whether or not the user was trying to do a gesture.
+  */
+ class PinchGestureInput : public InputData
+diff --git a/widget/cocoa/nsChildView.mm b/widget/cocoa/nsChildView.mm
+--- a/widget/cocoa/nsChildView.mm
++++ b/widget/cocoa/nsChildView.mm
+@@ -2918,17 +2918,17 @@ nsChildView::DispatchAPZWheelInputEvent(
+         result = mAPZC->ReceiveInputEvent(aEvent, &guid, &inputBlockId);
+         if (result == nsEventStatus_eConsumeNoDefault) {
+           return;
+         }
+ 
+         PanGestureInput& panInput = aEvent.AsPanGestureInput();
+ 
+         event = panInput.ToWidgetWheelEvent(this);
+-        if (aCanTriggerSwipe && panInput.mOverscrollBehaviorAllowsSwipe) {
++        if (aCanTriggerSwipe) {
+           SwipeInfo swipeInfo = SendMayStartSwipe(panInput);
+           event.mCanTriggerSwipe = swipeInfo.wantsSwipe;
+           if (swipeInfo.wantsSwipe) {
+             if (result == nsEventStatus_eIgnore) {
+               // APZ has determined and that scrolling horizontally in the
+               // requested direction is impossible, so it didn't do any
+               // scrolling for the event.
+               // We know now that MayStartSwipe wants a swipe, so we can start
+diff --git a/widget/nsGUIEventIPC.h b/widget/nsGUIEventIPC.h
+--- a/widget/nsGUIEventIPC.h
++++ b/widget/nsGUIEventIPC.h
+@@ -1220,35 +1220,33 @@ struct ParamTraits<mozilla::PanGestureIn
+     WriteParam(aMsg, aParam.mLocalPanDisplacement);
+     WriteParam(aMsg, aParam.mLineOrPageDeltaX);
+     WriteParam(aMsg, aParam.mLineOrPageDeltaY);
+     WriteParam(aMsg, aParam.mUserDeltaMultiplierX);
+     WriteParam(aMsg, aParam.mUserDeltaMultiplierY);
+     WriteParam(aMsg, aParam.mHandledByAPZ);
+     WriteParam(aMsg, aParam.mFollowedByMomentum);
+     WriteParam(aMsg, aParam.mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection);
+-    WriteParam(aMsg, aParam.mOverscrollBehaviorAllowsSwipe);
+   }
+ 
+   static bool Read(const Message* aMsg, PickleIterator* aIter, paramType* aResult)
+   {
+     return ReadParam(aMsg, aIter, static_cast<mozilla::InputData*>(aResult)) &&
+            ReadParam(aMsg, aIter, &aResult->mType) &&
+            ReadParam(aMsg, aIter, &aResult->mPanStartPoint) &&
+            ReadParam(aMsg, aIter, &aResult->mPanDisplacement) &&
+            ReadParam(aMsg, aIter, &aResult->mLocalPanStartPoint) &&
+            ReadParam(aMsg, aIter, &aResult->mLocalPanDisplacement) &&
+            ReadParam(aMsg, aIter, &aResult->mLineOrPageDeltaX) &&
+            ReadParam(aMsg, aIter, &aResult->mLineOrPageDeltaY) &&
+            ReadParam(aMsg, aIter, &aResult->mUserDeltaMultiplierX) &&
+            ReadParam(aMsg, aIter, &aResult->mUserDeltaMultiplierY) &&
+            ReadParam(aMsg, aIter, &aResult->mHandledByAPZ) &&
+            ReadParam(aMsg, aIter, &aResult->mFollowedByMomentum) &&
+-           ReadParam(aMsg, aIter, &aResult->mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection) &&
+-           ReadParam(aMsg, aIter, &aResult->mOverscrollBehaviorAllowsSwipe);
++           ReadParam(aMsg, aIter, &aResult->mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection);
+   }
+ };
+ 
+ template<>
+ struct ParamTraits<mozilla::PinchGestureInput::PinchGestureType>
+   : public ContiguousEnumSerializerInclusive<
+              mozilla::PinchGestureInput::PinchGestureType,
+              mozilla::PinchGestureInput::PinchGestureType::PINCHGESTURE_START,
+

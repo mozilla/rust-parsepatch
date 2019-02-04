@@ -1,0 +1,1163 @@
+
+# HG changeset patch
+# User Brindusan Cristian <cbrindusan@mozilla.com>
+# Date 1511644717 -7200
+# Node ID f045ac9f76cfb985032050f74b9d9ba20c216e32
+# Parent  be1076b6ff6f7184edd3f448c6b0e4beed2299b6# Parent  9d87224ffeba9813986057eaae09f0784c9a4650
+Merge inbound to mozilla-central r=merge a=merge
+
+diff --git a/browser/base/content/test/referrer/head.js b/browser/base/content/test/referrer/head.js
+--- a/browser/base/content/test/referrer/head.js
++++ b/browser/base/content/test/referrer/head.js
+@@ -148,19 +148,17 @@ function delayedStartupFinished(aWindow)
+ 
+ /**
+  * Waits for some (any) tab to load. The caller triggers the load.
+  * @param aWindow The window where to wait for a tab to load.
+  * @return {Promise}
+  * @resolves With the tab once it's loaded.
+  */
+ function someTabLoaded(aWindow) {
+-  return BrowserTestUtils.waitForNewTab(gTestWindow.gBrowser).then((tab) => {
+-    return BrowserTestUtils.browserStopped(tab.linkedBrowser).then(() => tab);
+-  });
++  return BrowserTestUtils.waitForNewTab(gTestWindow.gBrowser, null, true);
+ }
+ 
+ /**
+  * Waits for a new window to open and load. The caller triggers the open.
+  * @return {Promise}
+  * @resolves With the new window once it's open and loaded.
+  */
+ function newWindowOpened() {
+diff --git a/browser/base/content/test/siteIdentity/browser_insecureLoginForms.js b/browser/base/content/test/siteIdentity/browser_insecureLoginForms.js
+--- a/browser/base/content/test/siteIdentity/browser_insecureLoginForms.js
++++ b/browser/base/content/test/siteIdentity/browser_insecureLoginForms.js
+@@ -126,30 +126,37 @@ add_task(async function test_mixedconten
+ 
+   gBrowser.removeTab(tab);
+ });
+ 
+ /**
+  * Checks that insecure window.opener does not trigger a warning.
+  */
+ add_task(async function test_ignoring_window_opener() {
+-  let newTabURL = "https://example.com" + TEST_URL_PATH + "form_basic.html";
+   let path = getRootDirectory(gTestPath)
+     .replace("chrome://mochitests/content", "http://example.com");
+   let url = path + "insecure_opener.html";
+ 
+   await BrowserTestUtils.withNewTab(url, async function(browser) {
+     // Clicking the link will spawn a new tab.
+-    let loaded = BrowserTestUtils.waitForNewTab(gBrowser, newTabURL);
++    let stateChangePromise;
++    let tabOpenPromise = new Promise(resolve => {
++      gBrowser.tabContainer.addEventListener("TabOpen", event => {
++        let tab = event.target;
++        let newTabBrowser = tab.linkedBrowser;
++        stateChangePromise = waitForInsecureLoginFormsStateChange(newTabBrowser, 2);
++        resolve(tab);
++      }, { once: true });
++    });
++
+     await ContentTask.spawn(browser, {}, function() {
+       content.document.getElementById("link").click();
+     });
+-    let tab = await loaded;
+-    browser = tab.linkedBrowser;
+-    await waitForInsecureLoginFormsStateChange(browser, 2);
++    let tab = await tabOpenPromise;
++    await stateChangePromise;
+ 
+     // Open the identity popup.
+     let { gIdentityHandler } = gBrowser.ownerGlobal;
+     let promisePanelOpen = BrowserTestUtils.waitForEvent(gIdentityHandler._identityPopup, "popupshown");
+     gIdentityHandler._identityBox.click();
+     await promisePanelOpen;
+ 
+     ok(Array.every(document.getElementById("identity-popup-mainView")
+diff --git a/browser/base/content/test/tabs/browser_opened_file_tab_navigated_to_web.js b/browser/base/content/test/tabs/browser_opened_file_tab_navigated_to_web.js
+--- a/browser/base/content/test/tabs/browser_opened_file_tab_navigated_to_web.js
++++ b/browser/base/content/test/tabs/browser_opened_file_tab_navigated_to_web.js
+@@ -17,27 +17,26 @@ add_task(async function() {
+ 
+   // Open first file:// page.
+   let tab = await BrowserTestUtils.openNewForegroundTab(gBrowser, uriString);
+   registerCleanupFunction(async function() {
+     await BrowserTestUtils.removeTab(tab);
+   });
+ 
+   // Open new file:// tab from JavaScript in first file:// page.
+-  let promiseTabOpened = BrowserTestUtils.waitForNewTab(gBrowser, openedUriString);
++  let promiseTabOpened = BrowserTestUtils.waitForNewTab(gBrowser, openedUriString, true);
+   await ContentTask.spawn(tab.linkedBrowser, openedUriString, uri => {
+     content.open(uri, "_blank");
+   });
+ 
+   let openedTab = await promiseTabOpened;
+   registerCleanupFunction(async function() {
+     await BrowserTestUtils.removeTab(openedTab);
+   });
+ 
+   let openedBrowser = openedTab.linkedBrowser;
+-  await BrowserTestUtils.browserLoaded(openedBrowser);
+ 
+   // Ensure that new file:// tab can be navigated to web content.
+   openedBrowser.loadURI("http://example.org/");
+   let href = await BrowserTestUtils.browserLoaded(openedBrowser);
+   is(href, "http://example.org/",
+      "Check that new file:// page has navigated successfully to web content");
+ });
+diff --git a/browser/extensions/shield-recipe-client/test/browser/browser_Heartbeat.js b/browser/extensions/shield-recipe-client/test/browser/browser_Heartbeat.js
+--- a/browser/extensions/shield-recipe-client/test/browser/browser_Heartbeat.js
++++ b/browser/extensions/shield-recipe-client/test/browser/browser_Heartbeat.js
+@@ -97,21 +97,28 @@ add_task(async function() {
+   Assert.equal(notificationBox.childElementCount, preCount + 1, "Correct number of notifications open");
+   Assert.equal(hb.notice.querySelectorAll(".star-x").length, 5, "Correct number of stars");
+   Assert.equal(hb.notice.querySelectorAll(".notification-button").length, 0, "Engagement button not shown");
+   Assert.equal(learnMoreEl.href, "https://example.org/learnmore", "Learn more url correct");
+   Assert.equal(learnMoreEl.value, "Learn More", "Learn more label correct");
+   Assert.equal(messageEl.textContent, "test", "Message is correct");
+ 
+   // Check that when clicking the learn more link, a tab opens with the right URL
+-  const tabOpenPromise = BrowserTestUtils.waitForNewTab(targetWindow.gBrowser);
++  let loadedPromise;
++  const tabOpenPromise = new Promise(resolve => {
++    gBrowser.tabContainer.addEventListener("TabOpen", event => {
++      let tab = event.target;
++      loadedPromise = BrowserTestUtils.browserLoaded(
++        tab.linkedBrowser, true, url => url && url !== "about:blank");
++      resolve(tab);
++    }, { once: true });
++  });
+   learnMoreEl.click();
+   const tab = await tabOpenPromise;
+-  const tabUrl = await BrowserTestUtils.browserLoaded(
+-    tab.linkedBrowser, true, url => url && url !== "about:blank");
++  const tabUrl = await loadedPromise;
+ 
+   Assert.equal(tabUrl, "https://example.org/learnmore", "Learn more link opened the right url");
+ 
+   const telemetrySentPromise = assertTelemetrySent(hb, ["offeredTS", "learnMoreTS", "closedTS"]);
+   // Close notification to trigger telemetry to be sent
+   await closeAllNotifications(targetWindow, notificationBox);
+   await telemetrySentPromise;
+   await BrowserTestUtils.removeTab(tab);
+@@ -133,21 +140,28 @@ add_task(async function() {
+   });
+   const engagementButton = hb.notice.querySelector(".notification-button");
+ 
+   Assert.equal(hb.notice.querySelectorAll(".star-x").length, 0, "Stars not shown");
+   Assert.ok(engagementButton, "Engagement button added");
+   Assert.equal(engagementButton.label, "Click me!", "Engagement button has correct label");
+ 
+   const engagementEl = hb.notice.querySelector(".notification-button");
+-  const tabOpenPromise = BrowserTestUtils.waitForNewTab(targetWindow.gBrowser);
++  let loadedPromise;
++  const tabOpenPromise = new Promise(resolve => {
++    gBrowser.tabContainer.addEventListener("TabOpen", event => {
++      let tab = event.target;
++      loadedPromise = BrowserTestUtils.browserLoaded(
++        tab.linkedBrowser, true, url => url && url !== "about:blank");
++      resolve(tab);
++    }, { once: true });
++  });
+   engagementEl.click();
+   const tab = await tabOpenPromise;
+-  const tabUrl = await BrowserTestUtils.browserLoaded(
+-        tab.linkedBrowser, true, url => url && url !== "about:blank");
++  const tabUrl = await loadedPromise;
+   // the postAnswer url gets query parameters appended onto the end, so use Assert.startsWith instead of Assert.equal
+   Assert.ok(tabUrl.startsWith("https://example.org/postAnswer"), "Engagement button opened the right url");
+ 
+   const telemetrySentPromise = assertTelemetrySent(hb, ["offeredTS", "engagedTS", "closedTS"]);
+   // Close notification to trigger telemetry to be sent
+   await closeAllNotifications(targetWindow, notificationBox);
+   await telemetrySentPromise;
+   await BrowserTestUtils.removeTab(tab);
+diff --git a/browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js b/browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js
+--- a/browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js
++++ b/browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js
+@@ -6,22 +6,29 @@ add_task(async function test_screenshot(
+   // ./head.js sets the value for PREF_WC_REPORTER_ENDPOINT
+   await SpecialPowers.pushPrefEnv({set: [[PREF_WC_REPORTER_ENDPOINT, NEW_ISSUE_PAGE]]});
+ 
+   let tab1 = await BrowserTestUtils.openNewForegroundTab(gBrowser, TEST_PAGE);
+ 
+   let webcompatButton = document.getElementById(WC_PAGE_ACTION_ID);
+   ok(webcompatButton, "Report Site Issue button exists.");
+ 
+-  let newTabPromise = BrowserTestUtils.waitForNewTab(gBrowser);
++  let screenshotPromise;
++  let newTabPromise = new Promise(resolve => {
++    gBrowser.tabContainer.addEventListener("TabOpen", event => {
++      let tab = event.target;
++      screenshotPromise = BrowserTestUtils.waitForContentEvent(
++        tab.linkedBrowser, "ScreenshotReceived", false, null, true);
++      resolve(tab);
++    }, { once: true });
++  });
+   openPageActions();
+   webcompatButton.click();
+   let tab2 = await newTabPromise;
+-
+-  await BrowserTestUtils.waitForContentEvent(tab2.linkedBrowser, "ScreenshotReceived", false, null, true);
++  await screenshotPromise;
+ 
+   await ContentTask.spawn(tab2.linkedBrowser, {TEST_PAGE}, function(args) {
+     let doc = content.document;
+     let urlParam = doc.getElementById("url").innerText;
+     let preview = doc.getElementById("screenshot-preview");
+     is(urlParam, args.TEST_PAGE, "Reported page is correctly added to the url param");
+ 
+     is(preview.innerText, "Pass", "A Blob object was successfully transferred to the test page.");
+diff --git a/js/src/builtin/Object.cpp b/js/src/builtin/Object.cpp
+diff --git a/js/src/builtin/Object.h b/js/src/builtin/Object.h
+diff --git a/js/src/builtin/Object.js b/js/src/builtin/Object.js
+diff --git a/js/src/builtin/Reflect.cpp b/js/src/builtin/Reflect.cpp
+diff --git a/js/src/builtin/SelfHostingDefines.h b/js/src/builtin/SelfHostingDefines.h
+diff --git a/js/src/builtin/Sorting.js b/js/src/builtin/Sorting.js
+--- a/js/src/builtin/Sorting.js
++++ b/js/src/builtin/Sorting.js
+@@ -3,16 +3,18 @@
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ // We use varying sorts across the self-hosted codebase. All sorts are
+ // consolidated here to avoid confusion and re-implementation of existing
+ // algorithms.
+ 
+ // For sorting values with limited range; uint8 and int8.
+ function CountingSort(array, len, signed, comparefn) {
++    assert(IsPossiblyWrappedTypedArray(array), "CountingSort works only with typed arrays.");
++
+     // Determined by performance testing.
+     if (len < 128) {
+         QuickSort(array, len, comparefn);
+         return array;
+     }
+ 
+     // Map int8 values onto the uint8 range when storing in buffer.
+     var min = 0;
+@@ -104,16 +106,18 @@ function SortByColumn(array, len, aux, c
+     for (let i = 0; i < len; i++) {
+         array[i] = aux[i];
+     }
+ }
+ 
+ // Sorts integers and float32. |signed| is true for int16 and int32, |floating|
+ // is true for float32.
+ function RadixSort(array, len, buffer, nbytes, signed, floating, comparefn) {
++    assert(IsPossiblyWrappedTypedArray(array), "RadixSort works only with typed arrays.");
++
+     // Determined by performance testing.
+     if (len < 512) {
+         QuickSort(array, len, comparefn);
+         return array;
+     }
+ 
+     let aux = [];
+     for (let i = 0; i < len; i++)
+@@ -126,23 +130,31 @@ function RadixSort(array, len, buffer, n
+     if (floating) {
+         // Acquire a buffer if the array was previously using inline storage.
+         if (buffer === null) {
+             buffer = callFunction(std_TypedArray_buffer, array);
+ 
+             assert(buffer !== null, "Attached data buffer should be reified");
+         }
+ 
+-        view = new Int32Array(buffer);
++        // |array| is a possibly cross-compartment wrapped typed array.
++        let offset = IsTypedArray(array)
++                     ? TypedArrayByteOffset(array)
++                     : callFunction(CallTypedArrayMethodIfWrapped, array, array,
++                                    "TypedArrayByteOffset");
++
++        view = new Int32Array(buffer, offset, len);
+ 
+         // Flip sign bit for positive numbers; flip all bits for negative
+-        // numbers
++        // numbers, except negative NaNs.
+         for (let i = 0; i < len; i++) {
+             if (view[i] & signMask) {
+-                view[i] ^= 0xFFFFFFFF;
++                if ((view[i] & 0x7F800000) !== 0x7F800000 || (view[i] & 0x007FFFFF) === 0) {
++                    view[i] ^= 0xFFFFFFFF;
++                }
+             } else {
+                 view[i] ^= signMask;
+             }
+         }
+     } else if (signed) {
+         // Flip sign bit
+         for (let i = 0; i < len; i++) {
+             view[i] ^= signMask;
+diff --git a/js/src/builtin/Utilities.js b/js/src/builtin/Utilities.js
+diff --git a/js/src/jsapi-tests/testGCHooks.cpp b/js/src/jsapi-tests/testGCHooks.cpp
+--- a/js/src/jsapi-tests/testGCHooks.cpp
++++ b/js/src/jsapi-tests/testGCHooks.cpp
+@@ -63,16 +63,20 @@ RootsRemovedGCSliceCallback(JSContext* c
+     MOZ_RELEASE_ASSERT(desc.isZone_ == false);
+     MOZ_RELEASE_ASSERT(desc.invocationKind_ == GC_SHRINK);
+     MOZ_RELEASE_ASSERT(desc.reason_ == expectReasons[gSliceCallbackCount]);
+     gSliceCallbackCount++;
+ }
+ 
+ BEGIN_TEST(testGCRootsRemoved)
+ {
++#ifdef JS_GC_ZEAL
++    AutoLeaveZeal nozeal(cx);
++#endif /* JS_GC_ZEAL */
++
+     JS_SetGCParameter(cx, JSGC_MODE, JSGC_MODE_INCREMENTAL);
+ 
+     gSliceCallbackCount = 0;
+     JS::SetGCSliceCallback(cx, RootsRemovedGCSliceCallback);
+ 
+     JS::RootedObject obj(cx, JS_NewPlainObject(cx));
+     CHECK(obj);
+ 
+diff --git a/js/src/jsarray.cpp b/js/src/jsarray.cpp
+diff --git a/js/src/jsarray.h b/js/src/jsarray.h
+diff --git a/js/src/tests/ecma_6/TypedArray/sort-negative-nan.js b/js/src/tests/ecma_6/TypedArray/sort-negative-nan.js
+new file mode 100644
+--- /dev/null
++++ b/js/src/tests/ecma_6/TypedArray/sort-negative-nan.js
+@@ -0,0 +1,106 @@
++// Test with all floating point typed arrays.
++const floatConstructors = anyTypedArrayConstructors.filter(isFloatConstructor);
++
++// Also test with cross-compartment wrapped typed arrays.
++if (typeof newGlobal === "function") {
++    const otherGlobal = newGlobal();
++    floatConstructors.push(otherGlobal.Float32Array);
++    floatConstructors.push(otherGlobal.Float64Array);
++}
++
++function* prod(xs, ys) {
++    for (let x of xs) {
++        for (let y of ys) {
++            yield [x, y];
++        }
++    }
++}
++
++const isLittleEndian = new Uint8Array(new Uint16Array([1]).buffer)[0] !== 0;
++
++function seti32(i32, i, v) {
++    i32[i] = v;
++}
++
++function seti64(i32, i, [hi, lo]) {
++    i32[i * 2 + isLittleEndian] = hi;
++    i32[i * 2 + !isLittleEndian] = lo;
++}
++
++const setInt = {
++    Float32: seti32,
++    Float64: seti64,
++};
++
++const NaNs = {
++    Float32: [
++        0x7F800001|0, // smallest SNaN
++        0x7FBFFFFF|0, // largest SNaN
++        0x7FC00000|0, // smallest QNaN
++        0x7FFFFFFF|0, // largest QNaN
++        0xFF800001|0, // smallest SNaN, sign-bit set
++        0xFFBFFFFF|0, // largest SNaN, sign-bit set
++        0xFFC00000|0, // smallest QNaN, sign-bit set
++        0xFFFFFFFF|0, // largest QNaN, sign-bit set
++    ],
++    Float64: [
++        [0x7FF00000|0, 0x00000001|0], // smallest SNaN
++        [0x7FF7FFFF|0, 0xFFFFFFFF|0], // largest SNaN
++        [0x7FF80000|0, 0x00000000|0], // smallest QNaN
++        [0x7FFFFFFF|0, 0xFFFFFFFF|0], // largest QNaN
++        [0xFFF00000|0, 0x00000001|0], // smallest SNaN, sign-bit set
++        [0xFFF7FFFF|0, 0xFFFFFFFF|0], // largest SNaN, sign-bit set
++        [0xFFF80000|0, 0x00000000|0], // smallest QNaN, sign-bit set
++        [0xFFFFFFFF|0, 0xFFFFFFFF|0], // largest QNaN, sign-bit set
++    ],
++};
++
++// %TypedArray%.prototype.sort
++const TypedArraySort = Int32Array.prototype.sort;
++
++// Test with small and large typed arrays.
++const typedArrayLengths = [16, 4096];
++
++for (const [TA, taLength] of prod(floatConstructors, typedArrayLengths)) {
++    let type = TA.name.slice(0, -"Array".length);
++    let nansLength = NaNs[type].length;
++    let fta = new TA(taLength);
++    let i32 = new Int32Array(fta.buffer);
++
++    // Add NaNs in various representations at the start of the typed array.
++    for (let i = 0; i < nansLength; ++i) {
++        setInt[type](i32, i, NaNs[type][i]);
++    }
++
++    // Also add two non-NaN values for testing.
++    fta[nansLength] = 123;
++    fta[nansLength + 1] = -456;
++
++    // Sort the array and validate sort() sorted all elements correctly.
++    TypedArraySort.call(fta);
++
++    // |-456| should be sorted to the start.
++    assertEq(fta[0], -456);
++
++    // Followed by a bunch of zeros,
++    const zeroOffset = 1;
++    const zeroCount = taLength - nansLength - 2;
++    for (let i = 0; i < zeroCount; ++i) {
++        assertEq(fta[zeroOffset + i], 0, `At offset: ${zeroOffset + i}`);
++    }
++
++    // and then |123|.
++    assertEq(fta[zeroOffset + zeroCount], 123);
++
++    // And finally the NaNs.
++    const nanOffset = zeroCount + 2;
++    for (let i = 0; i < nansLength; ++i) {
++        // We don't assert a specific NaN value is present, because this is
++        // not required by the spec and we don't provide any guarantees NaN
++        // values are either unchanged or canonicalized in sort().
++        assertEq(fta[nanOffset + i], NaN, `At offset: ${nanOffset + i}`);
++    }
++}
++
++if (typeof reportCompare === "function")
++    reportCompare(true, true);
+diff --git a/js/src/tests/ecma_6/TypedArray/sort_byteoffset.js b/js/src/tests/ecma_6/TypedArray/sort_byteoffset.js
+new file mode 100644
+--- /dev/null
++++ b/js/src/tests/ecma_6/TypedArray/sort_byteoffset.js
+@@ -0,0 +1,30 @@
++// Ensure that when sorting TypedArrays we don't
++// ignore byte offsets (bug 1290579).
++
++var sortFunctions = [Int32Array.prototype.sort];
++
++// Also test with cross-compartment wrapped typed arrays.
++if (typeof newGlobal === "function") {
++    var otherGlobal = newGlobal();
++    sortFunctions.push(newGlobal().Int32Array.prototype.sort);
++}
++
++// The bug manifests itself only with Float arrays,
++// but checking everything here just for sanity.
++
++for (var ctor of anyTypedArrayConstructors) {
++    var ab = new ArrayBuffer(1025 * ctor.BYTES_PER_ELEMENT);
++    var ta = new ctor(ab, ctor.BYTES_PER_ELEMENT, 1024);
++
++    // |testArray[0]| shouldn't be modified when sort() is called below.
++    var testArray = new ctor(ab, 0, 1);
++    testArray[0] = 1;
++
++    for (var sortFn of sortFunctions) {
++        sortFn.call(ta);
++        assertEq(testArray[0], 1);
++    }
++}
++
++if (typeof reportCompare === "function")
++    reportCompare(true, true);
+diff --git a/js/src/vm/SelfHosting.cpp b/js/src/vm/SelfHosting.cpp
+diff --git a/mobile/android/base/java/org/mozilla/gecko/IntentHelper.java b/mobile/android/base/java/org/mozilla/gecko/IntentHelper.java
+--- a/mobile/android/base/java/org/mozilla/gecko/IntentHelper.java
++++ b/mobile/android/base/java/org/mozilla/gecko/IntentHelper.java
+@@ -55,21 +55,21 @@ public final class IntentHelper implemen
+     };
+     private static final String[] UI_EVENTS = {
+         "Intent:Open",
+         "Intent:OpenForResult",
+         "Intent:OpenNoHandler",
+     };
+ 
+     // via http://developer.android.com/distribute/tools/promote/linking.html
+-    private static String MARKET_INTENT_URI_PACKAGE_PREFIX = "market://details?id=";
+-    private static String EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url";
++    private static final String MARKET_INTENT_URI_PACKAGE_PREFIX = "market://details?id=";
++    private static final String EXTRA_BROWSER_FALLBACK_URL = "browser_fallback_url";
+ 
+     /** A partial URI to an error page - the encoded error URI should be appended before loading. */
+-    private static String UNKNOWN_PROTOCOL_URI_PREFIX = "about:neterror?e=unknownProtocolFound&u=";
++    private static final String UNKNOWN_PROTOCOL_URI_PREFIX = "about:neterror?e=unknownProtocolFound&u=";
+ 
+     private static IntentHelper instance;
+ 
+     private IntentHelper() {
+         EventDispatcher.getInstance().registerGeckoThreadListener(this, GECKO_EVENTS);
+         EventDispatcher.getInstance().registerUiThreadListener(this, UI_EVENTS);
+     }
+ 
+diff --git a/mobile/android/base/java/org/mozilla/gecko/activitystream/homepanel/topstories/PocketStoriesLoader.java b/mobile/android/base/java/org/mozilla/gecko/activitystream/homepanel/topstories/PocketStoriesLoader.java
+--- a/mobile/android/base/java/org/mozilla/gecko/activitystream/homepanel/topstories/PocketStoriesLoader.java
++++ b/mobile/android/base/java/org/mozilla/gecko/activitystream/homepanel/topstories/PocketStoriesLoader.java
+@@ -46,17 +46,17 @@ import java.util.concurrent.TimeUnit;
+  *
+  *   export MOZ_ANDROID_POCKET=1
+  *   ac_add_options --with-pocket-api-keyfile=$topsrcdir/mobile/android/base/pocket-api-sandbox.token
+  *
+  * and include the Pocket API token in the token file.
+  */
+ 
+ public class PocketStoriesLoader extends AsyncTaskLoader<List<TopStory>> {
+-    public static String LOGTAG = "PocketStoriesLoader";
++    public static final String LOGTAG = "PocketStoriesLoader";
+ 
+     public static final String POCKET_REFERRER_URI = "https://getpocket.com/recommendations";
+ 
+     @RobocopTarget
+     @VisibleForTesting public static final String PLACEHOLDER_TITLE = "Placeholder ";
+     private static final String DEFAULT_PLACEHOLDER_URL = "https://www.mozilla.org/#";
+     static {
+         setPlaceholderUrl(DEFAULT_PLACEHOLDER_URL);
+diff --git a/mobile/android/base/java/org/mozilla/gecko/db/DBUtils.java b/mobile/android/base/java/org/mozilla/gecko/db/DBUtils.java
+--- a/mobile/android/base/java/org/mozilla/gecko/db/DBUtils.java
++++ b/mobile/android/base/java/org/mozilla/gecko/db/DBUtils.java
+@@ -101,18 +101,18 @@ public class DBUtils {
+             aValues.remove(aOriginalKey);
+         }
+ 
+         if (!aValues.containsKey(aNewKey)) {
+             aValues.put(aNewKey, value);
+         }
+     }
+ 
+-    private static String HISTOGRAM_DATABASE_LOCKED = "DATABASE_LOCKED_EXCEPTION";
+-    private static String HISTOGRAM_DATABASE_UNLOCKED = "DATABASE_SUCCESSFUL_UNLOCK";
++    private static final String HISTOGRAM_DATABASE_LOCKED = "DATABASE_LOCKED_EXCEPTION";
++    private static final String HISTOGRAM_DATABASE_UNLOCKED = "DATABASE_SUCCESSFUL_UNLOCK";
+     public static void ensureDatabaseIsNotLocked(SQLiteOpenHelper dbHelper, String databasePath) {
+         final int maxAttempts = 5;
+         int attempt = 0;
+         SQLiteDatabase db = null;
+         for (; attempt < maxAttempts; attempt++) {
+             try {
+                 // Try a simple test and exit the loop.
+                 db = dbHelper.getWritableDatabase();
+diff --git a/mobile/android/base/java/org/mozilla/gecko/home/CombinedHistoryRecyclerView.java b/mobile/android/base/java/org/mozilla/gecko/home/CombinedHistoryRecyclerView.java
+--- a/mobile/android/base/java/org/mozilla/gecko/home/CombinedHistoryRecyclerView.java
++++ b/mobile/android/base/java/org/mozilla/gecko/home/CombinedHistoryRecyclerView.java
+@@ -20,17 +20,17 @@ import org.mozilla.gecko.widget.Recycler
+ import java.util.EnumSet;
+ 
+ import static org.mozilla.gecko.home.CombinedHistoryPanel.OnPanelLevelChangeListener.PanelLevel.CHILD_RECENT_TABS;
+ import static org.mozilla.gecko.home.CombinedHistoryPanel.OnPanelLevelChangeListener.PanelLevel.CHILD_SYNC;
+ import static org.mozilla.gecko.home.CombinedHistoryPanel.OnPanelLevelChangeListener.PanelLevel.PARENT;
+ 
+ public class CombinedHistoryRecyclerView extends RecyclerView
+         implements RecyclerViewClickSupport.OnItemClickListener, RecyclerViewClickSupport.OnItemLongClickListener {
+-    public static String LOGTAG = "CombinedHistoryRecycView";
++    public static final String LOGTAG = "CombinedHistoryRecycView";
+ 
+     protected interface AdapterContextMenuBuilder {
+         HomeContextMenuInfo makeContextMenuInfoFromPosition(View view, int position);
+     }
+ 
+     protected HomePager.OnUrlOpenListener mOnUrlOpenListener;
+     protected OnPanelLevelChangeListener mOnPanelLevelChangeListener;
+     protected CombinedHistoryPanel.DialogBuilder<RemoteClient> mDialogBuilder;
+diff --git a/mobile/android/base/java/org/mozilla/gecko/mma/MmaDelegate.java b/mobile/android/base/java/org/mozilla/gecko/mma/MmaDelegate.java
+--- a/mobile/android/base/java/org/mozilla/gecko/mma/MmaDelegate.java
++++ b/mobile/android/base/java/org/mozilla/gecko/mma/MmaDelegate.java
+@@ -60,17 +60,17 @@ public class MmaDelegate {
+     public static final String PACKAGE_NAME_FOCUS = "org.mozilla.focus";
+     public static final String PACKAGE_NAME_POCKET = "com.ideashower.readitlater.pro";
+ 
+     private static final String TAG = "MmaDelegate";
+ 
+     public static final String KEY_ANDROID_PREF_STRING_LEANPLUM_DEVICE_ID = "android.not_a_preference.leanplum.device_id";
+     private static final String DEBUG_LEANPLUM_DEVICE_ID = "8effda84-99df-11e7-abc4-cec278b6b50a";
+ 
+-    private static MmaInterface mmaHelper = MmaConstants.getMma();
++    private static final MmaInterface mmaHelper = MmaConstants.getMma();
+     private static WeakReference<Context> applicationContext;
+ 
+     public static void init(Activity activity) {
+         applicationContext = new WeakReference<>(activity.getApplicationContext());
+         // Since user attributes are gathered in Fennec, not in MMA implementation,
+         // we gather the information here then pass to mmaHelper.init()
+         // Note that generateUserAttribute always return a non null HashMap.
+         final Map<String, Object> attributes = gatherUserAttributes(activity);
+diff --git a/mobile/android/base/java/org/mozilla/gecko/restrictions/GuestProfileConfiguration.java b/mobile/android/base/java/org/mozilla/gecko/restrictions/GuestProfileConfiguration.java
+--- a/mobile/android/base/java/org/mozilla/gecko/restrictions/GuestProfileConfiguration.java
++++ b/mobile/android/base/java/org/mozilla/gecko/restrictions/GuestProfileConfiguration.java
+@@ -9,17 +9,17 @@ import android.net.Uri;
+ 
+ import java.util.Arrays;
+ import java.util.List;
+ 
+ /**
+  * RestrictionConfiguration implementation for guest profiles.
+  */
+ public class GuestProfileConfiguration implements RestrictionConfiguration {
+-    static List<Restrictable> DISABLED_FEATURES = Arrays.asList(
++    static final List<Restrictable> DISABLED_FEATURES = Arrays.asList(
+             Restrictable.DOWNLOAD,
+             Restrictable.INSTALL_EXTENSION,
+             Restrictable.INSTALL_APPS,
+             Restrictable.BROWSE,
+             Restrictable.SHARE,
+             Restrictable.BOOKMARK,
+             Restrictable.ADD_CONTACT,
+             Restrictable.SET_IMAGE,
+diff --git a/mobile/android/base/java/org/mozilla/gecko/restrictions/RestrictedProfileConfiguration.java b/mobile/android/base/java/org/mozilla/gecko/restrictions/RestrictedProfileConfiguration.java
+--- a/mobile/android/base/java/org/mozilla/gecko/restrictions/RestrictedProfileConfiguration.java
++++ b/mobile/android/base/java/org/mozilla/gecko/restrictions/RestrictedProfileConfiguration.java
+@@ -20,17 +20,17 @@ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
+ @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+ public class RestrictedProfileConfiguration implements RestrictionConfiguration {
+     // Mapping from restrictable feature to default state (on/off)
+-    private static Map<Restrictable, Boolean> configuration = new LinkedHashMap<>();
++    private static final Map<Restrictable, Boolean> configuration = new LinkedHashMap<>();
+     static {
+         configuration.put(Restrictable.INSTALL_EXTENSION, false);
+         configuration.put(Restrictable.PRIVATE_BROWSING, false);
+         configuration.put(Restrictable.CLEAR_HISTORY, false);
+         configuration.put(Restrictable.MASTER_PASSWORD, false);
+         configuration.put(Restrictable.GUEST_BROWSING, false);
+         configuration.put(Restrictable.ADVANCED_SETTINGS, false);
+         configuration.put(Restrictable.CAMERA_MICROPHONE, false);
+@@ -39,17 +39,17 @@ public class RestrictedProfileConfigurat
+         configuration.put(Restrictable.TELEMETRY, false);
+         configuration.put(Restrictable.HEALTH_REPORT, true);
+         configuration.put(Restrictable.DEFAULT_THEME, true);
+     }
+ 
+     /**
+      * These restrictions are hidden from the admin configuration UI.
+      */
+-    private static List<Restrictable> hiddenRestrictions = new ArrayList<>();
++    private static final List<Restrictable> hiddenRestrictions = new ArrayList<>();
+     static {
+         hiddenRestrictions.add(Restrictable.MASTER_PASSWORD);
+         hiddenRestrictions.add(Restrictable.GUEST_BROWSING);
+         hiddenRestrictions.add(Restrictable.DATA_CHOICES);
+         hiddenRestrictions.add(Restrictable.DEFAULT_THEME);
+ 
+         // Hold behind Nightly flag until we have an actual block list deployed.
+         if (!AppConstants.NIGHTLY_BUILD) {
+diff --git a/mobile/android/base/java/org/mozilla/gecko/widget/SplashScreen.java b/mobile/android/base/java/org/mozilla/gecko/widget/SplashScreen.java
+--- a/mobile/android/base/java/org/mozilla/gecko/widget/SplashScreen.java
++++ b/mobile/android/base/java/org/mozilla/gecko/widget/SplashScreen.java
+@@ -3,18 +3,18 @@ package org.mozilla.gecko.widget;
+ import android.animation.Animator;
+ import android.animation.AnimatorListenerAdapter;
+ import android.content.Context;
+ import android.util.AttributeSet;
+ import android.widget.RelativeLayout;
+ 
+ public class SplashScreen extends RelativeLayout {
+ 
+-    private static long MIN_DISPLAY_TIME = 0;
+-    private static long MAX_DISPLAY_TIME = 2000;
++    private static final long MIN_DISPLAY_TIME = 0;
++    private static final long MAX_DISPLAY_TIME = 2000;
+ 
+     private boolean hasReachedThreshold = false;
+     private boolean shouldHideAsap = false;
+ 
+     public SplashScreen(Context context) {
+         super(context);
+     }
+ 
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurface.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurface.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurface.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurface.java
+@@ -14,17 +14,17 @@ import android.util.Log;
+ 
+ import java.util.HashMap;
+ 
+ import org.mozilla.gecko.annotation.WrapForJNI;
+ 
+ public final class GeckoSurface extends Surface {
+     private static final String LOGTAG = "GeckoSurface";
+ 
+-    private static HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();
++    private static final HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();
+ 
+     private int mHandle;
+     private boolean mIsSingleBuffer;
+     private volatile boolean mIsAvailable;
+     private boolean mOwned = true;
+ 
+     @WrapForJNI(exceptionMode = "nsresult")
+     public GeckoSurface(GeckoSurfaceTexture gst) {
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurfaceTexture.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurfaceTexture.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurfaceTexture.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurfaceTexture.java
+@@ -13,17 +13,17 @@ import java.util.concurrent.atomic.Atomi
+ import java.util.HashMap;
+ import java.util.LinkedList;
+ 
+ import org.mozilla.gecko.annotation.WrapForJNI;
+ 
+ public final class GeckoSurfaceTexture extends SurfaceTexture {
+     private static final String LOGTAG = "GeckoSurfaceTexture";
+     private static volatile int sNextHandle = 1;
+-    private static HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();
++    private static final HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();
+ 
+ 
+     private static HashMap<Long, LinkedList<GeckoSurfaceTexture>> sUnusedTextures =
+         new HashMap<Long, LinkedList<GeckoSurfaceTexture>>();
+ 
+     private int mHandle;
+     private boolean mIsSingleBuffer;
+ 
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/SurfaceAllocatorService.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/SurfaceAllocatorService.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/SurfaceAllocatorService.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/SurfaceAllocatorService.java
+@@ -9,17 +9,17 @@ import android.app.Service;
+ import android.content.Intent;
+ import android.os.Binder;
+ import android.os.IBinder;
+ import android.os.RemoteException;
+ import android.util.Log;
+ 
+ public class SurfaceAllocatorService extends Service {
+ 
+-    static private String LOGTAG = "SurfaceAllocatorService";
++    private static final String LOGTAG = "SurfaceAllocatorService";
+ 
+     public int onStartCommand(final Intent intent, final int flags, final int startId) {
+         return Service.START_STICKY;
+     }
+ 
+     private Binder mBinder = new ISurfaceAllocator.Stub() {
+         public GeckoSurface acquireSurface(int width, int height, boolean singleBufferMode) {
+             GeckoSurfaceTexture gst = GeckoSurfaceTexture.acquire(singleBufferMode);
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java
+@@ -45,17 +45,17 @@ import java.util.concurrent.atomic.Atomi
+ 
+ @ReflectionTarget
+ public class GeckoHlsPlayer implements BaseHlsPlayer, ExoPlayer.EventListener {
+     private static final String LOGTAG = "GeckoHlsPlayer";
+     private static final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
+     private static final int MAX_TIMELINE_ITEM_LINES = 3;
+     private static final boolean DEBUG = BuildConfig.NIGHTLY_BUILD || BuildConfig.DEBUG_BUILD;
+ 
+-    private static AtomicInteger sPlayerId = new AtomicInteger(0);
++    private static final AtomicInteger sPlayerId = new AtomicInteger(0);
+     /*
+      *  Because we treat GeckoHlsPlayer as a source data provider.
+      *  It will be created and initialized with a URL by HLSResource in
+      *  Gecko media pipleine (in cpp). Once HLSDemuxer is created later, we
+      *  need to bridge this HLSResource to the created demuxer. And they share
+      *  the same GeckoHlsPlayer.
+      *  mPlayerId is a token used for Gecko media pipeline to obtain corresponding player.
+      */
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/RemoteMediaDrmBridgeStub.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/RemoteMediaDrmBridgeStub.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/RemoteMediaDrmBridgeStub.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/RemoteMediaDrmBridgeStub.java
+@@ -23,17 +23,17 @@ final class RemoteMediaDrmBridgeStub ext
+     // mStubId is initialized during stub construction. It should be a unique
+     // string which is generated in MediaDrmProxy in Fennec App process and is
+     // used for Codec to obtain corresponding MediaCrypto as input to achieve
+     // decryption.
+     // The generated stubId will be delivered to Codec via a code path starting
+     // from MediaDrmProxy -> MediaDrmCDMProxy -> RemoteDataDecoder => IPC => Codec.
+     private String mStubId = "";
+ 
+-    public static ArrayList<RemoteMediaDrmBridgeStub> mBridgeStubs =
++    public static final ArrayList<RemoteMediaDrmBridgeStub> mBridgeStubs =
+         new ArrayList<RemoteMediaDrmBridgeStub>();
+ 
+     private String getId() {
+         return mStubId;
+     }
+ 
+     private MediaCrypto getMediaCryptoFromBridge() {
+         return mBridge != null ? mBridge.getMediaCrypto() : null;
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/mozglue/SharedMemory.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/mozglue/SharedMemory.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/mozglue/SharedMemory.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/mozglue/SharedMemory.java
+@@ -11,30 +11,33 @@ import android.os.Parcelable;
+ import android.util.Log;
+ 
+ import java.io.FileDescriptor;
+ import java.io.IOException;
+ import java.lang.reflect.Method;
+ 
+ public class SharedMemory implements Parcelable {
+     private static final String LOGTAG = "GeckoShmem";
+-    private static Method sGetFDMethod = null; // MemoryFile.getFileDescriptor() is hidden. :(
++    private static final Method sGetFDMethod;
+     private ParcelFileDescriptor mDescriptor;
+     private int mSize;
+     private int mId;
+     private long mHandle; // The native pointer.
+     private boolean mIsMapped;
+     private MemoryFile mBackedFile;
+ 
++    // MemoryFile.getFileDescriptor() is hidden. :(
+     static {
++        Method method = null;
+         try {
+-            sGetFDMethod = MemoryFile.class.getDeclaredMethod("getFileDescriptor");
++            method = MemoryFile.class.getDeclaredMethod("getFileDescriptor");
+         } catch (NoSuchMethodException e) {
+             e.printStackTrace();
+         }
++        sGetFDMethod = method;
+     }
+ 
+     private SharedMemory(Parcel in) {
+         mDescriptor = in.readFileDescriptor();
+         mSize = in.readInt();
+         mId = in.readInt();
+     }
+ 
+diff --git a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/process/GeckoServiceChildProcess.java b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/process/GeckoServiceChildProcess.java
+--- a/mobile/android/geckoview/src/main/java/org/mozilla/gecko/process/GeckoServiceChildProcess.java
++++ b/mobile/android/geckoview/src/main/java/org/mozilla/gecko/process/GeckoServiceChildProcess.java
+@@ -19,17 +19,17 @@ import android.os.Binder;
+ import android.os.IBinder;
+ import android.os.ParcelFileDescriptor;
+ import android.os.Process;
+ import android.os.RemoteException;
+ import android.util.Log;
+ 
+ public class GeckoServiceChildProcess extends Service {
+ 
+-    static private String LOGTAG = "GeckoServiceChildProcess";
++    private static final String LOGTAG = "GeckoServiceChildProcess";
+ 
+     private static IProcessManager sProcessManager;
+ 
+     @WrapForJNI(calledFrom = "gecko")
+     private static IGeckoEditableParent getEditableParent(final long contentId,
+                                                           final long tabId) {
+         try {
+             return sProcessManager.getEditableParent(contentId, tabId);
+diff --git a/testing/mochitest/BrowserTestUtils/BrowserTestUtils.jsm b/testing/mochitest/BrowserTestUtils/BrowserTestUtils.jsm
+--- a/testing/mochitest/BrowserTestUtils/BrowserTestUtils.jsm
++++ b/testing/mochitest/BrowserTestUtils/BrowserTestUtils.jsm
+@@ -422,17 +422,17 @@ this.BrowserTestUtils = {
+             // Check that new location is the URL we want.
+             if (!urlMatches(aBrowser.currentURI.spec)) {
+               return;
+             }
+             if (waitForAnyTab) {
+               tabbrowser.tabContainer.removeEventListener("TabOpen", tabOpenListener);
+             }
+             tabbrowser.removeTabsProgressListener(progressListener);
+-            resolve(result);
++            TestUtils.executeSoon(() => resolve(result));
+           },
+         };
+         tabbrowser.addTabsProgressListener(progressListener);
+       });
+     });
+   },
+ 
+   /**
+diff --git a/toolkit/components/viewsource/test/browser/browser_open_docgroup.js b/toolkit/components/viewsource/test/browser/browser_open_docgroup.js
+--- a/toolkit/components/viewsource/test/browser/browser_open_docgroup.js
++++ b/toolkit/components/viewsource/test/browser/browser_open_docgroup.js
+@@ -25,17 +25,16 @@ add_task(async function test_view_source
+   });
+ 
+   await BrowserTestUtils.withNewTab({
+     gBrowser,
+     url: "http://example.com",
+   }, async function(browser) {
+     let sourceTab = await openViewSource(browser);
+     let sourceBrowser = sourceTab.linkedBrowser;
+-    await waitForSourceLoaded(sourceBrowser);
+ 
+     await ContentTask.spawn(sourceBrowser, null, async function() {
+       Assert.equal(content.document.body.id, "viewsource",
+                    "View source mode enabled");
+     });
+ 
+     await BrowserTestUtils.removeTab(sourceTab);
+   });
+@@ -53,17 +52,16 @@ add_task(async function test_view_source
+     ],
+   });
+ 
+   await BrowserTestUtils.withNewTab({
+     gBrowser,
+     url: "http://example.com",
+   }, async function(browser) {
+     let sourceWin = await openViewSource(browser);
+-    await waitForSourceLoaded(sourceWin);
+     await ContentTask.spawn(sourceWin.gBrowser, null, async function() {
+       Assert.equal(content.document.body.id, "viewsource",
+                    "View source mode enabled");
+     });
+ 
+     await closeViewSourceWindow(sourceWin);
+   });
+ 
+diff --git a/toolkit/components/viewsource/test/browser/browser_srcdoc.js b/toolkit/components/viewsource/test/browser/browser_srcdoc.js
+--- a/toolkit/components/viewsource/test/browser/browser_srcdoc.js
++++ b/toolkit/components/viewsource/test/browser/browser_srcdoc.js
+@@ -11,18 +11,16 @@ add_task(async function() {
+ });
+ 
+ async function checkFrameSource() {
+   let sourceTab = await openViewFrameSourceTab("#f");
+   registerCleanupFunction(function() {
+     gBrowser.removeTab(sourceTab);
+   });
+ 
+-  await waitForSourceLoaded(sourceTab);
+-
+   let browser = gBrowser.selectedBrowser;
+   let textContent = await ContentTask.spawn(browser, {}, async function() {
+     return content.document.body.textContent;
+   });
+   is(textContent, frameSource, "Correct content loaded");
+   let id = await ContentTask.spawn(browser, {}, async function() {
+     return content.document.body.id;
+   });
+diff --git a/toolkit/components/viewsource/test/browser/head.js b/toolkit/components/viewsource/test/browser/head.js
+--- a/toolkit/components/viewsource/test/browser/head.js
++++ b/toolkit/components/viewsource/test/browser/head.js
+@@ -42,56 +42,75 @@ function closeViewSourceWindow(aWindow, 
+ 
+ function testViewSourceWindow(aURI, aTestCallback, aCloseCallback) {
+   openViewSourceWindow(aURI, function(aWindow) {
+     aTestCallback(aWindow);
+     closeViewSourceWindow(aWindow, aCloseCallback);
+   });
+ }
+ 
+-function waitForViewSourceWindow() {
+-  return new Promise(resolve => {
+-    let windowListener = {
+-      onOpenWindow(xulWindow) {
+-        let win = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+-                           .getInterface(Ci.nsIDOMWindow);
+-        win.addEventListener("load", function() {
+-          if (win.document.documentElement.getAttribute("windowtype") !=
+-              WINDOW_TYPE) {
+-            return;
+-          }
+-          // Found the window
+-          resolve(win);
+-          Services.wm.removeListener(windowListener);
+-        }, {once: true});
+-      },
+-      onCloseWindow() {},
+-      onWindowTitleChange() {}
+-    };
+-    Services.wm.addListener(windowListener);
+-  });
++/**
++ * Wait for view source tab or window after calling given function to open it.
++ *
++ * @param open - a function to open view source.
++ * @returns the new tab or window which shows the source.
++ */
++async function waitForViewSourceTabOrWindow(open) {
++  let sourceLoadedPromise;
++  let tabOrWindowPromise;
++  if (Services.prefs.getBoolPref("view_source.tab")) {
++    tabOrWindowPromise = new Promise(resolve => {
++      gBrowser.tabContainer.addEventListener("TabOpen", event => {
++        let tab = event.target;
++        sourceLoadedPromise = waitForSourceLoaded(tab);
++        resolve(tab);
++      }, { once: true });
++    });
++  } else {
++    tabOrWindowPromise = new Promise(resolve => {
++      let windowListener = {
++        onOpenWindow(xulWindow) {
++          let win = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)
++              .getInterface(Ci.nsIDOMWindow);
++          win.addEventListener("load", function() {
++            if (win.document.documentElement.getAttribute("windowtype") !=
++                WINDOW_TYPE) {
++              return;
++            }
++            // Found the window
++            sourceLoadedPromise = waitForSourceLoaded(win);
++            resolve(win);
++            Services.wm.removeListener(windowListener);
++          }, {once: true});
++        },
++        onCloseWindow() {},
++        onWindowTitleChange() {}
++      };
++      Services.wm.addListener(windowListener);
++    });
++  }
++
++  await open();
++
++  let tabOrWindow = await tabOrWindowPromise;
++  await sourceLoadedPromise;
++
++  return tabOrWindow;
+ }
+ 
+ /**
+  * Opens view source for a browser.
+  *
+  * @param browser - the <xul:browser> to open view source for.
+  * @returns the new tab or window which shows the source.
+  */
+ function openViewSource(browser) {
+-  let openPromise;
+-  if (Services.prefs.getBoolPref("view_source.tab")) {
+-    openPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);
+-  } else {
+-    openPromise = waitForViewSourceWindow();
+-  }
+-
+-  window.BrowserViewSource(browser);
+-
+-  return openPromise;
++  return waitForViewSourceTabOrWindow(() => {
++    window.BrowserViewSource(browser);
++  });
+ }
+ 
+ /**
+  * Opens a view source tab / window for a selection (View Selection Source)
+  * within the currently selected browser in gBrowser.
+  *
+  * @param aCSSSelector - used to specify a node within the selection to
+  *                       view the source of. It is expected that this node is
+@@ -102,30 +121,23 @@ async function openViewPartialSource(aCS
+   let contentAreaContextMenuPopup =
+     document.getElementById("contentAreaContextMenu");
+   let popupShownPromise =
+     BrowserTestUtils.waitForEvent(contentAreaContextMenuPopup, "popupshown");
+   await BrowserTestUtils.synthesizeMouseAtCenter(aCSSSelector,
+           { type: "contextmenu", button: 2 }, gBrowser.selectedBrowser);
+   await popupShownPromise;
+ 
+-  let openPromise;
+-  if (Services.prefs.getBoolPref("view_source.tab")) {
+-    openPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);
+-  } else {
+-    openPromise = waitForViewSourceWindow();
+-  }
+-
+-  let popupHiddenPromise =
+-    BrowserTestUtils.waitForEvent(contentAreaContextMenuPopup, "popuphidden");
+-  let item = document.getElementById("context-viewpartialsource-selection");
+-  EventUtils.synthesizeMouseAtCenter(item, {});
+-  await popupHiddenPromise;
+-
+-  return openPromise;
++  return waitForViewSourceTabOrWindow(async () => {
++    let popupHiddenPromise =
++        BrowserTestUtils.waitForEvent(contentAreaContextMenuPopup, "popuphidden");
++    let item = document.getElementById("context-viewpartialsource-selection");
++    EventUtils.synthesizeMouseAtCenter(item, {});
++    await popupHiddenPromise;
++  });
+ }
+ 
+ /**
+  * Opens a view source tab for a frame (View Frame Source) within the
+  * currently selected browser in gBrowser.
+  *
+  * @param aCSSSelector - used to specify the frame to view the source of.
+  * @returns the new tab which shows the source.
+@@ -140,25 +152,23 @@ async function openViewFrameSourceTab(aC
+   await popupShownPromise;
+ 
+   let frameContextMenu = document.getElementById("frame");
+   popupShownPromise =
+     BrowserTestUtils.waitForEvent(frameContextMenu, "popupshown");
+   EventUtils.synthesizeMouseAtCenter(frameContextMenu, {});
+   await popupShownPromise;
+ 
+-  let newTabPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);
+-
+-  let popupHiddenPromise =
+-    BrowserTestUtils.waitForEvent(frameContextMenu, "popuphidden");
+-  let item = document.getElementById("context-viewframesource");
+-  EventUtils.synthesizeMouseAtCenter(item, {});
+-  await popupHiddenPromise;
+-
+-  return newTabPromise;
++  return waitForViewSourceTabOrWindow(async () => {
++    let popupHiddenPromise =
++        BrowserTestUtils.waitForEvent(frameContextMenu, "popuphidden");
++    let item = document.getElementById("context-viewframesource");
++    EventUtils.synthesizeMouseAtCenter(item, {});
++    await popupHiddenPromise;
++  });
+ }
+ 
+ registerCleanupFunction(function() {
+   var windows = Services.wm.getEnumerator(WINDOW_TYPE);
+   ok(!windows.hasMoreElements(), "No remaining view source windows still open");
+   while (windows.hasMoreElements())
+     windows.getNext().close();
+ });
+@@ -193,22 +203,17 @@ async function openDocumentSelect(aURI, 
+     gBrowser.removeTab(tab);
+   });
+ 
+   await ContentTask.spawn(gBrowser.selectedBrowser, { selector: aCSSSelector }, async function(arg) {
+     let element = content.document.querySelector(arg.selector);
+     content.getSelection().selectAllChildren(element);
+   });
+ 
+-  let tabOrWindow = await openViewPartialSource(aCSSSelector);
+-
+-  // Wait until the source has been loaded.
+-  await waitForSourceLoaded(tabOrWindow);
+-
+-  return tabOrWindow;
++  return openViewPartialSource(aCSSSelector);
+ }
+ 
+ function pushPrefs(...aPrefs) {
+   return SpecialPowers.pushPrefEnv({"set": aPrefs});
+ }
+ 
+ function waitForPrefChange(pref) {
+   let deferred = PromiseUtils.defer();
+diff --git a/toolkit/mozapps/extensions/test/xpinstall/browser_bug638292.js b/toolkit/mozapps/extensions/test/xpinstall/browser_bug638292.js
+--- a/toolkit/mozapps/extensions/test/xpinstall/browser_bug638292.js
++++ b/toolkit/mozapps/extensions/test/xpinstall/browser_bug638292.js
+@@ -1,24 +1,22 @@
+ // ----------------------------------------------------------------------------
+ // Test whether an InstallTrigger.enabled is working
+ add_task(async function() {
+   let testtab = await BrowserTestUtils.openNewForegroundTab(gBrowser, TESTROOT + "bug638292.html");
+ 
+   async function verify(link, button) {
+     info("Clicking " + link);
+ 
+-    let waitForNewTabPromise = BrowserTestUtils.waitForNewTab(gBrowser);
++    let loadedPromise = BrowserTestUtils.waitForNewTab(gBrowser, null, true);
+ 
+     await BrowserTestUtils.synthesizeMouseAtCenter("#" + link, { button },
+                                                    gBrowser.selectedBrowser);
+ 
+-    let newtab = await waitForNewTabPromise;
+-
+-    await BrowserTestUtils.browserLoaded(newtab.linkedBrowser);
++    let newtab = await loadedPromise;
+ 
+     let result = await ContentTask.spawn(newtab.linkedBrowser, { }, async function() {
+       return (content.document.getElementById("enabled").textContent == "true");
+     });
+ 
+     ok(result, "installTrigger for " + link + " should have been enabled");
+ 
+     // Focus the old tab (link3 is opened in the background)
+

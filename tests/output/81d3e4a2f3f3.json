@@ -1,0 +1,870 @@
+[
+    {
+        "filename": "gfx/layers/DirectionUtils.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 18,
+                "deleted": true,
+                "data": "  if (aDir == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 18,
+                "deleted": false,
+                "data": "  if (aDir == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 27,
+                "deleted": true,
+                "data": "  if (aDir == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 27,
+                "deleted": false,
+                "data": "  if (aDir == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 36,
+                "deleted": true,
+                "data": "  if (aDir == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 36,
+                "deleted": false,
+                "data": "  if (aDir == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 45,
+                "deleted": true,
+                "data": "  if (aDir == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 45,
+                "deleted": false,
+                "data": "  if (aDir == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 53,
+                "deleted": true,
+                "data": "  return aDir == ScrollDirection::HORIZONTAL"
+            },
+            {
+                "line": 54,
+                "deleted": true,
+                "data": "       ? ScrollDirection::VERTICAL"
+            },
+            {
+                "line": 55,
+                "deleted": true,
+                "data": "       : ScrollDirection::HORIZONTAL;"
+            },
+            {
+                "line": 53,
+                "deleted": false,
+                "data": "  return aDir == ScrollDirection::eHorizontal"
+            },
+            {
+                "line": 54,
+                "deleted": false,
+                "data": "       ? ScrollDirection::eVertical"
+            },
+            {
+                "line": 55,
+                "deleted": false,
+                "data": "       : ScrollDirection::eHorizontal;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/LayerAttributes.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 9,
+                "deleted": false,
+                "data": "#include \"mozilla/Maybe.h\""
+            },
+            {
+                "line": 22,
+                "deleted": true,
+                "data": "    : mDirection(ScrollDirection::NONE)"
+            },
+            {
+                "line": 23,
+                "deleted": true,
+                "data": "    , mThumbRatio(0.0f)"
+            },
+            {
+                "line": 23,
+                "deleted": false,
+                "data": "    : mThumbRatio(0.0f)"
+            },
+            {
+                "line": 33,
+                "deleted": true,
+                "data": "    : mDirection(aDirection)"
+            },
+            {
+                "line": 33,
+                "deleted": false,
+                "data": "    : mDirection(Some(aDirection))"
+            },
+            {
+                "line": 42,
+                "deleted": true,
+                "data": "  ScrollDirection mDirection;"
+            },
+            {
+                "line": 42,
+                "deleted": false,
+                "data": "  Maybe<ScrollDirection> mDirection;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/Layers.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1818,
+                "deleted": true,
+                "data": "  ScrollDirection thumbDirection = GetScrollThumbData().mDirection;"
+            },
+            {
+                "line": 1819,
+                "deleted": true,
+                "data": "  if (thumbDirection == ScrollDirection::VERTICAL) {"
+            },
+            {
+                "line": 1820,
+                "deleted": true,
+                "data": "    aStream << nsPrintfCString(\" [vscrollbar=%\" PRIu64 \"]\", GetScrollbarTargetContainerId()).get();"
+            },
+            {
+                "line": 1821,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 1822,
+                "deleted": true,
+                "data": "  if (thumbDirection == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 1823,
+                "deleted": true,
+                "data": "    aStream << nsPrintfCString(\" [hscrollbar=%\" PRIu64 \"]\", GetScrollbarTargetContainerId()).get();"
+            },
+            {
+                "line": 1818,
+                "deleted": false,
+                "data": "  if (Maybe<ScrollDirection> thumbDirection = GetScrollThumbData().mDirection) {"
+            },
+            {
+                "line": 1819,
+                "deleted": false,
+                "data": "    if (*thumbDirection == ScrollDirection::eVertical) {"
+            },
+            {
+                "line": 1820,
+                "deleted": false,
+                "data": "      aStream << nsPrintfCString(\" [vscrollbar=%\" PRIu64 \"]\", GetScrollbarTargetContainerId()).get();"
+            },
+            {
+                "line": 1821,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 1822,
+                "deleted": false,
+                "data": "    if (*thumbDirection == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 1823,
+                "deleted": false,
+                "data": "      aStream << nsPrintfCString(\" [hscrollbar=%\" PRIu64 \"]\", GetScrollbarTargetContainerId()).get();"
+            },
+            {
+                "line": 1824,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 1968,
+                "deleted": true,
+                "data": "  ScrollDirection thumbDirection = GetScrollThumbData().mDirection;"
+            },
+            {
+                "line": 1969,
+                "deleted": true,
+                "data": "  if (thumbDirection != ScrollDirection::NONE) {"
+            },
+            {
+                "line": 1970,
+                "deleted": true,
+                "data": "    layer->set_direct(thumbDirection == ScrollDirection::VERTICAL ?"
+            },
+            {
+                "line": 1969,
+                "deleted": false,
+                "data": "  if (Maybe<ScrollDirection> thumbDirection = GetScrollThumbData().mDirection) {"
+            },
+            {
+                "line": 1970,
+                "deleted": false,
+                "data": "    layer->set_direct(*thumbDirection == ScrollDirection::eVertical ?"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/LayersTypes.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 349,
+                "deleted": true,
+                "data": "  NONE,"
+            },
+            {
+                "line": 350,
+                "deleted": true,
+                "data": "  VERTICAL,"
+            },
+            {
+                "line": 351,
+                "deleted": true,
+                "data": "  HORIZONTAL"
+            },
+            {
+                "line": 349,
+                "deleted": false,
+                "data": "  eVertical,"
+            },
+            {
+                "line": 350,
+                "deleted": false,
+                "data": "  eHorizontal"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/APZCTreeManager.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1625,
+                "deleted": false,
+                "data": "  MOZ_ASSERT(thumbData.mDirection.isSome());"
+            },
+            {
+                "line": 1658,
+                "deleted": true,
+                "data": "                        + ((thumbData.mDirection == ScrollDirection::HORIZONTAL)"
+            },
+            {
+                "line": 1659,
+                "deleted": false,
+                "data": "                        + ((*thumbData.mDirection == ScrollDirection::eHorizontal)"
+            },
+            {
+                "line": 1674,
+                "deleted": true,
+                "data": "                         thumbData.mDirection));"
+            },
+            {
+                "line": 1675,
+                "deleted": false,
+                "data": "                         *thumbData.mDirection));"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/AndroidAPZ.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 92,
+                "deleted": true,
+                "data": "  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::HORIZONTAL)) {"
+            },
+            {
+                "line": 92,
+                "deleted": false,
+                "data": "  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eHorizontal)) {"
+            },
+            {
+                "line": 96,
+                "deleted": true,
+                "data": "  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::VERTICAL)) {"
+            },
+            {
+                "line": 96,
+                "deleted": false,
+                "data": "  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eVertical)) {"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/AsyncDragMetrics.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 12,
+                "deleted": false,
+                "data": "#include \"mozilla/Maybe.h\""
+            },
+            {
+                "line": 31,
+                "deleted": true,
+                "data": "    , mDirection(ScrollDirection::NONE)"
+            },
+            {
+                "line": 43,
+                "deleted": true,
+                "data": "    , mDirection(aDirection)"
+            },
+            {
+                "line": 43,
+                "deleted": false,
+                "data": "    , mDirection(Some(aDirection))"
+            },
+            {
+                "line": 50,
+                "deleted": true,
+                "data": "  ScrollDirection mDirection;"
+            },
+            {
+                "line": 50,
+                "deleted": false,
+                "data": "  Maybe<ScrollDirection> mDirection;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/AsyncPanZoomController.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 925,
+                "deleted": false,
+                "data": "  MOZ_ASSERT(thumbData.mDirection.isSome());"
+            },
+            {
+                "line": 926,
+                "deleted": false,
+                "data": "  ScrollDirection direction = *thumbData.mDirection;"
+            },
+            {
+                "line": 937,
+                "deleted": true,
+                "data": "    ScrollDirection otherDirection = GetPerpendicularDirection(aDragMetrics.mDirection);"
+            },
+            {
+                "line": 939,
+                "deleted": false,
+                "data": "    ScrollDirection otherDirection = GetPerpendicularDirection(direction);"
+            },
+            {
+                "line": 963,
+                "deleted": true,
+                "data": "    GetAxisStart(aDragMetrics.mDirection, mFrameMetrics.GetScrollableRect().TopLeft());"
+            },
+            {
+                "line": 965,
+                "deleted": false,
+                "data": "    GetAxisStart(direction, mFrameMetrics.GetScrollableRect().TopLeft());"
+            },
+            {
+                "line": 965,
+                "deleted": true,
+                "data": "    GetAxisStart(aDragMetrics.mDirection, mFrameMetrics.GetScrollableRect().BottomRight()) -"
+            },
+            {
+                "line": 966,
+                "deleted": true,
+                "data": "    GetAxisLength(aDragMetrics.mDirection, mFrameMetrics.CalculateCompositedRectInCssPixels());"
+            },
+            {
+                "line": 967,
+                "deleted": false,
+                "data": "    GetAxisStart(direction, mFrameMetrics.GetScrollableRect().BottomRight()) -"
+            },
+            {
+                "line": 968,
+                "deleted": false,
+                "data": "    GetAxisLength(direction, mFrameMetrics.CalculateCompositedRectInCssPixels());"
+            },
+            {
+                "line": 973,
+                "deleted": true,
+                "data": "  if (aDragMetrics.mDirection == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 975,
+                "deleted": false,
+                "data": "  if (direction == ScrollDirection::eHorizontal) {"
+            },
+            {
+                "line": 1637,
+                "deleted": true,
+                "data": "  return GetAxisStart(aThumbData.mDirection, scrollbarPoint)"
+            },
+            {
+                "line": 1638,
+                "deleted": true,
+                "data": "      - GetAxisStart(aThumbData.mDirection, cssCompositionBound)"
+            },
+            {
+                "line": 1639,
+                "deleted": false,
+                "data": "  return GetAxisStart(*aThumbData.mDirection, scrollbarPoint)"
+            },
+            {
+                "line": 1640,
+                "deleted": false,
+                "data": "      - GetAxisStart(*aThumbData.mDirection, cssCompositionBound)"
+            },
+            {
+                "line": 1951,
+                "deleted": true,
+                "data": "  case ScrollDirection::HORIZONTAL: return mX.CanScroll();"
+            },
+            {
+                "line": 1952,
+                "deleted": true,
+                "data": "  case ScrollDirection::VERTICAL:   return mY.CanScroll();"
+            },
+            {
+                "line": 1953,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 1954,
+                "deleted": true,
+                "data": "  case ScrollDirection::NONE:"
+            },
+            {
+                "line": 1955,
+                "deleted": true,
+                "data": "    MOZ_ASSERT_UNREACHABLE(\"Invalid value\");"
+            },
+            {
+                "line": 1956,
+                "deleted": true,
+                "data": "    break;"
+            },
+            {
+                "line": 1953,
+                "deleted": false,
+                "data": "  case ScrollDirection::eHorizontal: return mX.CanScroll();"
+            },
+            {
+                "line": 1954,
+                "deleted": false,
+                "data": "  case ScrollDirection::eVertical:   return mY.CanScroll();"
+            },
+            {
+                "line": 1956,
+                "deleted": false,
+                "data": "  MOZ_ASSERT_UNREACHABLE(\"Invalid value\");"
+            },
+            {
+                "line": 2269,
+                "deleted": true,
+                "data": "  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL)) {"
+            },
+            {
+                "line": 2268,
+                "deleted": false,
+                "data": "  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal)) {"
+            },
+            {
+                "line": 2272,
+                "deleted": true,
+                "data": "  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL)) {"
+            },
+            {
+                "line": 2271,
+                "deleted": false,
+                "data": "  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical)) {"
+            },
+            {
+                "line": 2514,
+                "deleted": true,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL);"
+            },
+            {
+                "line": 2513,
+                "deleted": false,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal);"
+            },
+            {
+                "line": 2516,
+                "deleted": true,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL);"
+            },
+            {
+                "line": 2515,
+                "deleted": false,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical);"
+            },
+            {
+                "line": 2571,
+                "deleted": true,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL);"
+            },
+            {
+                "line": 2570,
+                "deleted": false,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal);"
+            },
+            {
+                "line": 2573,
+                "deleted": true,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL);"
+            },
+            {
+                "line": 2572,
+                "deleted": false,
+                "data": "    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical);"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/GenericFlingAnimation.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 48,
+                "deleted": true,
+                "data": "    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::HORIZONTAL)) {"
+            },
+            {
+                "line": 48,
+                "deleted": false,
+                "data": "    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eHorizontal)) {"
+            },
+            {
+                "line": 52,
+                "deleted": true,
+                "data": "    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::VERTICAL)) {"
+            },
+            {
+                "line": 52,
+                "deleted": false,
+                "data": "    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eVertical)) {"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/HitTestingTreeNode.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 119,
+                "deleted": true,
+                "data": "  return mScrollThumbData.mDirection != ScrollDirection::NONE;"
+            },
+            {
+                "line": 119,
+                "deleted": false,
+                "data": "  return mScrollThumbData.mDirection.isSome();"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/test/gtest/APZTestCommon.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 268,
+                "deleted": false,
+                "data": "  void AssertNotAxisLocked() const {"
+            },
+            {
+                "line": 269,
+                "deleted": false,
+                "data": "    RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 270,
+                "deleted": false,
+                "data": "    EXPECT_EQ(PANNING, mState);"
+            },
+            {
+                "line": 271,
+                "deleted": false,
+                "data": "  }"
+            },
+            {
+                "line": 272,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 271,
+                "deleted": true,
+                "data": "    case ScrollDirection::NONE:"
+            },
+            {
+                "line": 272,
+                "deleted": true,
+                "data": "      EXPECT_EQ(PANNING, mState);"
+            },
+            {
+                "line": 273,
+                "deleted": true,
+                "data": "      break;"
+            },
+            {
+                "line": 274,
+                "deleted": true,
+                "data": "    case ScrollDirection::HORIZONTAL:"
+            },
+            {
+                "line": 276,
+                "deleted": false,
+                "data": "    case ScrollDirection::eHorizontal:"
+            },
+            {
+                "line": 277,
+                "deleted": true,
+                "data": "    case ScrollDirection::VERTICAL:"
+            },
+            {
+                "line": 279,
+                "deleted": false,
+                "data": "    case ScrollDirection::eVertical:"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/test/gtest/TestScrollHandoff.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 156,
+                "deleted": true,
+                "data": "    childApzc->AssertAxisLocked(ScrollDirection::VERTICAL);"
+            },
+            {
+                "line": 156,
+                "deleted": false,
+                "data": "    childApzc->AssertAxisLocked(ScrollDirection::eVertical);"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/composite/AsyncCompositionManager.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 799,
+                "deleted": true,
+                "data": "      return (aNode->GetScrollThumbData().mDirection == ScrollDirection::HORIZONTAL &&"
+            },
+            {
+                "line": 799,
+                "deleted": false,
+                "data": "      return (aNode->GetScrollThumbData().mDirection.isSome() &&"
+            },
+            {
+                "line": 800,
+                "deleted": false,
+                "data": "              *aNode->GetScrollThumbData().mDirection == ScrollDirection::eHorizontal &&"
+            },
+            {
+                "line": 1076,
+                "deleted": true,
+                "data": "        if (layer->GetScrollThumbData().mDirection != ScrollDirection::NONE) {"
+            },
+            {
+                "line": 1077,
+                "deleted": false,
+                "data": "        if (layer->GetScrollThumbData().mDirection.isSome()) {"
+            },
+            {
+                "line": 1157,
+                "deleted": true,
+                "data": "  if (aThumbData.mDirection == ScrollDirection::VERTICAL) {"
+            },
+            {
+                "line": 1158,
+                "deleted": false,
+                "data": "  if (*aThumbData.mDirection == ScrollDirection::eVertical) {"
+            },
+            {
+                "line": 1209,
+                "deleted": true,
+                "data": "  if (aThumbData.mDirection == ScrollDirection::HORIZONTAL) {"
+            },
+            {
+                "line": 1210,
+                "deleted": false,
+                "data": "  if (*aThumbData.mDirection == ScrollDirection::eHorizontal) {"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/ipc/LayersMessageUtils.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 69,
+                "deleted": true,
+                "data": "            mozilla::layers::ScrollDirection::NONE,"
+            },
+            {
+                "line": 69,
+                "deleted": false,
+                "data": "            mozilla::layers::ScrollDirection::eVertical,"
+            }
+        ]
+    },
+    {
+        "filename": "layout/painting/nsDisplayList.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 6862,
+                "deleted": true,
+                "data": "  if (mThumbData.mDirection != ScrollDirection::NONE) {"
+            },
+            {
+                "line": 6862,
+                "deleted": false,
+                "data": "  if (mThumbData.mDirection.isSome()) {"
+            },
+            {
+                "line": 6882,
+                "deleted": true,
+                "data": "  if (!aManager->AsyncPanZoomEnabled() ||"
+            },
+            {
+                "line": 6883,
+                "deleted": true,
+                "data": "      mThumbData.mDirection == ScrollDirection::NONE) {"
+            },
+            {
+                "line": 6882,
+                "deleted": false,
+                "data": "  if (!aManager->AsyncPanZoomEnabled() || mThumbData.mDirection.isNothing()) {"
+            }
+        ]
+    },
+    {
+        "filename": "layout/painting/nsDisplayList.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 5161,
+                "deleted": true,
+                "data": "  // default-constructed (in particular with mDirection == ScrollDirection::NONE)"
+            },
+            {
+                "line": 5161,
+                "deleted": false,
+                "data": "  // default-constructed (in particular with mDirection == Nothing())"
+            }
+        ]
+    },
+    {
+        "filename": "layout/xul/nsSliderFrame.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 389,
+                "deleted": true,
+                "data": "          ? ScrollDirection::HORIZONTAL"
+            },
+            {
+                "line": 390,
+                "deleted": true,
+                "data": "          : ScrollDirection::VERTICAL;"
+            },
+            {
+                "line": 389,
+                "deleted": false,
+                "data": "          ? ScrollDirection::eHorizontal"
+            },
+            {
+                "line": 390,
+                "deleted": false,
+                "data": "          : ScrollDirection::eVertical;"
+            },
+            {
+                "line": 1142,
+                "deleted": true,
+                "data": "                               isHorizontal ? ScrollDirection::HORIZONTAL :"
+            },
+            {
+                "line": 1143,
+                "deleted": true,
+                "data": "                                              ScrollDirection::VERTICAL);"
+            },
+            {
+                "line": 1142,
+                "deleted": false,
+                "data": "                               isHorizontal ? ScrollDirection::eHorizontal :"
+            },
+            {
+                "line": 1143,
+                "deleted": false,
+                "data": "                                              ScrollDirection::eVertical);"
+            }
+        ]
+    }
+]

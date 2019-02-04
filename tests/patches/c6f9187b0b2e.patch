@@ -1,0 +1,89 @@
+
+# HG changeset patch
+# User Tom Tung <shes050117@gmail.com>
+# Date 1510796739 -28800
+# Node ID c6f9187b0b2e9c42f5eeca898bf81640174573fe
+# Parent  8dd56cab66311abfde3a2465ac1d0182934011ee
+Bug 1416629: Add a telemetry to get how many precentage of synthesized cors response for same-origin mode request. r=bkelly, data-r=francois
+
+diff --git a/dom/workers/ServiceWorkerEvents.cpp b/dom/workers/ServiceWorkerEvents.cpp
+--- a/dom/workers/ServiceWorkerEvents.cpp
++++ b/dom/workers/ServiceWorkerEvents.cpp
+@@ -664,16 +664,23 @@ RespondWithHandler::ResolvedCallback(JSC
+   nsCString responseURL;
+   if (response->Type() == ResponseType::Opaque) {
+     responseURL = ir->GetUnfilteredURL();
+     if (NS_WARN_IF(responseURL.IsEmpty())) {
+       return;
+     }
+   }
+ 
++  Telemetry::ScalarAdd(Telemetry::ScalarID::SW_SYNTHESIZED_RES_COUNT, 1);
++
++  if (mRequestMode == RequestMode::Same_origin &&
++      response->Type() == ResponseType::Cors) {
++    Telemetry::ScalarAdd(Telemetry::ScalarID::SW_CORS_RES_FOR_SO_REQ_COUNT, 1);
++  }
++
+   UniquePtr<RespondWithClosure> closure(new RespondWithClosure(mInterceptedChannel,
+                                                                mRegistration,
+                                                                mRequestURL,
+                                                                mRespondWithScriptSpec,
+                                                                mRespondWithLineNumber,
+                                                                mRespondWithColumnNumber));
+ 
+   nsCOMPtr<nsIRunnable> startRunnable = new StartResponse(mInterceptedChannel,
+diff --git a/toolkit/components/telemetry/Scalars.yaml b/toolkit/components/telemetry/Scalars.yaml
+--- a/toolkit/components/telemetry/Scalars.yaml
++++ b/toolkit/components/telemetry/Scalars.yaml
+@@ -1353,16 +1353,49 @@ timestamps:
+     expires: never
+     kind: uint
+     notification_emails:
+       - hkirschner@mozilla.com
+     release_channel_collection: opt-out
+     record_in_processes:
+       - main
+ 
++# The following section contains the service worker scalars.
++sw:
++  synthesized_res_count:
++    bug_numbers:
++      - 1416629
++    description: >
++      The count of number of synthesize response made by service workers.
++    expires: "61"
++    kind: uint
++    notification_emails:
++      - sw-telemetry@mozilla.com
++      - ttung@mozilla.com
++    release_channel_collection: opt-out
++    record_in_processes:
++      - 'main'
++      - 'content'
++
++  cors_res_for_so_req_count:
++    bug_numbers:
++      - 1416629
++    description: >
++      The count of number of synthesize response made by service workers and
++      it's a cors type resposne for a same-origin mode request.
++    expires: "61"
++    kind: uint
++    notification_emails:
++      - sw-telemetry@mozilla.com
++      - ttung@mozilla.com
++    release_channel_collection: opt-out
++    record_in_processes:
++      - 'main'
++      - 'content'
++
+ # The following section is for probes testing the Telemetry system. They will not be
+ # submitted in pings and are only used for testing.
+ telemetry.test:
+   unsigned_int_kind:
+     bug_numbers:
+       - 1276190
+     description: >
+       This is a test uint type with a really long description, maybe spanning even multiple
+

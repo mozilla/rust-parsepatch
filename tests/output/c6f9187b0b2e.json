@@ -1,0 +1,220 @@
+[
+    {
+        "filename": "dom/workers/ServiceWorkerEvents.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 672,
+                "deleted": false,
+                "data": "  Telemetry::ScalarAdd(Telemetry::ScalarID::SW_SYNTHESIZED_RES_COUNT, 1);"
+            },
+            {
+                "line": 673,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 674,
+                "deleted": false,
+                "data": "  if (mRequestMode == RequestMode::Same_origin &&"
+            },
+            {
+                "line": 675,
+                "deleted": false,
+                "data": "      response->Type() == ResponseType::Cors) {"
+            },
+            {
+                "line": 676,
+                "deleted": false,
+                "data": "    Telemetry::ScalarAdd(Telemetry::ScalarID::SW_CORS_RES_FOR_SO_REQ_COUNT, 1);"
+            },
+            {
+                "line": 677,
+                "deleted": false,
+                "data": "  }"
+            },
+            {
+                "line": 678,
+                "deleted": false,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "toolkit/components/telemetry/Scalars.yaml",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1361,
+                "deleted": false,
+                "data": "# The following section contains the service worker scalars."
+            },
+            {
+                "line": 1362,
+                "deleted": false,
+                "data": "sw:"
+            },
+            {
+                "line": 1363,
+                "deleted": false,
+                "data": "  synthesized_res_count:"
+            },
+            {
+                "line": 1364,
+                "deleted": false,
+                "data": "    bug_numbers:"
+            },
+            {
+                "line": 1365,
+                "deleted": false,
+                "data": "      - 1416629"
+            },
+            {
+                "line": 1366,
+                "deleted": false,
+                "data": "    description: >"
+            },
+            {
+                "line": 1367,
+                "deleted": false,
+                "data": "      The count of number of synthesize response made by service workers."
+            },
+            {
+                "line": 1368,
+                "deleted": false,
+                "data": "    expires: \"61\""
+            },
+            {
+                "line": 1369,
+                "deleted": false,
+                "data": "    kind: uint"
+            },
+            {
+                "line": 1370,
+                "deleted": false,
+                "data": "    notification_emails:"
+            },
+            {
+                "line": 1371,
+                "deleted": false,
+                "data": "      - sw-telemetry@mozilla.com"
+            },
+            {
+                "line": 1372,
+                "deleted": false,
+                "data": "      - ttung@mozilla.com"
+            },
+            {
+                "line": 1373,
+                "deleted": false,
+                "data": "    release_channel_collection: opt-out"
+            },
+            {
+                "line": 1374,
+                "deleted": false,
+                "data": "    record_in_processes:"
+            },
+            {
+                "line": 1375,
+                "deleted": false,
+                "data": "      - 'main'"
+            },
+            {
+                "line": 1376,
+                "deleted": false,
+                "data": "      - 'content'"
+            },
+            {
+                "line": 1377,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 1378,
+                "deleted": false,
+                "data": "  cors_res_for_so_req_count:"
+            },
+            {
+                "line": 1379,
+                "deleted": false,
+                "data": "    bug_numbers:"
+            },
+            {
+                "line": 1380,
+                "deleted": false,
+                "data": "      - 1416629"
+            },
+            {
+                "line": 1381,
+                "deleted": false,
+                "data": "    description: >"
+            },
+            {
+                "line": 1382,
+                "deleted": false,
+                "data": "      The count of number of synthesize response made by service workers and"
+            },
+            {
+                "line": 1383,
+                "deleted": false,
+                "data": "      it's a cors type resposne for a same-origin mode request."
+            },
+            {
+                "line": 1384,
+                "deleted": false,
+                "data": "    expires: \"61\""
+            },
+            {
+                "line": 1385,
+                "deleted": false,
+                "data": "    kind: uint"
+            },
+            {
+                "line": 1386,
+                "deleted": false,
+                "data": "    notification_emails:"
+            },
+            {
+                "line": 1387,
+                "deleted": false,
+                "data": "      - sw-telemetry@mozilla.com"
+            },
+            {
+                "line": 1388,
+                "deleted": false,
+                "data": "      - ttung@mozilla.com"
+            },
+            {
+                "line": 1389,
+                "deleted": false,
+                "data": "    release_channel_collection: opt-out"
+            },
+            {
+                "line": 1390,
+                "deleted": false,
+                "data": "    record_in_processes:"
+            },
+            {
+                "line": 1391,
+                "deleted": false,
+                "data": "      - 'main'"
+            },
+            {
+                "line": 1392,
+                "deleted": false,
+                "data": "      - 'content'"
+            },
+            {
+                "line": 1393,
+                "deleted": false,
+                "data": ""
+            }
+        ]
+    }
+]

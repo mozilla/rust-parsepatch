@@ -1,0 +1,267 @@
+
+# HG changeset patch
+# User Jonathan Kew <jkew@mozilla.com>
+# Date 1511466033 0
+# Node ID d4f80c4ba719d375e3b6d81a2fdd58007475f53c
+# Parent  ade4ee8e1bfc0bb74b1cc0ea7d021c6c7c5d7e6e
+Bug 1403302 - patch 3 - Remove direct cairo dependency from gfxTextRun and gfxGlyphExtents. r=bas
+
+diff --git a/gfx/thebes/gfxFont.cpp b/gfx/thebes/gfxFont.cpp
+--- a/gfx/thebes/gfxFont.cpp
++++ b/gfx/thebes/gfxFont.cpp
+@@ -3476,54 +3476,57 @@ gfxFont::GetOrCreateGlyphExtents(int32_t
+ }
+ 
+ void
+ gfxFont::SetupGlyphExtents(DrawTarget* aDrawTarget, uint32_t aGlyphID,
+                            bool aNeedTight, gfxGlyphExtents *aExtents)
+ {
+     gfxRect svgBounds;
+     if (mFontEntry->TryGetSVGData(this) && mFontEntry->HasSVGGlyph(aGlyphID) &&
+-        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID, &svgBounds)) {
++        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID,
++                                       GetAdjustedSize(), &svgBounds)) {
+         gfxFloat d2a = aExtents->GetAppUnitsPerDevUnit();
+         aExtents->SetTightGlyphExtents(aGlyphID,
+                                        gfxRect(svgBounds.x * d2a,
+                                                svgBounds.y * d2a,
+                                                svgBounds.width * d2a,
+                                                svgBounds.height * d2a));
+         return;
+     }
+ 
+-    cairo_glyph_t glyph;
+-    glyph.index = aGlyphID;
+-    glyph.x = 0;
+-    glyph.y = 0;
+-    cairo_text_extents_t extents;
+-    cairo_glyph_extents(gfxFont::RefCairo(aDrawTarget), &glyph, 1, &extents);
++    RefPtr<ScaledFont> sf = GetScaledFont(aDrawTarget);
++    uint16_t glyphIndex = aGlyphID;
++    GlyphMetrics metrics;
++    if (mAntialiasOption == kAntialiasNone) {
++        sf->GetGlyphDesignMetrics(&glyphIndex, 1, &metrics);
++    } else {
++        aDrawTarget->GetGlyphRasterizationMetrics(sf, &glyphIndex, 1, &metrics);
++    }
+ 
+     const Metrics& fontMetrics = GetMetrics(eHorizontal);
+     int32_t appUnitsPerDevUnit = aExtents->GetAppUnitsPerDevUnit();
+-    if (!aNeedTight && extents.x_bearing >= 0 &&
+-        extents.y_bearing >= -fontMetrics.maxAscent &&
+-        extents.height + extents.y_bearing <= fontMetrics.maxDescent) {
++    if (!aNeedTight && metrics.mXBearing >= 0.0 &&
++        metrics.mYBearing >= -fontMetrics.maxAscent &&
++        metrics.mHeight + metrics.mYBearing <= fontMetrics.maxDescent) {
+         uint32_t appUnitsWidth =
+-            uint32_t(ceil((extents.x_bearing + extents.width)*appUnitsPerDevUnit));
++            uint32_t(ceil((metrics.mXBearing + metrics.mWidth)*appUnitsPerDevUnit));
+         if (appUnitsWidth < gfxGlyphExtents::INVALID_WIDTH) {
+             aExtents->SetContainedGlyphWidthAppUnits(aGlyphID, uint16_t(appUnitsWidth));
+             return;
+         }
+     }
+ #ifdef DEBUG_TEXT_RUN_STORAGE_METRICS
+     if (!aNeedTight) {
+         ++gGlyphExtentsSetupFallBackToTight;
+     }
+ #endif
+ 
+     gfxFloat d2a = appUnitsPerDevUnit;
+-    gfxRect bounds(extents.x_bearing*d2a, extents.y_bearing*d2a,
+-                   extents.width*d2a, extents.height*d2a);
++    gfxRect bounds(metrics.mXBearing * d2a, metrics.mYBearing * d2a,
++                   metrics.mWidth * d2a, metrics.mHeight * d2a);
+     aExtents->SetTightGlyphExtents(aGlyphID, bounds);
+ }
+ 
+ // Try to initialize font metrics by reading sfnt tables directly;
+ // set mIsValid=TRUE and return TRUE on success.
+ // Return FALSE if the gfxFontEntry subclass does not
+ // implement GetFontTable(), or for non-sfnt fonts where tables are
+ // not available.
+diff --git a/gfx/thebes/gfxFontEntry.cpp b/gfx/thebes/gfxFontEntry.cpp
+--- a/gfx/thebes/gfxFontEntry.cpp
++++ b/gfx/thebes/gfxFontEntry.cpp
+@@ -29,18 +29,16 @@
+ #include "mozilla/Likely.h"
+ #include "mozilla/MemoryReporting.h"
+ #include "mozilla/Preferences.h"
+ #include "mozilla/Services.h"
+ #include "mozilla/Telemetry.h"
+ #include "gfxSVGGlyphs.h"
+ #include "gfx2DGlue.h"
+ 
+-#include "cairo.h"
+-
+ #include "harfbuzz/hb.h"
+ #include "harfbuzz/hb-ot.h"
+ #include "graphite2/Font.h"
+ 
+ #include <algorithm>
+ 
+ using namespace mozilla;
+ using namespace mozilla::gfx;
+@@ -314,32 +312,25 @@ bool
+ gfxFontEntry::HasSVGGlyph(uint32_t aGlyphId)
+ {
+     NS_ASSERTION(mSVGInitialized, "SVG data has not yet been loaded. TryGetSVGData() first.");
+     return mSVGGlyphs->HasSVGGlyph(aGlyphId);
+ }
+ 
+ bool
+ gfxFontEntry::GetSVGGlyphExtents(DrawTarget* aDrawTarget, uint32_t aGlyphId,
+-                                 gfxRect *aResult)
++                                 gfxFloat aSize, gfxRect* aResult)
+ {
+     MOZ_ASSERT(mSVGInitialized,
+                "SVG data has not yet been loaded. TryGetSVGData() first.");
+     MOZ_ASSERT(mUnitsPerEm >= kMinUPEM && mUnitsPerEm <= kMaxUPEM,
+                "font has invalid unitsPerEm");
+ 
+-    cairo_matrix_t fontMatrix;
+-    cairo_get_font_matrix(gfxFont::RefCairo(aDrawTarget), &fontMatrix);
+-
+-    gfxMatrix svgToAppSpace(fontMatrix.xx, fontMatrix.yx,
+-                            fontMatrix.xy, fontMatrix.yy,
+-                            fontMatrix.x0, fontMatrix.y0);
+-    svgToAppSpace.PreScale(1.0f / mUnitsPerEm, 1.0f / mUnitsPerEm);
+-
+-    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToAppSpace, aResult);
++    gfxMatrix svgToApp(aSize / mUnitsPerEm, 0, 0, aSize / mUnitsPerEm, 0, 0);
++    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToApp, aResult);
+ }
+ 
+ void
+ gfxFontEntry::RenderSVGGlyph(gfxContext *aContext, uint32_t aGlyphId,
+                              SVGContextPaint* aContextPaint)
+ {
+     NS_ASSERTION(mSVGInitialized, "SVG data has not yet been loaded. TryGetSVGData() first.");
+     mSVGGlyphs->RenderGlyph(aContext, aGlyphId, aContextPaint);
+diff --git a/gfx/thebes/gfxFontEntry.h b/gfx/thebes/gfxFontEntry.h
+--- a/gfx/thebes/gfxFontEntry.h
++++ b/gfx/thebes/gfxFontEntry.h
+@@ -200,17 +200,17 @@ public:
+     // ReadCMAP() must *always* set the mCharacterMap pointer to a valid
+     // gfxCharacterMap, even if empty, as other code assumes this pointer
+     // can be safely dereferenced.
+     virtual nsresult ReadCMAP(FontInfoData *aFontInfoData = nullptr);
+ 
+     bool TryGetSVGData(gfxFont* aFont);
+     bool HasSVGGlyph(uint32_t aGlyphId);
+     bool GetSVGGlyphExtents(DrawTarget* aDrawTarget, uint32_t aGlyphId,
+-                            gfxRect *aResult);
++                            gfxFloat aSize, gfxRect* aResult);
+     void RenderSVGGlyph(gfxContext *aContext, uint32_t aGlyphId,
+                         mozilla::SVGContextPaint* aContextPaint);
+     // Call this when glyph geometry or rendering has changed
+     // (e.g. animated SVG glyphs)
+     void NotifyGlyphsChanged();
+ 
+     bool     TryGetColorGlyphs();
+     bool     GetColorLayersInfo(uint32_t aGlyphId,
+diff --git a/gfx/thebes/gfxTextRun.cpp b/gfx/thebes/gfxTextRun.cpp
+--- a/gfx/thebes/gfxTextRun.cpp
++++ b/gfx/thebes/gfxTextRun.cpp
+@@ -24,18 +24,16 @@
+ #include "mozilla/gfx/Logging.h"        // for gfxCriticalError
+ #include "mozilla/UniquePtr.h"
+ #include "TextDrawTarget.h"
+ 
+ #ifdef XP_WIN
+ #include "gfxWindowsPlatform.h"
+ #endif
+ 
+-#include "cairo.h"
+-
+ using namespace mozilla;
+ using namespace mozilla::gfx;
+ using namespace mozilla::unicode;
+ using mozilla::services::GetObserverService;
+ 
+ static const char16_t kEllipsisChar[] = { 0x2026, 0x0 };
+ static const char16_t kASCIIPeriodsChar[] = { '.', '.', '.', 0x0 };
+ 
+@@ -1683,35 +1681,27 @@ gfxTextRun::FetchGlyphExtents(DrawTarget
+         if (MOZ_UNLIKELY(font->GetStyle()->size == 0) ||
+             MOZ_UNLIKELY(font->GetStyle()->sizeAdjust == 0.0f)) {
+             continue;
+         }
+ 
+         uint32_t start = run.mCharacterOffset;
+         uint32_t end = i + 1 < runCount ?
+             glyphRuns[i + 1].mCharacterOffset : GetLength();
+-        bool fontIsSetup = false;
+         uint32_t j;
+         gfxGlyphExtents *extents = font->GetOrCreateGlyphExtents(mAppUnitsPerDevUnit);
+ 
+         for (j = start; j < end; ++j) {
+             const gfxTextRun::CompressedGlyph *glyphData = &charGlyphs[j];
+             if (glyphData->IsSimpleGlyph()) {
+                 // If we're in speed mode, don't set up glyph extents here; we'll
+                 // just return "optimistic" glyph bounds later
+                 if (needsGlyphExtents) {
+                     uint32_t glyphIndex = glyphData->GetSimpleGlyph();
+                     if (!extents->IsGlyphKnown(glyphIndex)) {
+-                        if (!fontIsSetup) {
+-                            if (!font->SetupCairoFont(aRefDrawTarget)) {
+-                                NS_WARNING("failed to set up font for glyph extents");
+-                                break;
+-                            }
+-                            fontIsSetup = true;
+-                        }
+ #ifdef DEBUG_TEXT_RUN_STORAGE_METRICS
+                         ++gGlyphExtentsSetupEagerSimple;
+ #endif
+                         font->SetupGlyphExtents(aRefDrawTarget,
+                                                 glyphIndex, false, extents);
+                     }
+                 }
+             } else if (!glyphData->IsMissing()) {
+@@ -1721,23 +1711,16 @@ gfxTextRun::FetchGlyphExtents(DrawTarget
+                 }
+                 const gfxTextRun::DetailedGlyph *details = GetDetailedGlyphs(j);
+                 if (!details) {
+                     continue;
+                 }
+                 for (uint32_t k = 0; k < glyphCount; ++k, ++details) {
+                     uint32_t glyphIndex = details->mGlyphID;
+                     if (!extents->IsGlyphKnownWithTightExtents(glyphIndex)) {
+-                        if (!fontIsSetup) {
+-                            if (!font->SetupCairoFont(aRefDrawTarget)) {
+-                                NS_WARNING("failed to set up font for glyph extents");
+-                                break;
+-                            }
+-                            fontIsSetup = true;
+-                        }
+ #ifdef DEBUG_TEXT_RUN_STORAGE_METRICS
+                         ++gGlyphExtentsSetupEagerTight;
+ #endif
+                         font->SetupGlyphExtents(aRefDrawTarget,
+                                                 glyphIndex, true, extents);
+                     }
+                 }
+             }
+diff --git a/layout/reftests/border-radius/reftest.list b/layout/reftests/border-radius/reftest.list
+--- a/layout/reftests/border-radius/reftest.list
++++ b/layout/reftests/border-radius/reftest.list
+@@ -46,17 +46,17 @@ fuzzy-if(skiaContent,17,62) fuzzy-if(web
+ fuzzy-if(true,1,20) fuzzy-if(d2d,72,196) fuzzy-if(cocoaWidget,1,180) fuzzy-if(Android,140,237) == clipping-4-canvas.html clipping-4-ref.html # bug 732535
+ fuzzy-if(Android,5,54) fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,10) fuzzy-if(skiaContent,1,172) == clipping-4-image.html clipping-4-ref.html
+ fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,10) fuzzy-if(skiaContent,1,77) == clipping-4-overflow-hidden.html clipping-4-ref.html
+ == clipping-5-canvas.html clipping-5-refc.html
+ fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,5) == clipping-5-image.html clipping-5-refi.html
+ fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,5) fuzzy-if(skiaContent,1,77) == clipping-5-overflow-hidden.html clipping-5-ref.html
+ fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,5) fuzzy-if(Android,5,21) fuzzy-if(skiaContent,1,97) == clipping-5-refi.html clipping-5-ref.html
+ fuzzy-if(true,1,7) fuzzy-if(d2d,55,94) fuzzy-if(cocoaWidget,1,99) fuzzy-if(Android,99,115) fuzzy-if(skiaContent,1,77) == clipping-5-refc.html clipping-5-ref.html # bug 732535
+-fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,137,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical
++fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,144,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical
+ fuzzy-if(true,2,29) fuzzy-if(d2d,46,71) fuzzy-if(Android,255,586) fuzzy-if(skiaContent,28,96) == clipping-7.html clipping-7-ref.html # ColorLayer and MaskLayer with transforms that aren't identical. Reference image rendered without using layers (which causes fuzzy failures).
+ fuzzy-if(/^Windows\x20NT\x206\.2/.test(http.oscpu),1,5) == clipping-and-zindex-1.html clipping-and-zindex-1-ref.html
+ fuzzy-if(cocoaWidget,1,4) fuzzy-if(d2d,59,342) fuzzy-if(d3d11&&advancedLayers&&!d2d,30,3) == intersecting-clipping-1-canvas.html intersecting-clipping-1-refc.html
+ == intersecting-clipping-1-image.html intersecting-clipping-1-refi.html
+ == intersecting-clipping-1-overflow-hidden.html intersecting-clipping-1-ref.html
+ fuzzy-if(Android,5,105) fuzzy-if(d2d,1,20) fuzzy-if(skiaContent,1,300) == intersecting-clipping-1-refi.html intersecting-clipping-1-ref.html
+ fuzzy-if(true,1,33) fuzzy-if(d2d,59,350) fuzzy-if(cocoaWidget,1,332) fuzzy-if(Android,124,440) fuzzy-if(skiaContent,1,135) fuzzy-if(d3d11&&advancedLayers,59,353) == intersecting-clipping-1-refc.html intersecting-clipping-1-ref.html # bug 732535
+ 
+

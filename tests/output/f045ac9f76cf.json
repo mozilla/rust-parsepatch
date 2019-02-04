@@ -1,0 +1,2350 @@
+[
+    {
+        "filename": "browser/base/content/test/referrer/head.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 156,
+                "deleted": true,
+                "data": "  return BrowserTestUtils.waitForNewTab(gTestWindow.gBrowser).then((tab) => {"
+            },
+            {
+                "line": 157,
+                "deleted": true,
+                "data": "    return BrowserTestUtils.browserStopped(tab.linkedBrowser).then(() => tab);"
+            },
+            {
+                "line": 158,
+                "deleted": true,
+                "data": "  });"
+            },
+            {
+                "line": 156,
+                "deleted": false,
+                "data": "  return BrowserTestUtils.waitForNewTab(gTestWindow.gBrowser, null, true);"
+            }
+        ]
+    },
+    {
+        "filename": "browser/base/content/test/siteIdentity/browser_insecureLoginForms.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 134,
+                "deleted": true,
+                "data": "  let newTabURL = \"https://example.com\" + TEST_URL_PATH + \"form_basic.html\";"
+            },
+            {
+                "line": 141,
+                "deleted": true,
+                "data": "    let loaded = BrowserTestUtils.waitForNewTab(gBrowser, newTabURL);"
+            },
+            {
+                "line": 140,
+                "deleted": false,
+                "data": "    let stateChangePromise;"
+            },
+            {
+                "line": 141,
+                "deleted": false,
+                "data": "    let tabOpenPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 142,
+                "deleted": false,
+                "data": "      gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 143,
+                "deleted": false,
+                "data": "        let tab = event.target;"
+            },
+            {
+                "line": 144,
+                "deleted": false,
+                "data": "        let newTabBrowser = tab.linkedBrowser;"
+            },
+            {
+                "line": 145,
+                "deleted": false,
+                "data": "        stateChangePromise = waitForInsecureLoginFormsStateChange(newTabBrowser, 2);"
+            },
+            {
+                "line": 146,
+                "deleted": false,
+                "data": "        resolve(tab);"
+            },
+            {
+                "line": 147,
+                "deleted": false,
+                "data": "      }, { once: true });"
+            },
+            {
+                "line": 148,
+                "deleted": false,
+                "data": "    });"
+            },
+            {
+                "line": 149,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 145,
+                "deleted": true,
+                "data": "    let tab = await loaded;"
+            },
+            {
+                "line": 146,
+                "deleted": true,
+                "data": "    browser = tab.linkedBrowser;"
+            },
+            {
+                "line": 147,
+                "deleted": true,
+                "data": "    await waitForInsecureLoginFormsStateChange(browser, 2);"
+            },
+            {
+                "line": 153,
+                "deleted": false,
+                "data": "    let tab = await tabOpenPromise;"
+            },
+            {
+                "line": 154,
+                "deleted": false,
+                "data": "    await stateChangePromise;"
+            }
+        ]
+    },
+    {
+        "filename": "browser/base/content/test/tabs/browser_opened_file_tab_navigated_to_web.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 25,
+                "deleted": true,
+                "data": "  let promiseTabOpened = BrowserTestUtils.waitForNewTab(gBrowser, openedUriString);"
+            },
+            {
+                "line": 25,
+                "deleted": false,
+                "data": "  let promiseTabOpened = BrowserTestUtils.waitForNewTab(gBrowser, openedUriString, true);"
+            },
+            {
+                "line": 36,
+                "deleted": true,
+                "data": "  await BrowserTestUtils.browserLoaded(openedBrowser);"
+            }
+        ]
+    },
+    {
+        "filename": "browser/extensions/shield-recipe-client/test/browser/browser_Heartbeat.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 105,
+                "deleted": true,
+                "data": "  const tabOpenPromise = BrowserTestUtils.waitForNewTab(targetWindow.gBrowser);"
+            },
+            {
+                "line": 105,
+                "deleted": false,
+                "data": "  let loadedPromise;"
+            },
+            {
+                "line": 106,
+                "deleted": false,
+                "data": "  const tabOpenPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 107,
+                "deleted": false,
+                "data": "    gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 108,
+                "deleted": false,
+                "data": "      let tab = event.target;"
+            },
+            {
+                "line": 109,
+                "deleted": false,
+                "data": "      loadedPromise = BrowserTestUtils.browserLoaded("
+            },
+            {
+                "line": 110,
+                "deleted": false,
+                "data": "        tab.linkedBrowser, true, url => url && url !== \"about:blank\");"
+            },
+            {
+                "line": 111,
+                "deleted": false,
+                "data": "      resolve(tab);"
+            },
+            {
+                "line": 112,
+                "deleted": false,
+                "data": "    }, { once: true });"
+            },
+            {
+                "line": 113,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 108,
+                "deleted": true,
+                "data": "  const tabUrl = await BrowserTestUtils.browserLoaded("
+            },
+            {
+                "line": 109,
+                "deleted": true,
+                "data": "    tab.linkedBrowser, true, url => url && url !== \"about:blank\");"
+            },
+            {
+                "line": 116,
+                "deleted": false,
+                "data": "  const tabUrl = await loadedPromise;"
+            },
+            {
+                "line": 141,
+                "deleted": true,
+                "data": "  const tabOpenPromise = BrowserTestUtils.waitForNewTab(targetWindow.gBrowser);"
+            },
+            {
+                "line": 148,
+                "deleted": false,
+                "data": "  let loadedPromise;"
+            },
+            {
+                "line": 149,
+                "deleted": false,
+                "data": "  const tabOpenPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 150,
+                "deleted": false,
+                "data": "    gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 151,
+                "deleted": false,
+                "data": "      let tab = event.target;"
+            },
+            {
+                "line": 152,
+                "deleted": false,
+                "data": "      loadedPromise = BrowserTestUtils.browserLoaded("
+            },
+            {
+                "line": 153,
+                "deleted": false,
+                "data": "        tab.linkedBrowser, true, url => url && url !== \"about:blank\");"
+            },
+            {
+                "line": 154,
+                "deleted": false,
+                "data": "      resolve(tab);"
+            },
+            {
+                "line": 155,
+                "deleted": false,
+                "data": "    }, { once: true });"
+            },
+            {
+                "line": 156,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 144,
+                "deleted": true,
+                "data": "  const tabUrl = await BrowserTestUtils.browserLoaded("
+            },
+            {
+                "line": 145,
+                "deleted": true,
+                "data": "        tab.linkedBrowser, true, url => url && url !== \"about:blank\");"
+            },
+            {
+                "line": 159,
+                "deleted": false,
+                "data": "  const tabUrl = await loadedPromise;"
+            }
+        ]
+    },
+    {
+        "filename": "browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 14,
+                "deleted": true,
+                "data": "  let newTabPromise = BrowserTestUtils.waitForNewTab(gBrowser);"
+            },
+            {
+                "line": 14,
+                "deleted": false,
+                "data": "  let screenshotPromise;"
+            },
+            {
+                "line": 15,
+                "deleted": false,
+                "data": "  let newTabPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 16,
+                "deleted": false,
+                "data": "    gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "      let tab = event.target;"
+            },
+            {
+                "line": 18,
+                "deleted": false,
+                "data": "      screenshotPromise = BrowserTestUtils.waitForContentEvent("
+            },
+            {
+                "line": 19,
+                "deleted": false,
+                "data": "        tab.linkedBrowser, \"ScreenshotReceived\", false, null, true);"
+            },
+            {
+                "line": 20,
+                "deleted": false,
+                "data": "      resolve(tab);"
+            },
+            {
+                "line": 21,
+                "deleted": false,
+                "data": "    }, { once: true });"
+            },
+            {
+                "line": 22,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 18,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 19,
+                "deleted": true,
+                "data": "  await BrowserTestUtils.waitForContentEvent(tab2.linkedBrowser, \"ScreenshotReceived\", false, null, true);"
+            },
+            {
+                "line": 26,
+                "deleted": false,
+                "data": "  await screenshotPromise;"
+            }
+        ]
+    },
+    {
+        "filename": "js/src/builtin/Object.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/builtin/Object.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/builtin/Object.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/builtin/Reflect.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/builtin/SelfHostingDefines.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/builtin/Sorting.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 11,
+                "deleted": false,
+                "data": "    assert(IsPossiblyWrappedTypedArray(array), \"CountingSort works only with typed arrays.\");"
+            },
+            {
+                "line": 12,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 114,
+                "deleted": false,
+                "data": "    assert(IsPossiblyWrappedTypedArray(array), \"RadixSort works only with typed arrays.\");"
+            },
+            {
+                "line": 115,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 134,
+                "deleted": true,
+                "data": "        view = new Int32Array(buffer);"
+            },
+            {
+                "line": 138,
+                "deleted": false,
+                "data": "        // |array| is a possibly cross-compartment wrapped typed array."
+            },
+            {
+                "line": 139,
+                "deleted": false,
+                "data": "        let offset = IsTypedArray(array)"
+            },
+            {
+                "line": 140,
+                "deleted": false,
+                "data": "                     ? TypedArrayByteOffset(array)"
+            },
+            {
+                "line": 141,
+                "deleted": false,
+                "data": "                     : callFunction(CallTypedArrayMethodIfWrapped, array, array,"
+            },
+            {
+                "line": 142,
+                "deleted": false,
+                "data": "                                    \"TypedArrayByteOffset\");"
+            },
+            {
+                "line": 143,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 144,
+                "deleted": false,
+                "data": "        view = new Int32Array(buffer, offset, len);"
+            },
+            {
+                "line": 137,
+                "deleted": true,
+                "data": "        // numbers"
+            },
+            {
+                "line": 147,
+                "deleted": false,
+                "data": "        // numbers, except negative NaNs."
+            },
+            {
+                "line": 140,
+                "deleted": true,
+                "data": "                view[i] ^= 0xFFFFFFFF;"
+            },
+            {
+                "line": 150,
+                "deleted": false,
+                "data": "                if ((view[i] & 0x7F800000) !== 0x7F800000 || (view[i] & 0x007FFFFF) === 0) {"
+            },
+            {
+                "line": 151,
+                "deleted": false,
+                "data": "                    view[i] ^= 0xFFFFFFFF;"
+            },
+            {
+                "line": 152,
+                "deleted": false,
+                "data": "                }"
+            }
+        ]
+    },
+    {
+        "filename": "js/src/builtin/Utilities.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/jsapi-tests/testGCHooks.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 71,
+                "deleted": false,
+                "data": "#ifdef JS_GC_ZEAL"
+            },
+            {
+                "line": 72,
+                "deleted": false,
+                "data": "    AutoLeaveZeal nozeal(cx);"
+            },
+            {
+                "line": 73,
+                "deleted": false,
+                "data": "#endif /* JS_GC_ZEAL */"
+            },
+            {
+                "line": 74,
+                "deleted": false,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "js/src/jsarray.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/jsarray.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "js/src/tests/ecma_6/TypedArray/sort-negative-nan.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1,
+                "deleted": false,
+                "data": "// Test with all floating point typed arrays."
+            },
+            {
+                "line": 2,
+                "deleted": false,
+                "data": "const floatConstructors = anyTypedArrayConstructors.filter(isFloatConstructor);"
+            },
+            {
+                "line": 3,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 4,
+                "deleted": false,
+                "data": "// Also test with cross-compartment wrapped typed arrays."
+            },
+            {
+                "line": 5,
+                "deleted": false,
+                "data": "if (typeof newGlobal === \"function\") {"
+            },
+            {
+                "line": 6,
+                "deleted": false,
+                "data": "    const otherGlobal = newGlobal();"
+            },
+            {
+                "line": 7,
+                "deleted": false,
+                "data": "    floatConstructors.push(otherGlobal.Float32Array);"
+            },
+            {
+                "line": 8,
+                "deleted": false,
+                "data": "    floatConstructors.push(otherGlobal.Float64Array);"
+            },
+            {
+                "line": 9,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 10,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 11,
+                "deleted": false,
+                "data": "function* prod(xs, ys) {"
+            },
+            {
+                "line": 12,
+                "deleted": false,
+                "data": "    for (let x of xs) {"
+            },
+            {
+                "line": 13,
+                "deleted": false,
+                "data": "        for (let y of ys) {"
+            },
+            {
+                "line": 14,
+                "deleted": false,
+                "data": "            yield [x, y];"
+            },
+            {
+                "line": 15,
+                "deleted": false,
+                "data": "        }"
+            },
+            {
+                "line": 16,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 18,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 19,
+                "deleted": false,
+                "data": "const isLittleEndian = new Uint8Array(new Uint16Array([1]).buffer)[0] !== 0;"
+            },
+            {
+                "line": 20,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 21,
+                "deleted": false,
+                "data": "function seti32(i32, i, v) {"
+            },
+            {
+                "line": 22,
+                "deleted": false,
+                "data": "    i32[i] = v;"
+            },
+            {
+                "line": 23,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 24,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 25,
+                "deleted": false,
+                "data": "function seti64(i32, i, [hi, lo]) {"
+            },
+            {
+                "line": 26,
+                "deleted": false,
+                "data": "    i32[i * 2 + isLittleEndian] = hi;"
+            },
+            {
+                "line": 27,
+                "deleted": false,
+                "data": "    i32[i * 2 + !isLittleEndian] = lo;"
+            },
+            {
+                "line": 28,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 29,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 30,
+                "deleted": false,
+                "data": "const setInt = {"
+            },
+            {
+                "line": 31,
+                "deleted": false,
+                "data": "    Float32: seti32,"
+            },
+            {
+                "line": 32,
+                "deleted": false,
+                "data": "    Float64: seti64,"
+            },
+            {
+                "line": 33,
+                "deleted": false,
+                "data": "};"
+            },
+            {
+                "line": 34,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 35,
+                "deleted": false,
+                "data": "const NaNs = {"
+            },
+            {
+                "line": 36,
+                "deleted": false,
+                "data": "    Float32: ["
+            },
+            {
+                "line": 37,
+                "deleted": false,
+                "data": "        0x7F800001|0, // smallest SNaN"
+            },
+            {
+                "line": 38,
+                "deleted": false,
+                "data": "        0x7FBFFFFF|0, // largest SNaN"
+            },
+            {
+                "line": 39,
+                "deleted": false,
+                "data": "        0x7FC00000|0, // smallest QNaN"
+            },
+            {
+                "line": 40,
+                "deleted": false,
+                "data": "        0x7FFFFFFF|0, // largest QNaN"
+            },
+            {
+                "line": 41,
+                "deleted": false,
+                "data": "        0xFF800001|0, // smallest SNaN, sign-bit set"
+            },
+            {
+                "line": 42,
+                "deleted": false,
+                "data": "        0xFFBFFFFF|0, // largest SNaN, sign-bit set"
+            },
+            {
+                "line": 43,
+                "deleted": false,
+                "data": "        0xFFC00000|0, // smallest QNaN, sign-bit set"
+            },
+            {
+                "line": 44,
+                "deleted": false,
+                "data": "        0xFFFFFFFF|0, // largest QNaN, sign-bit set"
+            },
+            {
+                "line": 45,
+                "deleted": false,
+                "data": "    ],"
+            },
+            {
+                "line": 46,
+                "deleted": false,
+                "data": "    Float64: ["
+            },
+            {
+                "line": 47,
+                "deleted": false,
+                "data": "        [0x7FF00000|0, 0x00000001|0], // smallest SNaN"
+            },
+            {
+                "line": 48,
+                "deleted": false,
+                "data": "        [0x7FF7FFFF|0, 0xFFFFFFFF|0], // largest SNaN"
+            },
+            {
+                "line": 49,
+                "deleted": false,
+                "data": "        [0x7FF80000|0, 0x00000000|0], // smallest QNaN"
+            },
+            {
+                "line": 50,
+                "deleted": false,
+                "data": "        [0x7FFFFFFF|0, 0xFFFFFFFF|0], // largest QNaN"
+            },
+            {
+                "line": 51,
+                "deleted": false,
+                "data": "        [0xFFF00000|0, 0x00000001|0], // smallest SNaN, sign-bit set"
+            },
+            {
+                "line": 52,
+                "deleted": false,
+                "data": "        [0xFFF7FFFF|0, 0xFFFFFFFF|0], // largest SNaN, sign-bit set"
+            },
+            {
+                "line": 53,
+                "deleted": false,
+                "data": "        [0xFFF80000|0, 0x00000000|0], // smallest QNaN, sign-bit set"
+            },
+            {
+                "line": 54,
+                "deleted": false,
+                "data": "        [0xFFFFFFFF|0, 0xFFFFFFFF|0], // largest QNaN, sign-bit set"
+            },
+            {
+                "line": 55,
+                "deleted": false,
+                "data": "    ],"
+            },
+            {
+                "line": 56,
+                "deleted": false,
+                "data": "};"
+            },
+            {
+                "line": 57,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 58,
+                "deleted": false,
+                "data": "// %TypedArray%.prototype.sort"
+            },
+            {
+                "line": 59,
+                "deleted": false,
+                "data": "const TypedArraySort = Int32Array.prototype.sort;"
+            },
+            {
+                "line": 60,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 61,
+                "deleted": false,
+                "data": "// Test with small and large typed arrays."
+            },
+            {
+                "line": 62,
+                "deleted": false,
+                "data": "const typedArrayLengths = [16, 4096];"
+            },
+            {
+                "line": 63,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 64,
+                "deleted": false,
+                "data": "for (const [TA, taLength] of prod(floatConstructors, typedArrayLengths)) {"
+            },
+            {
+                "line": 65,
+                "deleted": false,
+                "data": "    let type = TA.name.slice(0, -\"Array\".length);"
+            },
+            {
+                "line": 66,
+                "deleted": false,
+                "data": "    let nansLength = NaNs[type].length;"
+            },
+            {
+                "line": 67,
+                "deleted": false,
+                "data": "    let fta = new TA(taLength);"
+            },
+            {
+                "line": 68,
+                "deleted": false,
+                "data": "    let i32 = new Int32Array(fta.buffer);"
+            },
+            {
+                "line": 69,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 70,
+                "deleted": false,
+                "data": "    // Add NaNs in various representations at the start of the typed array."
+            },
+            {
+                "line": 71,
+                "deleted": false,
+                "data": "    for (let i = 0; i < nansLength; ++i) {"
+            },
+            {
+                "line": 72,
+                "deleted": false,
+                "data": "        setInt[type](i32, i, NaNs[type][i]);"
+            },
+            {
+                "line": 73,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 74,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 75,
+                "deleted": false,
+                "data": "    // Also add two non-NaN values for testing."
+            },
+            {
+                "line": 76,
+                "deleted": false,
+                "data": "    fta[nansLength] = 123;"
+            },
+            {
+                "line": 77,
+                "deleted": false,
+                "data": "    fta[nansLength + 1] = -456;"
+            },
+            {
+                "line": 78,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 79,
+                "deleted": false,
+                "data": "    // Sort the array and validate sort() sorted all elements correctly."
+            },
+            {
+                "line": 80,
+                "deleted": false,
+                "data": "    TypedArraySort.call(fta);"
+            },
+            {
+                "line": 81,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 82,
+                "deleted": false,
+                "data": "    // |-456| should be sorted to the start."
+            },
+            {
+                "line": 83,
+                "deleted": false,
+                "data": "    assertEq(fta[0], -456);"
+            },
+            {
+                "line": 84,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 85,
+                "deleted": false,
+                "data": "    // Followed by a bunch of zeros,"
+            },
+            {
+                "line": 86,
+                "deleted": false,
+                "data": "    const zeroOffset = 1;"
+            },
+            {
+                "line": 87,
+                "deleted": false,
+                "data": "    const zeroCount = taLength - nansLength - 2;"
+            },
+            {
+                "line": 88,
+                "deleted": false,
+                "data": "    for (let i = 0; i < zeroCount; ++i) {"
+            },
+            {
+                "line": 89,
+                "deleted": false,
+                "data": "        assertEq(fta[zeroOffset + i], 0, `At offset: ${zeroOffset + i}`);"
+            },
+            {
+                "line": 90,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 91,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 92,
+                "deleted": false,
+                "data": "    // and then |123|."
+            },
+            {
+                "line": 93,
+                "deleted": false,
+                "data": "    assertEq(fta[zeroOffset + zeroCount], 123);"
+            },
+            {
+                "line": 94,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 95,
+                "deleted": false,
+                "data": "    // And finally the NaNs."
+            },
+            {
+                "line": 96,
+                "deleted": false,
+                "data": "    const nanOffset = zeroCount + 2;"
+            },
+            {
+                "line": 97,
+                "deleted": false,
+                "data": "    for (let i = 0; i < nansLength; ++i) {"
+            },
+            {
+                "line": 98,
+                "deleted": false,
+                "data": "        // We don't assert a specific NaN value is present, because this is"
+            },
+            {
+                "line": 99,
+                "deleted": false,
+                "data": "        // not required by the spec and we don't provide any guarantees NaN"
+            },
+            {
+                "line": 100,
+                "deleted": false,
+                "data": "        // values are either unchanged or canonicalized in sort()."
+            },
+            {
+                "line": 101,
+                "deleted": false,
+                "data": "        assertEq(fta[nanOffset + i], NaN, `At offset: ${nanOffset + i}`);"
+            },
+            {
+                "line": 102,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 103,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 104,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 105,
+                "deleted": false,
+                "data": "if (typeof reportCompare === \"function\")"
+            },
+            {
+                "line": 106,
+                "deleted": false,
+                "data": "    reportCompare(true, true);"
+            }
+        ]
+    },
+    {
+        "filename": "js/src/tests/ecma_6/TypedArray/sort_byteoffset.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1,
+                "deleted": false,
+                "data": "// Ensure that when sorting TypedArrays we don't"
+            },
+            {
+                "line": 2,
+                "deleted": false,
+                "data": "// ignore byte offsets (bug 1290579)."
+            },
+            {
+                "line": 3,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 4,
+                "deleted": false,
+                "data": "var sortFunctions = [Int32Array.prototype.sort];"
+            },
+            {
+                "line": 5,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 6,
+                "deleted": false,
+                "data": "// Also test with cross-compartment wrapped typed arrays."
+            },
+            {
+                "line": 7,
+                "deleted": false,
+                "data": "if (typeof newGlobal === \"function\") {"
+            },
+            {
+                "line": 8,
+                "deleted": false,
+                "data": "    var otherGlobal = newGlobal();"
+            },
+            {
+                "line": 9,
+                "deleted": false,
+                "data": "    sortFunctions.push(newGlobal().Int32Array.prototype.sort);"
+            },
+            {
+                "line": 10,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 11,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 12,
+                "deleted": false,
+                "data": "// The bug manifests itself only with Float arrays,"
+            },
+            {
+                "line": 13,
+                "deleted": false,
+                "data": "// but checking everything here just for sanity."
+            },
+            {
+                "line": 14,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 15,
+                "deleted": false,
+                "data": "for (var ctor of anyTypedArrayConstructors) {"
+            },
+            {
+                "line": 16,
+                "deleted": false,
+                "data": "    var ab = new ArrayBuffer(1025 * ctor.BYTES_PER_ELEMENT);"
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "    var ta = new ctor(ab, ctor.BYTES_PER_ELEMENT, 1024);"
+            },
+            {
+                "line": 18,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 19,
+                "deleted": false,
+                "data": "    // |testArray[0]| shouldn't be modified when sort() is called below."
+            },
+            {
+                "line": 20,
+                "deleted": false,
+                "data": "    var testArray = new ctor(ab, 0, 1);"
+            },
+            {
+                "line": 21,
+                "deleted": false,
+                "data": "    testArray[0] = 1;"
+            },
+            {
+                "line": 22,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 23,
+                "deleted": false,
+                "data": "    for (var sortFn of sortFunctions) {"
+            },
+            {
+                "line": 24,
+                "deleted": false,
+                "data": "        sortFn.call(ta);"
+            },
+            {
+                "line": 25,
+                "deleted": false,
+                "data": "        assertEq(testArray[0], 1);"
+            },
+            {
+                "line": 26,
+                "deleted": false,
+                "data": "    }"
+            },
+            {
+                "line": 27,
+                "deleted": false,
+                "data": "}"
+            },
+            {
+                "line": 28,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 29,
+                "deleted": false,
+                "data": "if (typeof reportCompare === \"function\")"
+            },
+            {
+                "line": 30,
+                "deleted": false,
+                "data": "    reportCompare(true, true);"
+            }
+        ]
+    },
+    {
+        "filename": "js/src/vm/SelfHosting.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": []
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/IntentHelper.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 63,
+                "deleted": true,
+                "data": "    private static String MARKET_INTENT_URI_PACKAGE_PREFIX = \"market://details?id=\";"
+            },
+            {
+                "line": 64,
+                "deleted": true,
+                "data": "    private static String EXTRA_BROWSER_FALLBACK_URL = \"browser_fallback_url\";"
+            },
+            {
+                "line": 63,
+                "deleted": false,
+                "data": "    private static final String MARKET_INTENT_URI_PACKAGE_PREFIX = \"market://details?id=\";"
+            },
+            {
+                "line": 64,
+                "deleted": false,
+                "data": "    private static final String EXTRA_BROWSER_FALLBACK_URL = \"browser_fallback_url\";"
+            },
+            {
+                "line": 67,
+                "deleted": true,
+                "data": "    private static String UNKNOWN_PROTOCOL_URI_PREFIX = \"about:neterror?e=unknownProtocolFound&u=\";"
+            },
+            {
+                "line": 67,
+                "deleted": false,
+                "data": "    private static final String UNKNOWN_PROTOCOL_URI_PREFIX = \"about:neterror?e=unknownProtocolFound&u=\";"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/activitystream/homepanel/topstories/PocketStoriesLoader.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 54,
+                "deleted": true,
+                "data": "    public static String LOGTAG = \"PocketStoriesLoader\";"
+            },
+            {
+                "line": 54,
+                "deleted": false,
+                "data": "    public static final String LOGTAG = \"PocketStoriesLoader\";"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/db/DBUtils.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 109,
+                "deleted": true,
+                "data": "    private static String HISTOGRAM_DATABASE_LOCKED = \"DATABASE_LOCKED_EXCEPTION\";"
+            },
+            {
+                "line": 110,
+                "deleted": true,
+                "data": "    private static String HISTOGRAM_DATABASE_UNLOCKED = \"DATABASE_SUCCESSFUL_UNLOCK\";"
+            },
+            {
+                "line": 109,
+                "deleted": false,
+                "data": "    private static final String HISTOGRAM_DATABASE_LOCKED = \"DATABASE_LOCKED_EXCEPTION\";"
+            },
+            {
+                "line": 110,
+                "deleted": false,
+                "data": "    private static final String HISTOGRAM_DATABASE_UNLOCKED = \"DATABASE_SUCCESSFUL_UNLOCK\";"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/home/CombinedHistoryRecyclerView.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 28,
+                "deleted": true,
+                "data": "    public static String LOGTAG = \"CombinedHistoryRecycView\";"
+            },
+            {
+                "line": 28,
+                "deleted": false,
+                "data": "    public static final String LOGTAG = \"CombinedHistoryRecycView\";"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/mma/MmaDelegate.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 68,
+                "deleted": true,
+                "data": "    private static MmaInterface mmaHelper = MmaConstants.getMma();"
+            },
+            {
+                "line": 68,
+                "deleted": false,
+                "data": "    private static final MmaInterface mmaHelper = MmaConstants.getMma();"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/restrictions/GuestProfileConfiguration.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 17,
+                "deleted": true,
+                "data": "    static List<Restrictable> DISABLED_FEATURES = Arrays.asList("
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "    static final List<Restrictable> DISABLED_FEATURES = Arrays.asList("
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/restrictions/RestrictedProfileConfiguration.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 28,
+                "deleted": true,
+                "data": "    private static Map<Restrictable, Boolean> configuration = new LinkedHashMap<>();"
+            },
+            {
+                "line": 28,
+                "deleted": false,
+                "data": "    private static final Map<Restrictable, Boolean> configuration = new LinkedHashMap<>();"
+            },
+            {
+                "line": 47,
+                "deleted": true,
+                "data": "    private static List<Restrictable> hiddenRestrictions = new ArrayList<>();"
+            },
+            {
+                "line": 47,
+                "deleted": false,
+                "data": "    private static final List<Restrictable> hiddenRestrictions = new ArrayList<>();"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/base/java/org/mozilla/gecko/widget/SplashScreen.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 11,
+                "deleted": true,
+                "data": "    private static long MIN_DISPLAY_TIME = 0;"
+            },
+            {
+                "line": 12,
+                "deleted": true,
+                "data": "    private static long MAX_DISPLAY_TIME = 2000;"
+            },
+            {
+                "line": 11,
+                "deleted": false,
+                "data": "    private static final long MIN_DISPLAY_TIME = 0;"
+            },
+            {
+                "line": 12,
+                "deleted": false,
+                "data": "    private static final long MAX_DISPLAY_TIME = 2000;"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurface.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 22,
+                "deleted": true,
+                "data": "    private static HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();"
+            },
+            {
+                "line": 22,
+                "deleted": false,
+                "data": "    private static final HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/GeckoSurfaceTexture.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 21,
+                "deleted": true,
+                "data": "    private static HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();"
+            },
+            {
+                "line": 21,
+                "deleted": false,
+                "data": "    private static final HashMap<Integer, GeckoSurfaceTexture> sSurfaceTextures = new HashMap<Integer, GeckoSurfaceTexture>();"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/gfx/SurfaceAllocatorService.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 17,
+                "deleted": true,
+                "data": "    static private String LOGTAG = \"SurfaceAllocatorService\";"
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "    private static final String LOGTAG = \"SurfaceAllocatorService\";"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/GeckoHlsPlayer.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 53,
+                "deleted": true,
+                "data": "    private static AtomicInteger sPlayerId = new AtomicInteger(0);"
+            },
+            {
+                "line": 53,
+                "deleted": false,
+                "data": "    private static final AtomicInteger sPlayerId = new AtomicInteger(0);"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/media/RemoteMediaDrmBridgeStub.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 31,
+                "deleted": true,
+                "data": "    public static ArrayList<RemoteMediaDrmBridgeStub> mBridgeStubs ="
+            },
+            {
+                "line": 31,
+                "deleted": false,
+                "data": "    public static final ArrayList<RemoteMediaDrmBridgeStub> mBridgeStubs ="
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/mozglue/SharedMemory.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 19,
+                "deleted": true,
+                "data": "    private static Method sGetFDMethod = null; // MemoryFile.getFileDescriptor() is hidden. :("
+            },
+            {
+                "line": 19,
+                "deleted": false,
+                "data": "    private static final Method sGetFDMethod;"
+            },
+            {
+                "line": 27,
+                "deleted": false,
+                "data": "    // MemoryFile.getFileDescriptor() is hidden. :("
+            },
+            {
+                "line": 29,
+                "deleted": false,
+                "data": "        Method method = null;"
+            },
+            {
+                "line": 29,
+                "deleted": true,
+                "data": "            sGetFDMethod = MemoryFile.class.getDeclaredMethod(\"getFileDescriptor\");"
+            },
+            {
+                "line": 31,
+                "deleted": false,
+                "data": "            method = MemoryFile.class.getDeclaredMethod(\"getFileDescriptor\");"
+            },
+            {
+                "line": 35,
+                "deleted": false,
+                "data": "        sGetFDMethod = method;"
+            }
+        ]
+    },
+    {
+        "filename": "mobile/android/geckoview/src/main/java/org/mozilla/gecko/process/GeckoServiceChildProcess.java",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 27,
+                "deleted": true,
+                "data": "    static private String LOGTAG = \"GeckoServiceChildProcess\";"
+            },
+            {
+                "line": 27,
+                "deleted": false,
+                "data": "    private static final String LOGTAG = \"GeckoServiceChildProcess\";"
+            }
+        ]
+    },
+    {
+        "filename": "testing/mochitest/BrowserTestUtils/BrowserTestUtils.jsm",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 430,
+                "deleted": true,
+                "data": "            resolve(result);"
+            },
+            {
+                "line": 430,
+                "deleted": false,
+                "data": "            TestUtils.executeSoon(() => resolve(result));"
+            }
+        ]
+    },
+    {
+        "filename": "toolkit/components/viewsource/test/browser/browser_open_docgroup.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 33,
+                "deleted": true,
+                "data": "    await waitForSourceLoaded(sourceBrowser);"
+            },
+            {
+                "line": 61,
+                "deleted": true,
+                "data": "    await waitForSourceLoaded(sourceWin);"
+            }
+        ]
+    },
+    {
+        "filename": "toolkit/components/viewsource/test/browser/browser_srcdoc.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 19,
+                "deleted": true,
+                "data": "  await waitForSourceLoaded(sourceTab);"
+            },
+            {
+                "line": 20,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "toolkit/components/viewsource/test/browser/head.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 50,
+                "deleted": true,
+                "data": "function waitForViewSourceWindow() {"
+            },
+            {
+                "line": 51,
+                "deleted": true,
+                "data": "  return new Promise(resolve => {"
+            },
+            {
+                "line": 52,
+                "deleted": true,
+                "data": "    let windowListener = {"
+            },
+            {
+                "line": 53,
+                "deleted": true,
+                "data": "      onOpenWindow(xulWindow) {"
+            },
+            {
+                "line": 54,
+                "deleted": true,
+                "data": "        let win = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)"
+            },
+            {
+                "line": 55,
+                "deleted": true,
+                "data": "                           .getInterface(Ci.nsIDOMWindow);"
+            },
+            {
+                "line": 56,
+                "deleted": true,
+                "data": "        win.addEventListener(\"load\", function() {"
+            },
+            {
+                "line": 57,
+                "deleted": true,
+                "data": "          if (win.document.documentElement.getAttribute(\"windowtype\") !="
+            },
+            {
+                "line": 58,
+                "deleted": true,
+                "data": "              WINDOW_TYPE) {"
+            },
+            {
+                "line": 59,
+                "deleted": true,
+                "data": "            return;"
+            },
+            {
+                "line": 60,
+                "deleted": true,
+                "data": "          }"
+            },
+            {
+                "line": 61,
+                "deleted": true,
+                "data": "          // Found the window"
+            },
+            {
+                "line": 62,
+                "deleted": true,
+                "data": "          resolve(win);"
+            },
+            {
+                "line": 63,
+                "deleted": true,
+                "data": "          Services.wm.removeListener(windowListener);"
+            },
+            {
+                "line": 64,
+                "deleted": true,
+                "data": "        }, {once: true});"
+            },
+            {
+                "line": 65,
+                "deleted": true,
+                "data": "      },"
+            },
+            {
+                "line": 66,
+                "deleted": true,
+                "data": "      onCloseWindow() {},"
+            },
+            {
+                "line": 67,
+                "deleted": true,
+                "data": "      onWindowTitleChange() {}"
+            },
+            {
+                "line": 68,
+                "deleted": true,
+                "data": "    };"
+            },
+            {
+                "line": 69,
+                "deleted": true,
+                "data": "    Services.wm.addListener(windowListener);"
+            },
+            {
+                "line": 70,
+                "deleted": true,
+                "data": "  });"
+            },
+            {
+                "line": 50,
+                "deleted": false,
+                "data": "/**"
+            },
+            {
+                "line": 51,
+                "deleted": false,
+                "data": " * Wait for view source tab or window after calling given function to open it."
+            },
+            {
+                "line": 52,
+                "deleted": false,
+                "data": " *"
+            },
+            {
+                "line": 53,
+                "deleted": false,
+                "data": " * @param open - a function to open view source."
+            },
+            {
+                "line": 54,
+                "deleted": false,
+                "data": " * @returns the new tab or window which shows the source."
+            },
+            {
+                "line": 55,
+                "deleted": false,
+                "data": " */"
+            },
+            {
+                "line": 56,
+                "deleted": false,
+                "data": "async function waitForViewSourceTabOrWindow(open) {"
+            },
+            {
+                "line": 57,
+                "deleted": false,
+                "data": "  let sourceLoadedPromise;"
+            },
+            {
+                "line": 58,
+                "deleted": false,
+                "data": "  let tabOrWindowPromise;"
+            },
+            {
+                "line": 59,
+                "deleted": false,
+                "data": "  if (Services.prefs.getBoolPref(\"view_source.tab\")) {"
+            },
+            {
+                "line": 60,
+                "deleted": false,
+                "data": "    tabOrWindowPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 61,
+                "deleted": false,
+                "data": "      gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 62,
+                "deleted": false,
+                "data": "        let tab = event.target;"
+            },
+            {
+                "line": 63,
+                "deleted": false,
+                "data": "        sourceLoadedPromise = waitForSourceLoaded(tab);"
+            },
+            {
+                "line": 64,
+                "deleted": false,
+                "data": "        resolve(tab);"
+            },
+            {
+                "line": 65,
+                "deleted": false,
+                "data": "      }, { once: true });"
+            },
+            {
+                "line": 66,
+                "deleted": false,
+                "data": "    });"
+            },
+            {
+                "line": 67,
+                "deleted": false,
+                "data": "  } else {"
+            },
+            {
+                "line": 68,
+                "deleted": false,
+                "data": "    tabOrWindowPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 69,
+                "deleted": false,
+                "data": "      let windowListener = {"
+            },
+            {
+                "line": 70,
+                "deleted": false,
+                "data": "        onOpenWindow(xulWindow) {"
+            },
+            {
+                "line": 71,
+                "deleted": false,
+                "data": "          let win = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)"
+            },
+            {
+                "line": 72,
+                "deleted": false,
+                "data": "              .getInterface(Ci.nsIDOMWindow);"
+            },
+            {
+                "line": 73,
+                "deleted": false,
+                "data": "          win.addEventListener(\"load\", function() {"
+            },
+            {
+                "line": 74,
+                "deleted": false,
+                "data": "            if (win.document.documentElement.getAttribute(\"windowtype\") !="
+            },
+            {
+                "line": 75,
+                "deleted": false,
+                "data": "                WINDOW_TYPE) {"
+            },
+            {
+                "line": 76,
+                "deleted": false,
+                "data": "              return;"
+            },
+            {
+                "line": 77,
+                "deleted": false,
+                "data": "            }"
+            },
+            {
+                "line": 78,
+                "deleted": false,
+                "data": "            // Found the window"
+            },
+            {
+                "line": 79,
+                "deleted": false,
+                "data": "            sourceLoadedPromise = waitForSourceLoaded(win);"
+            },
+            {
+                "line": 80,
+                "deleted": false,
+                "data": "            resolve(win);"
+            },
+            {
+                "line": 81,
+                "deleted": false,
+                "data": "            Services.wm.removeListener(windowListener);"
+            },
+            {
+                "line": 82,
+                "deleted": false,
+                "data": "          }, {once: true});"
+            },
+            {
+                "line": 83,
+                "deleted": false,
+                "data": "        },"
+            },
+            {
+                "line": 84,
+                "deleted": false,
+                "data": "        onCloseWindow() {},"
+            },
+            {
+                "line": 85,
+                "deleted": false,
+                "data": "        onWindowTitleChange() {}"
+            },
+            {
+                "line": 86,
+                "deleted": false,
+                "data": "      };"
+            },
+            {
+                "line": 87,
+                "deleted": false,
+                "data": "      Services.wm.addListener(windowListener);"
+            },
+            {
+                "line": 88,
+                "deleted": false,
+                "data": "    });"
+            },
+            {
+                "line": 89,
+                "deleted": false,
+                "data": "  }"
+            },
+            {
+                "line": 90,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 91,
+                "deleted": false,
+                "data": "  await open();"
+            },
+            {
+                "line": 92,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 93,
+                "deleted": false,
+                "data": "  let tabOrWindow = await tabOrWindowPromise;"
+            },
+            {
+                "line": 94,
+                "deleted": false,
+                "data": "  await sourceLoadedPromise;"
+            },
+            {
+                "line": 95,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 96,
+                "deleted": false,
+                "data": "  return tabOrWindow;"
+            },
+            {
+                "line": 80,
+                "deleted": true,
+                "data": "  let openPromise;"
+            },
+            {
+                "line": 81,
+                "deleted": true,
+                "data": "  if (Services.prefs.getBoolPref(\"view_source.tab\")) {"
+            },
+            {
+                "line": 82,
+                "deleted": true,
+                "data": "    openPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);"
+            },
+            {
+                "line": 83,
+                "deleted": true,
+                "data": "  } else {"
+            },
+            {
+                "line": 84,
+                "deleted": true,
+                "data": "    openPromise = waitForViewSourceWindow();"
+            },
+            {
+                "line": 85,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 86,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 87,
+                "deleted": true,
+                "data": "  window.BrowserViewSource(browser);"
+            },
+            {
+                "line": 88,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 89,
+                "deleted": true,
+                "data": "  return openPromise;"
+            },
+            {
+                "line": 106,
+                "deleted": false,
+                "data": "  return waitForViewSourceTabOrWindow(() => {"
+            },
+            {
+                "line": 107,
+                "deleted": false,
+                "data": "    window.BrowserViewSource(browser);"
+            },
+            {
+                "line": 108,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 110,
+                "deleted": true,
+                "data": "  let openPromise;"
+            },
+            {
+                "line": 111,
+                "deleted": true,
+                "data": "  if (Services.prefs.getBoolPref(\"view_source.tab\")) {"
+            },
+            {
+                "line": 112,
+                "deleted": true,
+                "data": "    openPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);"
+            },
+            {
+                "line": 113,
+                "deleted": true,
+                "data": "  } else {"
+            },
+            {
+                "line": 114,
+                "deleted": true,
+                "data": "    openPromise = waitForViewSourceWindow();"
+            },
+            {
+                "line": 115,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 116,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 117,
+                "deleted": true,
+                "data": "  let popupHiddenPromise ="
+            },
+            {
+                "line": 118,
+                "deleted": true,
+                "data": "    BrowserTestUtils.waitForEvent(contentAreaContextMenuPopup, \"popuphidden\");"
+            },
+            {
+                "line": 119,
+                "deleted": true,
+                "data": "  let item = document.getElementById(\"context-viewpartialsource-selection\");"
+            },
+            {
+                "line": 120,
+                "deleted": true,
+                "data": "  EventUtils.synthesizeMouseAtCenter(item, {});"
+            },
+            {
+                "line": 121,
+                "deleted": true,
+                "data": "  await popupHiddenPromise;"
+            },
+            {
+                "line": 122,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 123,
+                "deleted": true,
+                "data": "  return openPromise;"
+            },
+            {
+                "line": 129,
+                "deleted": false,
+                "data": "  return waitForViewSourceTabOrWindow(async () => {"
+            },
+            {
+                "line": 130,
+                "deleted": false,
+                "data": "    let popupHiddenPromise ="
+            },
+            {
+                "line": 131,
+                "deleted": false,
+                "data": "        BrowserTestUtils.waitForEvent(contentAreaContextMenuPopup, \"popuphidden\");"
+            },
+            {
+                "line": 132,
+                "deleted": false,
+                "data": "    let item = document.getElementById(\"context-viewpartialsource-selection\");"
+            },
+            {
+                "line": 133,
+                "deleted": false,
+                "data": "    EventUtils.synthesizeMouseAtCenter(item, {});"
+            },
+            {
+                "line": 134,
+                "deleted": false,
+                "data": "    await popupHiddenPromise;"
+            },
+            {
+                "line": 135,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 148,
+                "deleted": true,
+                "data": "  let newTabPromise = BrowserTestUtils.waitForNewTab(gBrowser, null);"
+            },
+            {
+                "line": 149,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 150,
+                "deleted": true,
+                "data": "  let popupHiddenPromise ="
+            },
+            {
+                "line": 151,
+                "deleted": true,
+                "data": "    BrowserTestUtils.waitForEvent(frameContextMenu, \"popuphidden\");"
+            },
+            {
+                "line": 152,
+                "deleted": true,
+                "data": "  let item = document.getElementById(\"context-viewframesource\");"
+            },
+            {
+                "line": 153,
+                "deleted": true,
+                "data": "  EventUtils.synthesizeMouseAtCenter(item, {});"
+            },
+            {
+                "line": 154,
+                "deleted": true,
+                "data": "  await popupHiddenPromise;"
+            },
+            {
+                "line": 155,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 156,
+                "deleted": true,
+                "data": "  return newTabPromise;"
+            },
+            {
+                "line": 160,
+                "deleted": false,
+                "data": "  return waitForViewSourceTabOrWindow(async () => {"
+            },
+            {
+                "line": 161,
+                "deleted": false,
+                "data": "    let popupHiddenPromise ="
+            },
+            {
+                "line": 162,
+                "deleted": false,
+                "data": "        BrowserTestUtils.waitForEvent(frameContextMenu, \"popuphidden\");"
+            },
+            {
+                "line": 163,
+                "deleted": false,
+                "data": "    let item = document.getElementById(\"context-viewframesource\");"
+            },
+            {
+                "line": 164,
+                "deleted": false,
+                "data": "    EventUtils.synthesizeMouseAtCenter(item, {});"
+            },
+            {
+                "line": 165,
+                "deleted": false,
+                "data": "    await popupHiddenPromise;"
+            },
+            {
+                "line": 166,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 201,
+                "deleted": true,
+                "data": "  let tabOrWindow = await openViewPartialSource(aCSSSelector);"
+            },
+            {
+                "line": 202,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 203,
+                "deleted": true,
+                "data": "  // Wait until the source has been loaded."
+            },
+            {
+                "line": 204,
+                "deleted": true,
+                "data": "  await waitForSourceLoaded(tabOrWindow);"
+            },
+            {
+                "line": 205,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 206,
+                "deleted": true,
+                "data": "  return tabOrWindow;"
+            },
+            {
+                "line": 211,
+                "deleted": false,
+                "data": "  return openViewPartialSource(aCSSSelector);"
+            }
+        ]
+    },
+    {
+        "filename": "toolkit/mozapps/extensions/test/xpinstall/browser_bug638292.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 9,
+                "deleted": true,
+                "data": "    let waitForNewTabPromise = BrowserTestUtils.waitForNewTab(gBrowser);"
+            },
+            {
+                "line": 9,
+                "deleted": false,
+                "data": "    let loadedPromise = BrowserTestUtils.waitForNewTab(gBrowser, null, true);"
+            },
+            {
+                "line": 14,
+                "deleted": true,
+                "data": "    let newtab = await waitForNewTabPromise;"
+            },
+            {
+                "line": 15,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 16,
+                "deleted": true,
+                "data": "    await BrowserTestUtils.browserLoaded(newtab.linkedBrowser);"
+            },
+            {
+                "line": 14,
+                "deleted": false,
+                "data": "    let newtab = await loadedPromise;"
+            }
+        ]
+    }
+]

@@ -1,0 +1,76 @@
+[
+    {
+        "filename": "browser/extensions/webcompat-reporter/test/browser/browser_report_site_issue.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 14,
+                "deleted": true,
+                "data": "  let newTabPromise = BrowserTestUtils.waitForNewTab(gBrowser);"
+            },
+            {
+                "line": 14,
+                "deleted": false,
+                "data": "  let screenshotPromise;"
+            },
+            {
+                "line": 15,
+                "deleted": false,
+                "data": "  let newTabPromise = new Promise(resolve => {"
+            },
+            {
+                "line": 16,
+                "deleted": false,
+                "data": "    gBrowser.tabContainer.addEventListener(\"TabOpen\", event => {"
+            },
+            {
+                "line": 17,
+                "deleted": false,
+                "data": "      let tab = event.target;"
+            },
+            {
+                "line": 18,
+                "deleted": false,
+                "data": "      screenshotPromise = BrowserTestUtils.waitForContentEvent("
+            },
+            {
+                "line": 19,
+                "deleted": false,
+                "data": "        tab.linkedBrowser, \"ScreenshotReceived\", false, null, true);"
+            },
+            {
+                "line": 20,
+                "deleted": false,
+                "data": "      resolve(tab);"
+            },
+            {
+                "line": 21,
+                "deleted": false,
+                "data": "    }, { once: true });"
+            },
+            {
+                "line": 22,
+                "deleted": false,
+                "data": "  });"
+            },
+            {
+                "line": 18,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 19,
+                "deleted": true,
+                "data": "  await BrowserTestUtils.waitForContentEvent(tab2.linkedBrowser, \"ScreenshotReceived\", false, null, true);"
+            },
+            {
+                "line": 26,
+                "deleted": false,
+                "data": "  await screenshotPromise;"
+            }
+        ]
+    }
+]

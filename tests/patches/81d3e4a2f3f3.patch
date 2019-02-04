@@ -1,0 +1,860 @@
+
+# HG changeset patch
+# User Botond Ballo <botond@mozilla.com>
+# Date 1511222434 18000
+# Node ID 81d3e4a2f3f3e98042e24159fe03331fa3534de4
+# Parent  35a0492f12520c6f90220e44d7f2343e0aa78793
+Bug 1420516 - Remove ScrollDirection::NONE. r=kats
+
+ScrollDirection variables for which NONE was a valid value are replaced with
+Maybe<ScrollDirection>.
+
+I also took the opportunity to change the remaining ScrollDirection
+enumerators to eTitleCase as per style guide.
+
+MozReview-Commit-ID: GWejQR2HqH5
+
+diff --git a/gfx/layers/DirectionUtils.h b/gfx/layers/DirectionUtils.h
+--- a/gfx/layers/DirectionUtils.h
++++ b/gfx/layers/DirectionUtils.h
+@@ -10,52 +10,52 @@
+ #include "LayersTypes.h"  // for ScrollDirection
+ #include "Units.h"        // for Coord, Point, and Rect types
+ 
+ namespace mozilla {
+ namespace layers {
+ 
+ template <typename PointOrRect>
+ CoordOf<PointOrRect> GetAxisStart(ScrollDirection aDir, const PointOrRect& aValue) {
+-  if (aDir == ScrollDirection::HORIZONTAL) {
++  if (aDir == ScrollDirection::eHorizontal) {
+     return aValue.x;
+   } else {
+     return aValue.y;
+   }
+ }
+ 
+ template <typename Rect>
+ CoordOf<Rect> GetAxisEnd(ScrollDirection aDir, const Rect& aValue) {
+-  if (aDir == ScrollDirection::HORIZONTAL) {
++  if (aDir == ScrollDirection::eHorizontal) {
+     return aValue.x + aValue.width;
+   } else {
+     return aValue.y + aValue.height;
+   }
+ }
+ 
+ template <typename Rect>
+ CoordOf<Rect> GetAxisLength(ScrollDirection aDir, const Rect& aValue) {
+-  if (aDir == ScrollDirection::HORIZONTAL) {
++  if (aDir == ScrollDirection::eHorizontal) {
+     return aValue.width;
+   } else {
+     return aValue.height;
+   }
+ }
+ 
+ template <typename FromUnits, typename ToUnits>
+ float GetAxisScale(ScrollDirection aDir, const gfx::ScaleFactors2D<FromUnits, ToUnits>& aValue) {
+-  if (aDir == ScrollDirection::HORIZONTAL) {
++  if (aDir == ScrollDirection::eHorizontal) {
+     return aValue.xScale;
+   } else {
+     return aValue.yScale;
+   }
+ }
+ 
+ inline ScrollDirection GetPerpendicularDirection(ScrollDirection aDir) {
+-  return aDir == ScrollDirection::HORIZONTAL
+-       ? ScrollDirection::VERTICAL
+-       : ScrollDirection::HORIZONTAL;
++  return aDir == ScrollDirection::eHorizontal
++       ? ScrollDirection::eVertical
++       : ScrollDirection::eHorizontal;
+ }
+ 
+ } // namespace layers
+ } // namespace mozilla
+ 
+ #endif /* GFX_DIRECTIONUTILS_H */
+diff --git a/gfx/layers/LayerAttributes.h b/gfx/layers/LayerAttributes.h
+--- a/gfx/layers/LayerAttributes.h
++++ b/gfx/layers/LayerAttributes.h
+@@ -1,50 +1,50 @@
+ /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+ /* vim: set ts=8 sts=2 et sw=2 tw=80: */
+ /* This Source Code Form is subject to the terms of the Mozilla Public
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ #ifndef mozilla_gfx_layers_LayerAttributes_h
+ #define mozilla_gfx_layers_LayerAttributes_h
+ 
++#include "mozilla/Maybe.h"
+ #include "mozilla/gfx/Types.h"
+ #include "mozilla/layers/LayersTypes.h"
+ 
+ namespace IPC {
+ template <typename T> struct ParamTraits;
+ } // namespace IPC
+ 
+ namespace mozilla {
+ namespace layers {
+ 
+ // Data stored for scroll thumb container layers.
+ struct ScrollThumbData {
+   ScrollThumbData()
+-    : mDirection(ScrollDirection::NONE)
+-    , mThumbRatio(0.0f)
++    : mThumbRatio(0.0f)
+     , mIsAsyncDraggable(false)
+   {}
+   ScrollThumbData(ScrollDirection aDirection,
+                   float aThumbRatio,
+                   CSSCoord aThumbStart,
+                   CSSCoord aThumbLength,
+                   bool aIsAsyncDraggable,
+                   CSSCoord aScrollTrackStart,
+                   CSSCoord aScrollTrackLength)
+-    : mDirection(aDirection)
++    : mDirection(Some(aDirection))
+     , mThumbRatio(aThumbRatio)
+     , mThumbStart(aThumbStart)
+     , mThumbLength(aThumbLength)
+     , mIsAsyncDraggable(aIsAsyncDraggable)
+     , mScrollTrackStart(aScrollTrackStart)
+     , mScrollTrackLength(aScrollTrackLength)
+   {}
+ 
+-  ScrollDirection mDirection;
++  Maybe<ScrollDirection> mDirection;
+   // The scrollbar thumb ratio is the ratio of the thumb position (in the CSS
+   // pixels of the scrollframe's parent's space) to the scroll position (in the
+   // CSS pixels of the scrollframe's space).
+   float mThumbRatio;
+   CSSCoord mThumbStart;
+   CSSCoord mThumbLength;
+   // Whether the scrollbar thumb can be dragged asynchronously.
+   bool mIsAsyncDraggable;
+diff --git a/gfx/layers/Layers.cpp b/gfx/layers/Layers.cpp
+--- a/gfx/layers/Layers.cpp
++++ b/gfx/layers/Layers.cpp
+@@ -1810,22 +1810,23 @@ Layer::PrintInfo(std::stringstream& aStr
+     aStream << " [combines3DTransformWithAncestors]";
+   }
+   if (Is3DContextLeaf()) {
+     aStream << " [is3DContextLeaf]";
+   }
+   if (IsScrollbarContainer()) {
+     aStream << " [scrollbar]";
+   }
+-  ScrollDirection thumbDirection = GetScrollThumbData().mDirection;
+-  if (thumbDirection == ScrollDirection::VERTICAL) {
+-    aStream << nsPrintfCString(" [vscrollbar=%" PRIu64 "]", GetScrollbarTargetContainerId()).get();
+-  }
+-  if (thumbDirection == ScrollDirection::HORIZONTAL) {
+-    aStream << nsPrintfCString(" [hscrollbar=%" PRIu64 "]", GetScrollbarTargetContainerId()).get();
++  if (Maybe<ScrollDirection> thumbDirection = GetScrollThumbData().mDirection) {
++    if (*thumbDirection == ScrollDirection::eVertical) {
++      aStream << nsPrintfCString(" [vscrollbar=%" PRIu64 "]", GetScrollbarTargetContainerId()).get();
++    }
++    if (*thumbDirection == ScrollDirection::eHorizontal) {
++      aStream << nsPrintfCString(" [hscrollbar=%" PRIu64 "]", GetScrollbarTargetContainerId()).get();
++    }
+   }
+   if (GetIsFixedPosition()) {
+     LayerPoint anchor = GetFixedPositionAnchor();
+     aStream << nsPrintfCString(" [isFixedPosition scrollId=%" PRIu64 " sides=0x%x anchor=%s]",
+                      GetFixedPositionScrollContainerId(),
+                      GetFixedPositionSides(),
+                      ToString(anchor).c_str()).get();
+   }
+@@ -1960,19 +1961,18 @@ Layer::DumpPacket(layerscope::LayersPack
+   }
+   // Opacity
+   layer->set_opacity(GetOpacity());
+   // Content opaque
+   layer->set_copaque(static_cast<bool>(GetContentFlags() & CONTENT_OPAQUE));
+   // Component alpha
+   layer->set_calpha(static_cast<bool>(GetContentFlags() & CONTENT_COMPONENT_ALPHA));
+   // Vertical or horizontal bar
+-  ScrollDirection thumbDirection = GetScrollThumbData().mDirection;
+-  if (thumbDirection != ScrollDirection::NONE) {
+-    layer->set_direct(thumbDirection == ScrollDirection::VERTICAL ?
++  if (Maybe<ScrollDirection> thumbDirection = GetScrollThumbData().mDirection) {
++    layer->set_direct(*thumbDirection == ScrollDirection::eVertical ?
+                       LayersPacket::Layer::VERTICAL :
+                       LayersPacket::Layer::HORIZONTAL);
+     layer->set_barid(GetScrollbarTargetContainerId());
+   }
+ 
+   // Mask layer
+   if (mMaskLayer) {
+     layer->set_mask(reinterpret_cast<uint64_t>(mMaskLayer.get()));
+diff --git a/gfx/layers/LayersTypes.h b/gfx/layers/LayersTypes.h
+--- a/gfx/layers/LayersTypes.h
++++ b/gfx/layers/LayersTypes.h
+@@ -341,17 +341,16 @@ public:
+   uint64_t Value() const {
+     return mHandle;
+   }
+ private:
+   uint64_t mHandle;
+ };
+ 
+ MOZ_DEFINE_ENUM_CLASS_WITH_BASE(ScrollDirection, uint32_t, (
+-  NONE,
+-  VERTICAL,
+-  HORIZONTAL
++  eVertical,
++  eHorizontal
+ ));
+ 
+ } // namespace layers
+ } // namespace mozilla
+ 
+ #endif /* GFX_LAYERSTYPES_H */
+diff --git a/gfx/layers/apz/src/APZCTreeManager.cpp b/gfx/layers/apz/src/APZCTreeManager.cpp
+--- a/gfx/layers/apz/src/APZCTreeManager.cpp
++++ b/gfx/layers/apz/src/APZCTreeManager.cpp
+@@ -1617,16 +1617,17 @@ APZCTreeManager::SetupScrollbarDrag(Mous
+                                     AsyncPanZoomController* aApzc)
+ {
+   DragBlockState* dragBlock = mInputQueue->GetCurrentDragBlock();
+   if (!dragBlock) {
+     return;
+   }
+ 
+   const ScrollThumbData& thumbData = aScrollThumbNode->GetScrollThumbData();
++  MOZ_ASSERT(thumbData.mDirection.isSome());
+ 
+   // Record the thumb's position at the start of the drag.
+   // We snap back to this position if, during the drag, the mouse
+   // gets sufficiently far away from the scrollbar.
+   dragBlock->SetInitialThumbPos(thumbData.mThumbStart);
+ 
+   // Under some conditions, we can confirm the drag block right away.
+   // Otherwise, we have to wait for a main-thread confirmation.
+@@ -1650,33 +1651,33 @@ APZCTreeManager::SetupScrollbarDrag(Mous
+     LayerToParentLayerMatrix4x4 thumbTransform;
+     {
+       MutexAutoLock lock(mTreeLock);
+       thumbTransform = ComputeTransformForNode(aScrollThumbNode);
+     }
+     // Only consider the translation, since we do not support both
+     // zooming and scrollbar dragging on any platform.
+     CSSCoord thumbStart = thumbData.mThumbStart
+-                        + ((thumbData.mDirection == ScrollDirection::HORIZONTAL)
++                        + ((*thumbData.mDirection == ScrollDirection::eHorizontal)
+                            ? thumbTransform._41 : thumbTransform._42);
+     dragStart -= thumbStart;
+ 
+     // Content can't prevent scrollbar dragging with preventDefault(),
+     // so we don't need to wait for a content response. It's important
+     // to do this before calling ConfirmDragBlock() since that can
+     // potentially process and consume the block.
+     dragBlock->SetContentResponse(false);
+ 
+     mInputQueue->ConfirmDragBlock(
+         dragBlockId, aApzc,
+         AsyncDragMetrics(aApzc->GetGuid().mScrollId,
+                          aApzc->GetGuid().mPresShellId,
+                          dragBlockId,
+                          dragStart,
+-                         thumbData.mDirection));
++                         *thumbData.mDirection));
+   }
+ }
+ 
+ void
+ APZCTreeManager::UpdateWheelTransaction(LayoutDeviceIntPoint aRefPoint,
+                                         EventMessage aEventMessage)
+ {
+   WheelBlockState* txn = mInputQueue->GetActiveWheelTransaction();
+diff --git a/gfx/layers/apz/src/AndroidAPZ.cpp b/gfx/layers/apz/src/AndroidAPZ.cpp
+--- a/gfx/layers/apz/src/AndroidAPZ.cpp
++++ b/gfx/layers/apz/src/AndroidAPZ.cpp
+@@ -84,21 +84,21 @@ AndroidFlingAnimation::AndroidFlingAnima
+   MOZ_ASSERT(state);
+   mOverScroller = state->mOverScroller;
+   MOZ_ASSERT(mOverScroller);
+ 
+   // Drop any velocity on axes where we don't have room to scroll anyways
+   // (in this APZC, or an APZC further in the handoff chain).
+   // This ensures that we don't take the 'overscroll' path in Sample()
+   // on account of one axis which can't scroll having a velocity.
+-  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::HORIZONTAL)) {
++  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eHorizontal)) {
+     RecursiveMutexAutoLock lock(mApzc.mRecursiveMutex);
+     mApzc.mX.SetVelocity(0);
+   }
+-  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::VERTICAL)) {
++  if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eVertical)) {
+     RecursiveMutexAutoLock lock(mApzc.mRecursiveMutex);
+     mApzc.mY.SetVelocity(0);
+   }
+ 
+   ParentLayerPoint velocity = mApzc.GetVelocityVector();
+ 
+   float scrollRangeStartX = mApzc.mX.GetPageStart().value;
+   float scrollRangeEndX = mApzc.mX.GetScrollRangeEnd().value;
+diff --git a/gfx/layers/apz/src/AsyncDragMetrics.h b/gfx/layers/apz/src/AsyncDragMetrics.h
+--- a/gfx/layers/apz/src/AsyncDragMetrics.h
++++ b/gfx/layers/apz/src/AsyncDragMetrics.h
+@@ -4,16 +4,17 @@
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ #ifndef mozilla_layers_DragMetrics_h
+ #define mozilla_layers_DragMetrics_h
+ 
+ #include "FrameMetrics.h"
+ #include "LayersTypes.h"
++#include "mozilla/Maybe.h"
+ 
+ namespace IPC {
+ template <typename T> struct ParamTraits;
+ } // namespace IPC
+ 
+ namespace mozilla {
+ 
+ namespace layers {
+@@ -23,34 +24,33 @@ class AsyncDragMetrics {
+ 
+ public:
+   // IPC constructor
+   AsyncDragMetrics()
+     : mViewId(0)
+     , mPresShellId(0)
+     , mDragStartSequenceNumber(0)
+     , mScrollbarDragOffset(0)
+-    , mDirection(ScrollDirection::NONE)
+   {}
+ 
+   AsyncDragMetrics(const FrameMetrics::ViewID& aViewId,
+                    uint32_t aPresShellId,
+                    uint64_t aDragStartSequenceNumber,
+                    CSSCoord aScrollbarDragOffset,
+                    ScrollDirection aDirection)
+     : mViewId(aViewId)
+     , mPresShellId(aPresShellId)
+     , mDragStartSequenceNumber(aDragStartSequenceNumber)
+     , mScrollbarDragOffset(aScrollbarDragOffset)
+-    , mDirection(aDirection)
++    , mDirection(Some(aDirection))
+   {}
+ 
+   FrameMetrics::ViewID mViewId;
+   uint32_t mPresShellId;
+   uint64_t mDragStartSequenceNumber;
+   CSSCoord mScrollbarDragOffset;  // relative to the thumb's start offset
+-  ScrollDirection mDirection;
++  Maybe<ScrollDirection> mDirection;
+ };
+ 
+ }
+ }
+ 
+ #endif
+diff --git a/gfx/layers/apz/src/AsyncPanZoomController.cpp b/gfx/layers/apz/src/AsyncPanZoomController.cpp
+--- a/gfx/layers/apz/src/AsyncPanZoomController.cpp
++++ b/gfx/layers/apz/src/AsyncPanZoomController.cpp
+@@ -917,29 +917,31 @@ nsEventStatus AsyncPanZoomController::Ha
+ 
+   RefPtr<HitTestingTreeNode> node =
+     GetApzcTreeManager()->FindScrollThumbNode(aDragMetrics);
+   if (!node) {
+     return nsEventStatus_eConsumeNoDefault;
+   }
+ 
+   const ScrollThumbData& thumbData = node->GetScrollThumbData();
++  MOZ_ASSERT(thumbData.mDirection.isSome());
++  ScrollDirection direction = *thumbData.mDirection;
+ 
+   mozilla::Telemetry::Accumulate(mozilla::Telemetry::SCROLL_INPUT_METHODS,
+       (uint32_t) ScrollInputMethod::ApzScrollbarDrag);
+ 
+   bool isMouseAwayFromThumb = false;
+   if (int snapMultiplier = gfxPrefs::SliderSnapMultiplier()) {
+     // It's fine to ignore the async component of the thumb's transform,
+     // because any async transform of the thumb will be in the direction of
+     // scrolling, but here we're interested in the other direction.
+     ParentLayerRect thumbRect =
+         (node->GetTransform() * AsyncTransformMatrix()).TransformBounds(
+               LayerRect(node->GetVisibleRegion().GetBounds()));
+-    ScrollDirection otherDirection = GetPerpendicularDirection(aDragMetrics.mDirection);
++    ScrollDirection otherDirection = GetPerpendicularDirection(direction);
+     ParentLayerCoord distance = GetAxisStart(otherDirection,
+         thumbRect.DistanceTo(aEvent.mLocalOrigin));
+     ParentLayerCoord thumbWidth = GetAxisLength(otherDirection, thumbRect);
+     // Avoid triggering this condition spuriously when the thumb is
+     // offscreen and its visible region is therefore empty.
+     if (thumbWidth > 0 && thumbWidth * snapMultiplier < distance) {
+       isMouseAwayFromThumb = true;
+     }
+@@ -955,27 +957,27 @@ nsEventStatus AsyncPanZoomController::Ha
+   }
+ 
+   CSSCoord maxThumbPos = thumbData.mScrollTrackLength;
+   maxThumbPos -= thumbData.mThumbLength;
+ 
+   float scrollPercent = thumbPosition / maxThumbPos;
+ 
+   CSSCoord minScrollPosition =
+-    GetAxisStart(aDragMetrics.mDirection, mFrameMetrics.GetScrollableRect().TopLeft());
++    GetAxisStart(direction, mFrameMetrics.GetScrollableRect().TopLeft());
+   CSSCoord maxScrollPosition =
+-    GetAxisStart(aDragMetrics.mDirection, mFrameMetrics.GetScrollableRect().BottomRight()) -
+-    GetAxisLength(aDragMetrics.mDirection, mFrameMetrics.CalculateCompositedRectInCssPixels());
++    GetAxisStart(direction, mFrameMetrics.GetScrollableRect().BottomRight()) -
++    GetAxisLength(direction, mFrameMetrics.CalculateCompositedRectInCssPixels());
+   CSSCoord scrollPosition = minScrollPosition + (scrollPercent * (maxScrollPosition - minScrollPosition));
+ 
+   scrollPosition = std::max(scrollPosition, minScrollPosition);
+   scrollPosition = std::min(scrollPosition, maxScrollPosition);
+ 
+   CSSPoint scrollOffset = mFrameMetrics.GetScrollOffset();
+-  if (aDragMetrics.mDirection == ScrollDirection::HORIZONTAL) {
++  if (direction == ScrollDirection::eHorizontal) {
+     scrollOffset.x = scrollPosition;
+   } else {
+     scrollOffset.y = scrollPosition;
+   }
+   mFrameMetrics.SetScrollOffset(scrollOffset);
+   ScheduleCompositeAndMaybeRepaint();
+   UpdateSharedCompositorFrameMetrics();
+ 
+@@ -1629,18 +1631,18 @@ AsyncPanZoomController::ConvertScrollbar
+   // First, get it into the right coordinate space.
+   CSSPoint scrollbarPoint = aScrollbarPoint / mFrameMetrics.GetZoom();
+   // The scrollbar can be transformed with the frame but the pres shell
+   // resolution is only applied to the scroll frame.
+   scrollbarPoint = scrollbarPoint * mFrameMetrics.GetPresShellResolution();
+ 
+   // Now, get it to be relative to the beginning of the scroll track.
+   CSSRect cssCompositionBound = mFrameMetrics.CalculateCompositedRectInCssPixels();
+-  return GetAxisStart(aThumbData.mDirection, scrollbarPoint)
+-      - GetAxisStart(aThumbData.mDirection, cssCompositionBound)
++  return GetAxisStart(*aThumbData.mDirection, scrollbarPoint)
++      - GetAxisStart(*aThumbData.mDirection, cssCompositionBound)
+       - aThumbData.mScrollTrackStart;
+ }
+ 
+ static bool
+ AllowsScrollingMoreThanOnePage(double aMultiplier)
+ {
+   const int32_t kMinAllowPageScroll =
+     EventStateManager::MIN_MULTIPLIER_VALUE_ALLOWING_OVER_ONE_PAGE_SCROLL;
+@@ -1943,23 +1945,20 @@ AsyncPanZoomController::CanScrollWithWhe
+   return false;
+ }
+ 
+ bool
+ AsyncPanZoomController::CanScroll(ScrollDirection aDirection) const
+ {
+   RecursiveMutexAutoLock lock(mRecursiveMutex);
+   switch (aDirection) {
+-  case ScrollDirection::HORIZONTAL: return mX.CanScroll();
+-  case ScrollDirection::VERTICAL:   return mY.CanScroll();
+-
+-  case ScrollDirection::NONE:
+-    MOZ_ASSERT_UNREACHABLE("Invalid value");
+-    break;
++  case ScrollDirection::eHorizontal: return mX.CanScroll();
++  case ScrollDirection::eVertical:   return mY.CanScroll();
+   }
++  MOZ_ASSERT_UNREACHABLE("Invalid value");
+   return false;
+ }
+ 
+ bool
+ AsyncPanZoomController::AllowScrollHandoffInCurrentBlock() const
+ {
+   bool result = mInputQueue->AllowScrollHandoff();
+   if (!gfxPrefs::APZAllowImmediateHandoff()) {
+@@ -2261,20 +2260,20 @@ nsEventStatus AsyncPanZoomController::On
+   mY.EndTouch(aEvent.mTime);
+ 
+   // Drop any velocity on axes where we don't have room to scroll anyways
+   // (in this APZC, or an APZC further in the handoff chain).
+   // This ensures that we don't enlarge the display port unnecessarily.
+   MOZ_ASSERT(GetCurrentPanGestureBlock());
+   RefPtr<const OverscrollHandoffChain> overscrollHandoffChain =
+     GetCurrentPanGestureBlock()->GetOverscrollHandoffChain();
+-  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL)) {
++  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal)) {
+     mX.SetVelocity(0);
+   }
+-  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL)) {
++  if (!overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical)) {
+     mY.SetVelocity(0);
+   }
+ 
+   SetState(NOTHING);
+   RequestContentRepaint();
+ 
+   if (!aEvent.mFollowedByMomentum) {
+     ScrollSnap();
+@@ -2506,19 +2505,19 @@ void AsyncPanZoomController::SetVelocity
+ 
+ void AsyncPanZoomController::HandlePanningWithTouchAction(double aAngle) {
+   // Handling of cross sliding will need to be added in this method after touch-action released
+   // enabled by default.
+   MOZ_ASSERT(GetCurrentTouchBlock());
+   RefPtr<const OverscrollHandoffChain> overscrollHandoffChain =
+     GetCurrentInputBlock()->GetOverscrollHandoffChain();
+   bool canScrollHorizontal = !mX.IsAxisLocked() &&
+-    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL);
++    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal);
+   bool canScrollVertical = !mY.IsAxisLocked() &&
+-    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL);
++    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical);
+   if (GetCurrentTouchBlock()->TouchActionAllowsPanningXY()) {
+     if (canScrollHorizontal && canScrollVertical) {
+       if (IsCloseToHorizontal(aAngle, gfxPrefs::APZAxisLockAngle())) {
+         mY.SetAxisLocked(true);
+         SetState(PANNING_LOCKED_X);
+       } else if (IsCloseToVertical(aAngle, gfxPrefs::APZAxisLockAngle())) {
+         mX.SetAxisLocked(true);
+         SetState(PANNING_LOCKED_Y);
+@@ -2563,19 +2562,19 @@ void AsyncPanZoomController::HandlePanni
+ }
+ 
+ void AsyncPanZoomController::HandlePanning(double aAngle) {
+   RecursiveMutexAutoLock lock(mRecursiveMutex);
+   MOZ_ASSERT(GetCurrentInputBlock());
+   RefPtr<const OverscrollHandoffChain> overscrollHandoffChain =
+     GetCurrentInputBlock()->GetOverscrollHandoffChain();
+   bool canScrollHorizontal = !mX.IsAxisLocked() &&
+-    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::HORIZONTAL);
++    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eHorizontal);
+   bool canScrollVertical = !mY.IsAxisLocked() &&
+-    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::VERTICAL);
++    overscrollHandoffChain->CanScrollInDirection(this, ScrollDirection::eVertical);
+ 
+   if (!canScrollHorizontal || !canScrollVertical) {
+     SetState(PANNING);
+   } else if (IsCloseToHorizontal(aAngle, gfxPrefs::APZAxisLockAngle())) {
+     mY.SetAxisLocked(true);
+     if (canScrollHorizontal) {
+       SetState(PANNING_LOCKED_X);
+     }
+diff --git a/gfx/layers/apz/src/GenericFlingAnimation.h b/gfx/layers/apz/src/GenericFlingAnimation.h
+--- a/gfx/layers/apz/src/GenericFlingAnimation.h
++++ b/gfx/layers/apz/src/GenericFlingAnimation.h
+@@ -40,21 +40,21 @@ public:
+   {
+     MOZ_ASSERT(mOverscrollHandoffChain);
+     TimeStamp now = aApzc.GetFrameTime();
+ 
+     // Drop any velocity on axes where we don't have room to scroll anyways
+     // (in this APZC, or an APZC further in the handoff chain).
+     // This ensures that we don't take the 'overscroll' path in Sample()
+     // on account of one axis which can't scroll having a velocity.
+-    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::HORIZONTAL)) {
++    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eHorizontal)) {
+       RecursiveMutexAutoLock lock(mApzc.mRecursiveMutex);
+       mApzc.mX.SetVelocity(0);
+     }
+-    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::VERTICAL)) {
++    if (!mOverscrollHandoffChain->CanScrollInDirection(&mApzc, ScrollDirection::eVertical)) {
+       RecursiveMutexAutoLock lock(mApzc.mRecursiveMutex);
+       mApzc.mY.SetVelocity(0);
+     }
+ 
+     ParentLayerPoint velocity = mApzc.GetVelocityVector();
+ 
+     // If the last fling was very recent and in the same direction as this one,
+     // boost the velocity to be the sum of the two. Check separate axes separately
+diff --git a/gfx/layers/apz/src/HitTestingTreeNode.cpp b/gfx/layers/apz/src/HitTestingTreeNode.cpp
+--- a/gfx/layers/apz/src/HitTestingTreeNode.cpp
++++ b/gfx/layers/apz/src/HitTestingTreeNode.cpp
+@@ -111,17 +111,17 @@ HitTestingTreeNode::MatchesScrollDragMet
+   return IsScrollThumbNode() &&
+          mScrollThumbData.mDirection == aDragMetrics.mDirection &&
+          mScrollViewId == aDragMetrics.mViewId;
+ }
+ 
+ bool
+ HitTestingTreeNode::IsScrollThumbNode() const
+ {
+-  return mScrollThumbData.mDirection != ScrollDirection::NONE;
++  return mScrollThumbData.mDirection.isSome();
+ }
+ 
+ bool
+ HitTestingTreeNode::IsScrollbarNode() const
+ {
+   return mIsScrollbarContainer || IsScrollThumbNode();
+ }
+ 
+diff --git a/gfx/layers/apz/test/gtest/APZTestCommon.h b/gfx/layers/apz/test/gtest/APZTestCommon.h
+--- a/gfx/layers/apz/test/gtest/APZTestCommon.h
++++ b/gfx/layers/apz/test/gtest/APZTestCommon.h
+@@ -260,26 +260,28 @@ public:
+     EXPECT_EQ(NOTHING, mState);
+   }
+ 
+   void AssertStateIsFling() const {
+     RecursiveMutexAutoLock lock(mRecursiveMutex);
+     EXPECT_EQ(FLING, mState);
+   }
+ 
++  void AssertNotAxisLocked() const {
++    RecursiveMutexAutoLock lock(mRecursiveMutex);
++    EXPECT_EQ(PANNING, mState);
++  }
++
+   void AssertAxisLocked(ScrollDirection aDirection) const {
+     RecursiveMutexAutoLock lock(mRecursiveMutex);
+     switch (aDirection) {
+-    case ScrollDirection::NONE:
+-      EXPECT_EQ(PANNING, mState);
+-      break;
+-    case ScrollDirection::HORIZONTAL:
++    case ScrollDirection::eHorizontal:
+       EXPECT_EQ(PANNING_LOCKED_X, mState);
+       break;
+-    case ScrollDirection::VERTICAL:
++    case ScrollDirection::eVertical:
+       EXPECT_EQ(PANNING_LOCKED_Y, mState);
+       break;
+     }
+   }
+ 
+   void AdvanceAnimationsUntilEnd(const TimeDuration& aIncrement = TimeDuration::FromMilliseconds(10)) {
+     while (AdvanceAnimations(mcc->Time())) {
+       mcc->AdvanceBy(aIncrement);
+diff --git a/gfx/layers/apz/test/gtest/TestScrollHandoff.cpp b/gfx/layers/apz/test/gtest/TestScrollHandoff.cpp
+--- a/gfx/layers/apz/test/gtest/TestScrollHandoff.cpp
++++ b/gfx/layers/apz/test/gtest/TestScrollHandoff.cpp
+@@ -148,17 +148,17 @@ protected:
+     SCOPED_GFX_PREF(APZAxisLockMode, int32_t, 1);
+ 
+     CreateScrollHandoffLayerTree1();
+ 
+     RefPtr<TestAsyncPanZoomController> childApzc = ApzcOf(layers[1]);
+     Pan(childApzc, ScreenIntPoint(10, 60), ScreenIntPoint(15, 90),
+         PanOptions::KeepFingerDown | PanOptions::ExactCoordinates);
+ 
+-    childApzc->AssertAxisLocked(ScrollDirection::VERTICAL);
++    childApzc->AssertAxisLocked(ScrollDirection::eVertical);
+   }
+ };
+ 
+ // Here we test that if the processing of a touch block is deferred while we
+ // wait for content to send a prevent-default message, overscroll is still
+ // handed off correctly when the block is processed.
+ TEST_F(APZScrollHandoffTester, DeferredInputEventProcessing) {
+   // Set up the APZC tree.
+diff --git a/gfx/layers/composite/AsyncCompositionManager.cpp b/gfx/layers/composite/AsyncCompositionManager.cpp
+--- a/gfx/layers/composite/AsyncCompositionManager.cpp
++++ b/gfx/layers/composite/AsyncCompositionManager.cpp
+@@ -791,17 +791,18 @@ MoveScrollbarForLayerMargin(Layer* aRoot
+                             const ScreenMargin& aFixedLayerMargins)
+ {
+   // See bug 1223928 comment 9 - once we can detect the RCD with just the
+   // isRootContent flag on the metrics, we can probably move this code into
+   // ApplyAsyncTransformToScrollbar rather than having it as a separate
+   // adjustment on the layer tree.
+   Layer* scrollbar = BreadthFirstSearch<ReverseIterator>(aRoot,
+     [aRootScrollId](Layer* aNode) {
+-      return (aNode->GetScrollThumbData().mDirection == ScrollDirection::HORIZONTAL &&
++      return (aNode->GetScrollThumbData().mDirection.isSome() &&
++              *aNode->GetScrollThumbData().mDirection == ScrollDirection::eHorizontal &&
+               aNode->GetScrollbarTargetContainerId() == aRootScrollId);
+     });
+   if (scrollbar) {
+     // Shift the horizontal scrollbar down into the new space exposed by the
+     // dynamic toolbar hiding. Technically we should also scale the vertical
+     // scrollbar a bit to expand into the new space but it's not as noticeable
+     // and it would add a lot more complexity, so we're going with the "it's not
+     // worth it" justification.
+@@ -1068,17 +1069,17 @@ AsyncCompositionManager::ApplyAsyncConte
+                 maskLayer->GetLocalTransformTyped() * combinedAsyncTransform);
+           }
+ 
+           appliedTransform = true;
+         }
+ 
+         ExpandRootClipRect(layer, fixedLayerMargins);
+ 
+-        if (layer->GetScrollThumbData().mDirection != ScrollDirection::NONE) {
++        if (layer->GetScrollThumbData().mDirection.isSome()) {
+           ApplyAsyncTransformToScrollbar(layer);
+         }
+       });
+ 
+   return appliedTransform;
+ }
+ 
+ static bool
+@@ -1149,17 +1150,17 @@ AsyncCompositionManager::ComputeTransfor
+   AsyncTransformComponentMatrix asyncTransform =
+     aApzc->GetCurrentAsyncTransform(AsyncPanZoomController::eForCompositing);
+ 
+   // |asyncTransform| represents the amount by which we have scrolled and
+   // zoomed since the last paint. Because the scrollbar was sized and positioned based
+   // on the painted content, we need to adjust it based on asyncTransform so that
+   // it reflects what the user is actually seeing now.
+   AsyncTransformComponentMatrix scrollbarTransform;
+-  if (aThumbData.mDirection == ScrollDirection::VERTICAL) {
++  if (*aThumbData.mDirection == ScrollDirection::eVertical) {
+     const ParentLayerCoord asyncScrollY = asyncTransform._42;
+     const float asyncZoomY = asyncTransform._22;
+ 
+     // The scroll thumb needs to be scaled in the direction of scrolling by the
+     // inverse of the async zoom. This is because zooming in decreases the
+     // fraction of the whole srollable rect that is in view.
+     const float yScale = 1.f / asyncZoomY;
+ 
+@@ -1201,17 +1202,17 @@ AsyncCompositionManager::ComputeTransfor
+       // resolution-cancelling transform which ensures the scroll thumb isn't
+       // actually rendered at a larger scale.
+       yTranslation *= aMetrics.GetPresShellResolution();
+     }
+ 
+     scrollbarTransform.PostScale(1.f, yScale, 1.f);
+     scrollbarTransform.PostTranslate(0, yTranslation, 0);
+   }
+-  if (aThumbData.mDirection == ScrollDirection::HORIZONTAL) {
++  if (*aThumbData.mDirection == ScrollDirection::eHorizontal) {
+     // See detailed comments under the VERTICAL case.
+ 
+     const ParentLayerCoord asyncScrollX = asyncTransform._41;
+     const float asyncZoomX = asyncTransform._11;
+ 
+     const float xScale = 1.f / asyncZoomX;
+ 
+     const CSSToParentLayerScale effectiveZoom(aMetrics.GetZoom().xScale * asyncZoomX);
+diff --git a/gfx/layers/ipc/LayersMessageUtils.h b/gfx/layers/ipc/LayersMessageUtils.h
+--- a/gfx/layers/ipc/LayersMessageUtils.h
++++ b/gfx/layers/ipc/LayersMessageUtils.h
+@@ -61,17 +61,17 @@ struct ParamTraits<mozilla::layers::Diag
+              mozilla::layers::DiagnosticTypes,
+              mozilla::layers::DiagnosticTypes::ALL_BITS>
+ {};
+ 
+ template <>
+ struct ParamTraits<mozilla::layers::ScrollDirection>
+   : public ContiguousEnumSerializerInclusive<
+             mozilla::layers::ScrollDirection,
+-            mozilla::layers::ScrollDirection::NONE,
++            mozilla::layers::ScrollDirection::eVertical,
+             mozilla::layers::kHighestScrollDirection>
+ {};
+ 
+ template<>
+ struct ParamTraits<mozilla::layers::FrameMetrics::ScrollOffsetUpdateType>
+   : public ContiguousEnumSerializerInclusive<
+              mozilla::layers::FrameMetrics::ScrollOffsetUpdateType,
+              mozilla::layers::FrameMetrics::ScrollOffsetUpdateType::eNone,
+diff --git a/layout/painting/nsDisplayList.cpp b/layout/painting/nsDisplayList.cpp
+--- a/layout/painting/nsDisplayList.cpp
++++ b/layout/painting/nsDisplayList.cpp
+@@ -6854,17 +6854,17 @@ already_AddRefed<Layer>
+ nsDisplayOwnLayer::BuildLayer(nsDisplayListBuilder* aBuilder,
+                               LayerManager* aManager,
+                               const ContainerLayerParameters& aContainerParameters)
+ {
+   RefPtr<ContainerLayer> layer = aManager->GetLayerBuilder()->
+     BuildContainerLayerFor(aBuilder, aManager, mFrame, this, &mList,
+                            aContainerParameters, nullptr,
+                            FrameLayerBuilder::CONTAINER_ALLOW_PULL_BACKGROUND_COLOR);
+-  if (mThumbData.mDirection != ScrollDirection::NONE) {
++  if (mThumbData.mDirection.isSome()) {
+     layer->SetScrollThumbData(mScrollTarget, mThumbData);
+   }
+   if (mFlags & SCROLLBAR_CONTAINER) {
+     layer->SetIsScrollbarContainer(mScrollTarget);
+   }
+ 
+   if (mFlags & GENERATE_SUBDOC_INVALIDATIONS) {
+     mFrame->PresContext()->SetNotifySubDocInvalidationData(layer);
+@@ -6874,18 +6874,17 @@ nsDisplayOwnLayer::BuildLayer(nsDisplayL
+ 
+ bool
+ nsDisplayOwnLayer::CreateWebRenderCommands(mozilla::wr::DisplayListBuilder& aBuilder,
+                                            mozilla::wr::IpcResourceUpdateQueue& aResources,
+                                            const StackingContextHelper& aSc,
+                                            WebRenderLayerManager* aManager,
+                                            nsDisplayListBuilder* aDisplayListBuilder)
+ {
+-  if (!aManager->AsyncPanZoomEnabled() ||
+-      mThumbData.mDirection == ScrollDirection::NONE) {
++  if (!aManager->AsyncPanZoomEnabled() || mThumbData.mDirection.isNothing()) {
+     return nsDisplayWrapList::CreateWebRenderCommands(aBuilder, aResources, aSc,
+                                                       aManager, aDisplayListBuilder);
+   }
+ 
+   // APZ is enabled and this is a scroll thumb, so we need to create and
+   // set an animation id. That way APZ can move this scrollthumb around as
+   // needed.
+   RefPtr<WebRenderAnimationData> animationData = aManager->CommandBuilder().CreateOrRecycleWebRenderUserData<WebRenderAnimationData>(this);
+diff --git a/layout/painting/nsDisplayList.h b/layout/painting/nsDisplayList.h
+--- a/layout/painting/nsDisplayList.h
++++ b/layout/painting/nsDisplayList.h
+@@ -5153,17 +5153,17 @@ public:
+   uint32_t GetFlags() { return mFlags; }
+   bool IsScrollThumbLayer() const;
+   NS_DISPLAY_DECL_NAME("OwnLayer", TYPE_OWN_LAYER)
+ protected:
+   uint32_t mFlags;
+   ViewID mScrollTarget;
+   // If this nsDisplayOwnLayer represents a scroll thumb layer, mThumbData
+   // stores information about the scroll thumb. Otherwise, mThumbData will be
+-  // default-constructed (in particular with mDirection == ScrollDirection::NONE)
++  // default-constructed (in particular with mDirection == Nothing())
+   // and can be ignored.
+   ScrollThumbData mThumbData;
+   bool mForceActive;
+   uint64_t mWrAnimationId;
+ };
+ 
+ /**
+  * A display item for subdocuments. This is more or less the same as nsDisplayOwnLayer,
+diff --git a/layout/xul/nsSliderFrame.cpp b/layout/xul/nsSliderFrame.cpp
+--- a/layout/xul/nsSliderFrame.cpp
++++ b/layout/xul/nsSliderFrame.cpp
+@@ -381,18 +381,18 @@ nsSliderFrame::BuildDisplayListForChildr
+       aBuilder->GetCurrentScrollbarTarget();
+     bool thumbGetsLayer = (scrollTargetId != layers::FrameMetrics::NULL_SCROLL_ID);
+ 
+     if (thumbGetsLayer) {
+       MOZ_ASSERT((flags & nsDisplayOwnLayer::HORIZONTAL_SCROLLBAR) ||
+                  (flags & nsDisplayOwnLayer::VERTICAL_SCROLLBAR));
+       bool isHorizontal = (flags & nsDisplayOwnLayer::HORIZONTAL_SCROLLBAR);
+       ScrollDirection scrollDirection = isHorizontal
+-          ? ScrollDirection::HORIZONTAL
+-          : ScrollDirection::VERTICAL;
++          ? ScrollDirection::eHorizontal
++          : ScrollDirection::eVertical;
+       const float appUnitsPerCss = float(AppUnitsPerCSSPixel());
+       CSSCoord thumbLength = NSAppUnitsToFloatPixels(
+           isHorizontal ? thumbRect.width : thumbRect.height, appUnitsPerCss);
+ 
+       nsIFrame* scrollbarBox = GetScrollbar();
+       bool isAsyncDraggable = !UsesCustomScrollbarMediator(scrollbarBox);
+ 
+       nsPoint scrollPortOrigin;
+@@ -1134,18 +1134,18 @@ nsSliderFrame::StartAPZDrag(WidgetGUIEve
+   nsCOMPtr<nsIContent> scrollbar = GetContentOfBox(scrollbarBox);
+ 
+   nsIPresShell* shell = PresShell();
+   uint64_t inputblockId = InputAPZContext::GetInputBlockId();
+   uint32_t presShellId = shell->GetPresShellId();
+   AsyncDragMetrics dragMetrics(scrollTargetId, presShellId, inputblockId,
+                                NSAppUnitsToFloatPixels(mDragStart,
+                                  float(AppUnitsPerCSSPixel())),
+-                               isHorizontal ? ScrollDirection::HORIZONTAL :
+-                                              ScrollDirection::VERTICAL);
++                               isHorizontal ? ScrollDirection::eHorizontal :
++                                              ScrollDirection::eVertical);
+ 
+   if (!nsLayoutUtils::HasDisplayPort(scrollableContent)) {
+     return;
+   }
+ 
+   // It's important to set this before calling nsIWidget::StartAsyncScrollbarDrag(),
+   // because in some configurations, that can call AsyncScrollbarDragRejected()
+   // synchronously, which clears the flag (and we want it to stay cleared in
+

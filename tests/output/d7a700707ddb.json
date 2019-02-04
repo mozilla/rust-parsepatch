@@ -1,0 +1,4433 @@
+[
+    {
+        "filename": "devtools/shared/css/generated/properties-db.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 3136,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-x\","
+            },
+            {
+                "line": 3137,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-y\","
+            },
+            {
+                "line": 8318,
+                "deleted": true,
+                "data": "  \"overscroll-behavior\": {"
+            },
+            {
+                "line": 8319,
+                "deleted": true,
+                "data": "    \"isInherited\": false,"
+            },
+            {
+                "line": 8320,
+                "deleted": true,
+                "data": "    \"subproperties\": ["
+            },
+            {
+                "line": 8321,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-x\","
+            },
+            {
+                "line": 8322,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-y\""
+            },
+            {
+                "line": 8323,
+                "deleted": true,
+                "data": "    ],"
+            },
+            {
+                "line": 8324,
+                "deleted": true,
+                "data": "    \"supports\": [],"
+            },
+            {
+                "line": 8325,
+                "deleted": true,
+                "data": "    \"values\": ["
+            },
+            {
+                "line": 8326,
+                "deleted": true,
+                "data": "      \"auto\","
+            },
+            {
+                "line": 8327,
+                "deleted": true,
+                "data": "      \"contain\","
+            },
+            {
+                "line": 8328,
+                "deleted": true,
+                "data": "      \"inherit\","
+            },
+            {
+                "line": 8329,
+                "deleted": true,
+                "data": "      \"initial\","
+            },
+            {
+                "line": 8330,
+                "deleted": true,
+                "data": "      \"none\","
+            },
+            {
+                "line": 8331,
+                "deleted": true,
+                "data": "      \"unset\""
+            },
+            {
+                "line": 8332,
+                "deleted": true,
+                "data": "    ]"
+            },
+            {
+                "line": 8333,
+                "deleted": true,
+                "data": "  },"
+            },
+            {
+                "line": 8334,
+                "deleted": true,
+                "data": "  \"overscroll-behavior-x\": {"
+            },
+            {
+                "line": 8335,
+                "deleted": true,
+                "data": "    \"isInherited\": false,"
+            },
+            {
+                "line": 8336,
+                "deleted": true,
+                "data": "    \"subproperties\": ["
+            },
+            {
+                "line": 8337,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-x\""
+            },
+            {
+                "line": 8338,
+                "deleted": true,
+                "data": "    ],"
+            },
+            {
+                "line": 8339,
+                "deleted": true,
+                "data": "    \"supports\": [],"
+            },
+            {
+                "line": 8340,
+                "deleted": true,
+                "data": "    \"values\": ["
+            },
+            {
+                "line": 8341,
+                "deleted": true,
+                "data": "      \"auto\","
+            },
+            {
+                "line": 8342,
+                "deleted": true,
+                "data": "      \"contain\","
+            },
+            {
+                "line": 8343,
+                "deleted": true,
+                "data": "      \"inherit\","
+            },
+            {
+                "line": 8344,
+                "deleted": true,
+                "data": "      \"initial\","
+            },
+            {
+                "line": 8345,
+                "deleted": true,
+                "data": "      \"none\","
+            },
+            {
+                "line": 8346,
+                "deleted": true,
+                "data": "      \"unset\""
+            },
+            {
+                "line": 8347,
+                "deleted": true,
+                "data": "    ]"
+            },
+            {
+                "line": 8348,
+                "deleted": true,
+                "data": "  },"
+            },
+            {
+                "line": 8349,
+                "deleted": true,
+                "data": "  \"overscroll-behavior-y\": {"
+            },
+            {
+                "line": 8350,
+                "deleted": true,
+                "data": "    \"isInherited\": false,"
+            },
+            {
+                "line": 8351,
+                "deleted": true,
+                "data": "    \"subproperties\": ["
+            },
+            {
+                "line": 8352,
+                "deleted": true,
+                "data": "      \"overscroll-behavior-y\""
+            },
+            {
+                "line": 8353,
+                "deleted": true,
+                "data": "    ],"
+            },
+            {
+                "line": 8354,
+                "deleted": true,
+                "data": "    \"supports\": [],"
+            },
+            {
+                "line": 8355,
+                "deleted": true,
+                "data": "    \"values\": ["
+            },
+            {
+                "line": 8356,
+                "deleted": true,
+                "data": "      \"auto\","
+            },
+            {
+                "line": 8357,
+                "deleted": true,
+                "data": "      \"contain\","
+            },
+            {
+                "line": 8358,
+                "deleted": true,
+                "data": "      \"inherit\","
+            },
+            {
+                "line": 8359,
+                "deleted": true,
+                "data": "      \"initial\","
+            },
+            {
+                "line": 8360,
+                "deleted": true,
+                "data": "      \"none\","
+            },
+            {
+                "line": 8361,
+                "deleted": true,
+                "data": "      \"unset\""
+            },
+            {
+                "line": 8362,
+                "deleted": true,
+                "data": "    ]"
+            },
+            {
+                "line": 8363,
+                "deleted": true,
+                "data": "  },"
+            },
+            {
+                "line": 10022,
+                "deleted": true,
+                "data": "    \"overscroll-behavior\","
+            },
+            {
+                "line": 10023,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\""
+            },
+            {
+                "line": 10024,
+                "deleted": true,
+                "data": "  ],"
+            },
+            {
+                "line": 10025,
+                "deleted": true,
+                "data": "  ["
+            },
+            {
+                "line": 10026,
+                "deleted": true,
+                "data": "    \"overscroll-behavior-x\","
+            },
+            {
+                "line": 10027,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\""
+            },
+            {
+                "line": 10028,
+                "deleted": true,
+                "data": "  ],"
+            },
+            {
+                "line": 10029,
+                "deleted": true,
+                "data": "  ["
+            },
+            {
+                "line": 10030,
+                "deleted": true,
+                "data": "    \"overscroll-behavior-y\","
+            },
+            {
+                "line": 10031,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\""
+            },
+            {
+                "line": 10032,
+                "deleted": true,
+                "data": "  ],"
+            },
+            {
+                "line": 10033,
+                "deleted": true,
+                "data": "  ["
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/FrameMetrics.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 9,
+                "deleted": true,
+                "data": "#include \"nsStyleConsts.h\""
+            },
+            {
+                "line": 22,
+                "deleted": true,
+                "data": "static OverscrollBehavior"
+            },
+            {
+                "line": 23,
+                "deleted": true,
+                "data": "ToOverscrollBehavior(StyleOverscrollBehavior aBehavior)"
+            },
+            {
+                "line": 24,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 25,
+                "deleted": true,
+                "data": "  switch (aBehavior) {"
+            },
+            {
+                "line": 26,
+                "deleted": true,
+                "data": "  case StyleOverscrollBehavior::Auto:"
+            },
+            {
+                "line": 27,
+                "deleted": true,
+                "data": "    return OverscrollBehavior::Auto;"
+            },
+            {
+                "line": 28,
+                "deleted": true,
+                "data": "  case StyleOverscrollBehavior::Contain:"
+            },
+            {
+                "line": 29,
+                "deleted": true,
+                "data": "    return OverscrollBehavior::Contain;"
+            },
+            {
+                "line": 30,
+                "deleted": true,
+                "data": "  case StyleOverscrollBehavior::None:"
+            },
+            {
+                "line": 31,
+                "deleted": true,
+                "data": "    return OverscrollBehavior::None;"
+            },
+            {
+                "line": 32,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 33,
+                "deleted": true,
+                "data": "  MOZ_ASSERT_UNREACHABLE(\"Invalid overscroll behavior\");"
+            },
+            {
+                "line": 34,
+                "deleted": true,
+                "data": "  return OverscrollBehavior::Auto;"
+            },
+            {
+                "line": 35,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 36,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 37,
+                "deleted": true,
+                "data": "OverscrollBehaviorInfo"
+            },
+            {
+                "line": 38,
+                "deleted": true,
+                "data": "OverscrollBehaviorInfo::FromStyleConstants(StyleOverscrollBehavior aBehaviorX,"
+            },
+            {
+                "line": 39,
+                "deleted": true,
+                "data": "                                           StyleOverscrollBehavior aBehaviorY)"
+            },
+            {
+                "line": 40,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 41,
+                "deleted": true,
+                "data": "  OverscrollBehaviorInfo result;"
+            },
+            {
+                "line": 42,
+                "deleted": true,
+                "data": "  result.mBehaviorX = ToOverscrollBehavior(aBehaviorX);"
+            },
+            {
+                "line": 43,
+                "deleted": true,
+                "data": "  result.mBehaviorY = ToOverscrollBehavior(aBehaviorY);"
+            },
+            {
+                "line": 44,
+                "deleted": true,
+                "data": "  return result;"
+            },
+            {
+                "line": 45,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 46,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/FrameMetrics.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 724,
+                "deleted": true,
+                "data": "MOZ_DEFINE_ENUM_CLASS_WITH_BASE("
+            },
+            {
+                "line": 725,
+                "deleted": true,
+                "data": "  OverscrollBehavior, uint8_t, ("
+            },
+            {
+                "line": 726,
+                "deleted": true,
+                "data": "    Auto,"
+            },
+            {
+                "line": 727,
+                "deleted": true,
+                "data": "    Contain,"
+            },
+            {
+                "line": 728,
+                "deleted": true,
+                "data": "    None"
+            },
+            {
+                "line": 729,
+                "deleted": true,
+                "data": "));"
+            },
+            {
+                "line": 730,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 731,
+                "deleted": true,
+                "data": "struct OverscrollBehaviorInfo {"
+            },
+            {
+                "line": 732,
+                "deleted": true,
+                "data": "  OverscrollBehaviorInfo()"
+            },
+            {
+                "line": 733,
+                "deleted": true,
+                "data": "    : mBehaviorX(OverscrollBehavior::Auto)"
+            },
+            {
+                "line": 734,
+                "deleted": true,
+                "data": "    , mBehaviorY(OverscrollBehavior::Auto)"
+            },
+            {
+                "line": 735,
+                "deleted": true,
+                "data": "  {}"
+            },
+            {
+                "line": 736,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 737,
+                "deleted": true,
+                "data": "  // Construct from StyleOverscrollBehavior values."
+            },
+            {
+                "line": 738,
+                "deleted": true,
+                "data": "  static OverscrollBehaviorInfo FromStyleConstants(StyleOverscrollBehavior aBehaviorX,"
+            },
+            {
+                "line": 739,
+                "deleted": true,
+                "data": "                                                   StyleOverscrollBehavior aBehaviorY);"
+            },
+            {
+                "line": 740,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 741,
+                "deleted": true,
+                "data": "  bool operator==(const OverscrollBehaviorInfo& aOther) const {"
+            },
+            {
+                "line": 742,
+                "deleted": true,
+                "data": "    return mBehaviorX == aOther.mBehaviorX &&"
+            },
+            {
+                "line": 743,
+                "deleted": true,
+                "data": "           mBehaviorY == aOther.mBehaviorY;"
+            },
+            {
+                "line": 744,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 745,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 746,
+                "deleted": true,
+                "data": "  OverscrollBehavior mBehaviorX;"
+            },
+            {
+                "line": 747,
+                "deleted": true,
+                "data": "  OverscrollBehavior mBehaviorY;"
+            },
+            {
+                "line": 748,
+                "deleted": true,
+                "data": "};"
+            },
+            {
+                "line": 749,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 826,
+                "deleted": true,
+                "data": "    , mOverscrollBehavior()"
+            },
+            {
+                "line": 843,
+                "deleted": true,
+                "data": "           mForceDisableApz == aOther.mForceDisableApz &&"
+            },
+            {
+                "line": 844,
+                "deleted": true,
+                "data": "           mOverscrollBehavior == aOther.mOverscrollBehavior;"
+            },
+            {
+                "line": 816,
+                "deleted": false,
+                "data": "           mForceDisableApz == aOther.mForceDisableApz;"
+            },
+            {
+                "line": 954,
+                "deleted": true,
+                "data": "  void SetOverscrollBehavior(const OverscrollBehaviorInfo& aOverscrollBehavior) {"
+            },
+            {
+                "line": 955,
+                "deleted": true,
+                "data": "    mOverscrollBehavior = aOverscrollBehavior;"
+            },
+            {
+                "line": 956,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 957,
+                "deleted": true,
+                "data": "  const OverscrollBehaviorInfo& GetOverscrollBehavior() const {"
+            },
+            {
+                "line": 958,
+                "deleted": true,
+                "data": "    return mOverscrollBehavior;"
+            },
+            {
+                "line": 959,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 960,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 1010,
+                "deleted": true,
+                "data": "  // The overscroll behavior for this scroll frame."
+            },
+            {
+                "line": 1011,
+                "deleted": true,
+                "data": "  OverscrollBehaviorInfo mOverscrollBehavior;"
+            },
+            {
+                "line": 1012,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/LayersLogging.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 181,
+                "deleted": true,
+                "data": "AppendToString(std::stringstream& aStream, OverscrollBehavior aBehavior,"
+            },
+            {
+                "line": 182,
+                "deleted": true,
+                "data": "               const char* pfx, const char* sfx)"
+            },
+            {
+                "line": 183,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 184,
+                "deleted": true,
+                "data": "  aStream << pfx;"
+            },
+            {
+                "line": 185,
+                "deleted": true,
+                "data": "  switch (aBehavior) {"
+            },
+            {
+                "line": 186,
+                "deleted": true,
+                "data": "  case OverscrollBehavior::Auto: {"
+            },
+            {
+                "line": 187,
+                "deleted": true,
+                "data": "    aStream << \"auto\";"
+            },
+            {
+                "line": 188,
+                "deleted": true,
+                "data": "    break;"
+            },
+            {
+                "line": 189,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 190,
+                "deleted": true,
+                "data": "  case OverscrollBehavior::Contain: {"
+            },
+            {
+                "line": 191,
+                "deleted": true,
+                "data": "    aStream << \"contain\";"
+            },
+            {
+                "line": 192,
+                "deleted": true,
+                "data": "    break;"
+            },
+            {
+                "line": 193,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 194,
+                "deleted": true,
+                "data": "  case OverscrollBehavior::None: {"
+            },
+            {
+                "line": 195,
+                "deleted": true,
+                "data": "    aStream << \"none\";"
+            },
+            {
+                "line": 196,
+                "deleted": true,
+                "data": "    break;"
+            },
+            {
+                "line": 197,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 198,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 199,
+                "deleted": true,
+                "data": "  aStream << sfx;"
+            },
+            {
+                "line": 200,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 201,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 202,
+                "deleted": true,
+                "data": "void"
+            },
+            {
+                "line": 218,
+                "deleted": true,
+                "data": "  OverscrollBehavior overscrollX = m.GetOverscrollBehavior().mBehaviorX;"
+            },
+            {
+                "line": 219,
+                "deleted": true,
+                "data": "  OverscrollBehavior overscrollY = m.GetOverscrollBehavior().mBehaviorY;"
+            },
+            {
+                "line": 220,
+                "deleted": true,
+                "data": "  if (overscrollX == overscrollY && overscrollX != OverscrollBehavior::Auto) {"
+            },
+            {
+                "line": 221,
+                "deleted": true,
+                "data": "    AppendToString(aStream, overscrollX, \"] [overscroll=\");"
+            },
+            {
+                "line": 222,
+                "deleted": true,
+                "data": "  } else {"
+            },
+            {
+                "line": 223,
+                "deleted": true,
+                "data": "    if (overscrollX != OverscrollBehavior::Auto) {"
+            },
+            {
+                "line": 224,
+                "deleted": true,
+                "data": "      AppendToString(aStream, overscrollX, \"] [overscroll-x=\");"
+            },
+            {
+                "line": 225,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 226,
+                "deleted": true,
+                "data": "    if (overscrollY != OverscrollBehavior::Auto) {"
+            },
+            {
+                "line": 227,
+                "deleted": true,
+                "data": "      AppendToString(aStream, overscrollY, \"] [overscroll-y=\");"
+            },
+            {
+                "line": 228,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 229,
+                "deleted": true,
+                "data": "  }"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/LayersLogging.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 175,
+                "deleted": true,
+                "data": "AppendToString(std::stringstream& aStream, OverscrollBehavior aBehavior,"
+            },
+            {
+                "line": 176,
+                "deleted": true,
+                "data": "               const char* pfx=\"\", const char* sfx=\"\");"
+            },
+            {
+                "line": 177,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 178,
+                "deleted": true,
+                "data": "void"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/APZCTreeManager.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1201,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 1202,
+                "deleted": true,
+                "data": "        panInput.mOverscrollBehaviorAllowsSwipe ="
+            },
+            {
+                "line": 1203,
+                "deleted": true,
+                "data": "            apzc->OverscrollBehaviorAllowsSwipe();"
+            },
+            {
+                "line": 2035,
+                "deleted": true,
+                "data": "ParentLayerPoint"
+            },
+            {
+                "line": 2032,
+                "deleted": false,
+                "data": "void"
+            },
+            {
+                "line": 2037,
+                "deleted": true,
+                "data": "                               const FlingHandoffState& aHandoffState)"
+            },
+            {
+                "line": 2034,
+                "deleted": false,
+                "data": "                               FlingHandoffState& aHandoffState)"
+            },
+            {
+                "line": 2044,
+                "deleted": true,
+                "data": "    return aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2041,
+                "deleted": false,
+                "data": "    return;"
+            },
+            {
+                "line": 2049,
+                "deleted": false,
+                "data": "  // This will store any velocity left over after the entire handoff."
+            },
+            {
+                "line": 2050,
+                "deleted": false,
+                "data": "  ParentLayerPoint finalResidualVelocity = aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2051,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 2068,
+                "deleted": true,
+                "data": "      return aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2068,
+                "deleted": false,
+                "data": "      return;"
+            },
+            {
+                "line": 2074,
+                "deleted": true,
+                "data": "  // This will store any velocity left over after the entire handoff."
+            },
+            {
+                "line": 2075,
+                "deleted": true,
+                "data": "  ParentLayerPoint finalResidualVelocity = aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2076,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2077,
+                "deleted": true,
+                "data": "  ParentLayerPoint currentVelocity = aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2081,
+                "deleted": true,
+                "data": "    // Make sure the apzc about to be handled can be handled"
+            },
+            {
+                "line": 2077,
+                "deleted": false,
+                "data": "    // Make sure the apcz about to be handled can be handled"
+            },
+            {
+                "line": 2083,
+                "deleted": true,
+                "data": "      break;"
+            },
+            {
+                "line": 2079,
+                "deleted": false,
+                "data": "      return;"
+            },
+            {
+                "line": 2086,
+                "deleted": true,
+                "data": "    endPoint = startPoint + currentVelocity;"
+            },
+            {
+                "line": 2082,
+                "deleted": false,
+                "data": "    endPoint = startPoint + aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2088,
+                "deleted": true,
+                "data": "    RefPtr<AsyncPanZoomController> prevApzc = (startIndex > 0)"
+            },
+            {
+                "line": 2089,
+                "deleted": true,
+                "data": "                                            ? chain->GetApzcAtIndex(startIndex - 1)"
+            },
+            {
+                "line": 2090,
+                "deleted": true,
+                "data": "                                            : nullptr;"
+            },
+            {
+                "line": 2091,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2092,
+                "deleted": true,
+                "data": "    // Only transform when current apzc can be transformed with previous"
+            },
+            {
+                "line": 2093,
+                "deleted": true,
+                "data": "    if (prevApzc) {"
+            },
+            {
+                "line": 2084,
+                "deleted": false,
+                "data": "    // Only transform when current apcz can be transformed with previous"
+            },
+            {
+                "line": 2085,
+                "deleted": false,
+                "data": "    if (startIndex > 0) {"
+            },
+            {
+                "line": 2095,
+                "deleted": true,
+                "data": "                                 prevApzc,"
+            },
+            {
+                "line": 2087,
+                "deleted": false,
+                "data": "                                 chain->GetApzcAtIndex(startIndex - 1),"
+            },
+            {
+                "line": 2099,
+                "deleted": true,
+                "data": "        break;"
+            },
+            {
+                "line": 2091,
+                "deleted": false,
+                "data": "        return;"
+            },
+            {
+                "line": 2103,
+                "deleted": true,
+                "data": "    ParentLayerPoint availableVelocity = (endPoint - startPoint);"
+            },
+            {
+                "line": 2104,
+                "deleted": true,
+                "data": "    ParentLayerPoint residualVelocity;"
+            },
+            {
+                "line": 2095,
+                "deleted": false,
+                "data": "    ParentLayerPoint transformedVelocity = endPoint - startPoint;"
+            },
+            {
+                "line": 2096,
+                "deleted": false,
+                "data": "    aHandoffState.mVelocity = transformedVelocity;"
+            },
+            {
+                "line": 2106,
+                "deleted": true,
+                "data": "    FlingHandoffState transformedHandoffState = aHandoffState;"
+            },
+            {
+                "line": 2107,
+                "deleted": true,
+                "data": "    transformedHandoffState.mVelocity = availableVelocity;"
+            },
+            {
+                "line": 2098,
+                "deleted": false,
+                "data": "    if (current->AttemptFling(aHandoffState)) {"
+            },
+            {
+                "line": 2099,
+                "deleted": false,
+                "data": "      // Coming out of AttemptFling(), the handoff state's velocity is the"
+            },
+            {
+                "line": 2100,
+                "deleted": false,
+                "data": "      // residual velocity after attempting to fling |current|."
+            },
+            {
+                "line": 2101,
+                "deleted": false,
+                "data": "      ParentLayerPoint residualVelocity = aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2109,
+                "deleted": true,
+                "data": "    // Obey overscroll-behavior."
+            },
+            {
+                "line": 2110,
+                "deleted": true,
+                "data": "    if (prevApzc) {"
+            },
+            {
+                "line": 2111,
+                "deleted": true,
+                "data": "      residualVelocity += prevApzc->AdjustHandoffVelocityForOverscrollBehavior(transformedHandoffState.mVelocity);"
+            },
+            {
+                "line": 2112,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2103,
+                "deleted": false,
+                "data": "      // If there's no residual velocity, there's nothing more to hand off."
+            },
+            {
+                "line": 2104,
+                "deleted": false,
+                "data": "      if (IsZero(residualVelocity)) {"
+            },
+            {
+                "line": 2105,
+                "deleted": false,
+                "data": "        finalResidualVelocity = ParentLayerPoint();"
+            },
+            {
+                "line": 2106,
+                "deleted": false,
+                "data": "        break;"
+            },
+            {
+                "line": 2107,
+                "deleted": false,
+                "data": "      }"
+            },
+            {
+                "line": 2114,
+                "deleted": true,
+                "data": "    residualVelocity += current->AttemptFling(transformedHandoffState);"
+            },
+            {
+                "line": 2115,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2116,
+                "deleted": true,
+                "data": "    // If there's no residual velocity, there's nothing more to hand off."
+            },
+            {
+                "line": 2117,
+                "deleted": true,
+                "data": "    if (IsZero(residualVelocity)) {"
+            },
+            {
+                "line": 2118,
+                "deleted": true,
+                "data": "      return ParentLayerPoint();"
+            },
+            {
+                "line": 2109,
+                "deleted": false,
+                "data": "      // If there is residual velocity, subtract the proportion of used"
+            },
+            {
+                "line": 2110,
+                "deleted": false,
+                "data": "      // velocity from finalResidualVelocity and continue handoff along the"
+            },
+            {
+                "line": 2111,
+                "deleted": false,
+                "data": "      // chain."
+            },
+            {
+                "line": 2112,
+                "deleted": false,
+                "data": "      if (!FuzzyEqualsAdditive(transformedVelocity.x,"
+            },
+            {
+                "line": 2113,
+                "deleted": false,
+                "data": "                               residualVelocity.x, COORDINATE_EPSILON)) {"
+            },
+            {
+                "line": 2114,
+                "deleted": false,
+                "data": "        finalResidualVelocity.x *= (residualVelocity.x / transformedVelocity.x);"
+            },
+            {
+                "line": 2115,
+                "deleted": false,
+                "data": "      }"
+            },
+            {
+                "line": 2116,
+                "deleted": false,
+                "data": "      if (!FuzzyEqualsAdditive(transformedVelocity.y,"
+            },
+            {
+                "line": 2117,
+                "deleted": false,
+                "data": "                               residualVelocity.y, COORDINATE_EPSILON)) {"
+            },
+            {
+                "line": 2118,
+                "deleted": false,
+                "data": "        finalResidualVelocity.y *= (residualVelocity.y / transformedVelocity.y);"
+            },
+            {
+                "line": 2119,
+                "deleted": false,
+                "data": "      }"
+            },
+            {
+                "line": 2120,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2121,
+                "deleted": true,
+                "data": "    // If any of the velocity available to be handed off was consumed,"
+            },
+            {
+                "line": 2122,
+                "deleted": true,
+                "data": "    // subtract the proportion of consumed velocity from finalResidualVelocity."
+            },
+            {
+                "line": 2123,
+                "deleted": true,
+                "data": "    // Note: it's important to compare |residualVelocity| to |availableVelocity|"
+            },
+            {
+                "line": 2124,
+                "deleted": true,
+                "data": "    // here and not to |transformedHandoffState.mVelocity|, since the latter"
+            },
+            {
+                "line": 2125,
+                "deleted": true,
+                "data": "    // may have been modified by AdjustHandoffVelocityForOverscrollBehavior()."
+            },
+            {
+                "line": 2126,
+                "deleted": true,
+                "data": "    if (!FuzzyEqualsAdditive(availableVelocity.x,"
+            },
+            {
+                "line": 2127,
+                "deleted": true,
+                "data": "                             residualVelocity.x, COORDINATE_EPSILON)) {"
+            },
+            {
+                "line": 2128,
+                "deleted": true,
+                "data": "      finalResidualVelocity.x *= (residualVelocity.x / availableVelocity.x);"
+            },
+            {
+                "line": 2129,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2130,
+                "deleted": true,
+                "data": "    if (!FuzzyEqualsAdditive(availableVelocity.y,"
+            },
+            {
+                "line": 2131,
+                "deleted": true,
+                "data": "                             residualVelocity.y, COORDINATE_EPSILON)) {"
+            },
+            {
+                "line": 2132,
+                "deleted": true,
+                "data": "      finalResidualVelocity.y *= (residualVelocity.y / availableVelocity.y);"
+            },
+            {
+                "line": 2133,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2134,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2135,
+                "deleted": true,
+                "data": "    currentVelocity = residualVelocity;"
+            },
+            {
+                "line": 2138,
+                "deleted": true,
+                "data": "  // Return any residual velocity left over after the entire handoff process."
+            },
+            {
+                "line": 2139,
+                "deleted": true,
+                "data": "  return finalResidualVelocity;"
+            },
+            {
+                "line": 2123,
+                "deleted": false,
+                "data": "  // Set the handoff state's velocity to any residual velocity left over"
+            },
+            {
+                "line": 2124,
+                "deleted": false,
+                "data": "  // after the entire handoff process."
+            },
+            {
+                "line": 2125,
+                "deleted": false,
+                "data": "  aHandoffState.mVelocity = finalResidualVelocity;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/APZCTreeManager.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 425,
+                "deleted": true,
+                "data": "   * The return value is the \"residual velocity\", the portion of"
+            },
+            {
+                "line": 426,
+                "deleted": true,
+                "data": "   * |aHandoffState.mVelocity| that was not consumed by APZCs in the"
+            },
+            {
+                "line": 427,
+                "deleted": true,
+                "data": "   * handoff chain doing flings."
+            },
+            {
+                "line": 425,
+                "deleted": false,
+                "data": "   * aHandoffState.mVelocity will be modified depending on how much of that"
+            },
+            {
+                "line": 426,
+                "deleted": false,
+                "data": "   * velocity has been consumed by APZCs in the overscroll hand-off chain."
+            },
+            {
+                "line": 429,
+                "deleted": true,
+                "data": "   * the excess velocity by going into overscroll."
+            },
+            {
+                "line": 428,
+                "deleted": false,
+                "data": "   * the excess velocity by going into an overscroll fling."
+            },
+            {
+                "line": 431,
+                "deleted": true,
+                "data": "  ParentLayerPoint DispatchFling(AsyncPanZoomController* aApzc,"
+            },
+            {
+                "line": 432,
+                "deleted": true,
+                "data": "                                 const FlingHandoffState& aHandoffState);"
+            },
+            {
+                "line": 430,
+                "deleted": false,
+                "data": "  void DispatchFling(AsyncPanZoomController* aApzc,"
+            },
+            {
+                "line": 431,
+                "deleted": false,
+                "data": "                     FlingHandoffState& aHandoffState);"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/APZUtils.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 14,
+                "deleted": true,
+                "data": "#include \"mozilla/EnumSet.h\""
+            },
+            {
+                "line": 46,
+                "deleted": true,
+                "data": "typedef EnumSet<ScrollDirection> ScrollDirections;"
+            },
+            {
+                "line": 47,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/AsyncPanZoomController.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1595,
+                "deleted": true,
+                "data": "    const FlingHandoffState handoffState{flingVelocity,"
+            },
+            {
+                "line": 1596,
+                "deleted": true,
+                "data": "                                         GetCurrentTouchBlock()->GetOverscrollHandoffChain(),"
+            },
+            {
+                "line": 1597,
+                "deleted": true,
+                "data": "                                         false /* not handoff */,"
+            },
+            {
+                "line": 1598,
+                "deleted": true,
+                "data": "                                         GetCurrentTouchBlock()->GetScrolledApzc()};"
+            },
+            {
+                "line": 1595,
+                "deleted": false,
+                "data": "    FlingHandoffState handoffState{flingVelocity,"
+            },
+            {
+                "line": 1596,
+                "deleted": false,
+                "data": "                                  GetCurrentTouchBlock()->GetOverscrollHandoffChain(),"
+            },
+            {
+                "line": 1597,
+                "deleted": false,
+                "data": "                                  false /* not handoff */,"
+            },
+            {
+                "line": 1598,
+                "deleted": false,
+                "data": "                                  GetCurrentTouchBlock()->GetScrolledApzc()};"
+            },
+            {
+                "line": 1917,
+                "deleted": true,
+                "data": "ParentLayerPoint"
+            },
+            {
+                "line": 1918,
+                "deleted": true,
+                "data": "AsyncPanZoomController::GetDeltaForEvent(const InputData& aEvent) const"
+            },
+            {
+                "line": 1917,
+                "deleted": false,
+                "data": "// Return whether or not the underlying layer can be scrolled on either axis."
+            },
+            {
+                "line": 1918,
+                "deleted": false,
+                "data": "bool"
+            },
+            {
+                "line": 1919,
+                "deleted": false,
+                "data": "AsyncPanZoomController::CanScroll(const InputData& aEvent) const"
+            },
+            {
+                "line": 1927,
+                "deleted": true,
+                "data": "  return delta;"
+            },
+            {
+                "line": 1928,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 1929,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 1930,
+                "deleted": true,
+                "data": "// Return whether or not the underlying layer can be scrolled on either axis."
+            },
+            {
+                "line": 1931,
+                "deleted": true,
+                "data": "bool"
+            },
+            {
+                "line": 1932,
+                "deleted": true,
+                "data": "AsyncPanZoomController::CanScroll(const InputData& aEvent) const"
+            },
+            {
+                "line": 1933,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 1934,
+                "deleted": true,
+                "data": "  ParentLayerPoint delta = GetDeltaForEvent(aEvent);"
+            },
+            {
+                "line": 1942,
+                "deleted": true,
+                "data": "ScrollDirections"
+            },
+            {
+                "line": 1943,
+                "deleted": true,
+                "data": "AsyncPanZoomController::GetAllowedHandoffDirections() const"
+            },
+            {
+                "line": 1944,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 1945,
+                "deleted": true,
+                "data": "  ScrollDirections result;"
+            },
+            {
+                "line": 1946,
+                "deleted": true,
+                "data": "  RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 1947,
+                "deleted": true,
+                "data": "  if (mX.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 1948,
+                "deleted": true,
+                "data": "    result += ScrollDirection::eHorizontal;"
+            },
+            {
+                "line": 1949,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 1950,
+                "deleted": true,
+                "data": "  if (mY.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 1951,
+                "deleted": true,
+                "data": "    result += ScrollDirection::eVertical;"
+            },
+            {
+                "line": 1952,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 1953,
+                "deleted": true,
+                "data": "  return result;"
+            },
+            {
+                "line": 1954,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 1955,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2023,
+                "deleted": true,
+                "data": "static void"
+            },
+            {
+                "line": 2024,
+                "deleted": true,
+                "data": "AdjustDeltaForAllowedScrollDirections("
+            },
+            {
+                "line": 2025,
+                "deleted": true,
+                "data": "    ParentLayerPoint& aDelta,"
+            },
+            {
+                "line": 2026,
+                "deleted": true,
+                "data": "    const ScrollDirections& aAllowedScrollDirections)"
+            },
+            {
+                "line": 2027,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 2028,
+                "deleted": true,
+                "data": "  if (!aAllowedScrollDirections.contains(ScrollDirection::eHorizontal)) {"
+            },
+            {
+                "line": 2029,
+                "deleted": true,
+                "data": "    aDelta.x = 0;"
+            },
+            {
+                "line": 2030,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 2031,
+                "deleted": true,
+                "data": "  if (!aAllowedScrollDirections.contains(ScrollDirection::eVertical)) {"
+            },
+            {
+                "line": 2032,
+                "deleted": true,
+                "data": "    aDelta.y = 0;"
+            },
+            {
+                "line": 2033,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 2034,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 2035,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2054,
+                "deleted": true,
+                "data": "  MOZ_ASSERT(mInputQueue->GetCurrentWheelBlock());"
+            },
+            {
+                "line": 2055,
+                "deleted": true,
+                "data": "  AdjustDeltaForAllowedScrollDirections(delta,"
+            },
+            {
+                "line": 2056,
+                "deleted": true,
+                "data": "      mInputQueue->GetCurrentWheelBlock()->GetAllowedScrollDirections());"
+            },
+            {
+                "line": 2057,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2043,
+                "deleted": false,
+                "data": "      MOZ_ASSERT(mInputQueue->GetCurrentWheelBlock());"
+            },
+            {
+                "line": 2257,
+                "deleted": true,
+                "data": "  MOZ_ASSERT(GetCurrentPanGestureBlock());"
+            },
+            {
+                "line": 2258,
+                "deleted": true,
+                "data": "  AdjustDeltaForAllowedScrollDirections(logicalPanDisplacement,"
+            },
+            {
+                "line": 2259,
+                "deleted": true,
+                "data": "      GetCurrentPanGestureBlock()->GetAllowedScrollDirections());"
+            },
+            {
+                "line": 2260,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2233,
+                "deleted": false,
+                "data": "  MOZ_ASSERT(GetCurrentPanGestureBlock());"
+            },
+            {
+                "line": 2812,
+                "deleted": true,
+                "data": "  bool shouldOverscrollX = xCanScroll && !xConsumed && mX.OverscrollBehaviorAllowsOverscrollEffect();"
+            },
+            {
+                "line": 2813,
+                "deleted": true,
+                "data": "  bool shouldOverscrollY = yCanScroll && !yConsumed && mY.OverscrollBehaviorAllowsOverscrollEffect();"
+            },
+            {
+                "line": 2772,
+                "deleted": false,
+                "data": "  bool shouldOverscrollX = xCanScroll && !xConsumed;"
+            },
+            {
+                "line": 2773,
+                "deleted": false,
+                "data": "  bool shouldOverscrollY = yCanScroll && !yConsumed;"
+            },
+            {
+                "line": 2830,
+                "deleted": true,
+                "data": "ParentLayerPoint AsyncPanZoomController::AttemptFling(const FlingHandoffState& aHandoffState) {"
+            },
+            {
+                "line": 2790,
+                "deleted": false,
+                "data": "void AsyncPanZoomController::AcceptFling(FlingHandoffState& aHandoffState) {"
+            },
+            {
+                "line": 2833,
+                "deleted": true,
+                "data": "  if (!IsPannable()) {"
+            },
+            {
+                "line": 2834,
+                "deleted": true,
+                "data": "    return aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2835,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 2836,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2841,
+                "deleted": true,
+                "data": "  ParentLayerPoint residualVelocity = aHandoffState.mVelocity;"
+            },
+            {
+                "line": 2844,
+                "deleted": true,
+                "data": "    residualVelocity.x = 0;"
+            },
+            {
+                "line": 2799,
+                "deleted": false,
+                "data": "    aHandoffState.mVelocity.x = 0;"
+            },
+            {
+                "line": 2848,
+                "deleted": true,
+                "data": "    residualVelocity.y = 0;"
+            },
+            {
+                "line": 2803,
+                "deleted": false,
+                "data": "    aHandoffState.mVelocity.y = 0;"
+            },
+            {
+                "line": 2864,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2865,
+                "deleted": true,
+                "data": "  return residualVelocity;"
+            },
+            {
+                "line": 2868,
+                "deleted": true,
+                "data": "ParentLayerPoint AsyncPanZoomController::AdjustHandoffVelocityForOverscrollBehavior(ParentLayerPoint& aHandoffVelocity) const"
+            },
+            {
+                "line": 2869,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 2870,
+                "deleted": true,
+                "data": "  RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 2871,
+                "deleted": true,
+                "data": "  ParentLayerPoint residualVelocity;"
+            },
+            {
+                "line": 2872,
+                "deleted": true,
+                "data": "  if (!mX.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 2873,
+                "deleted": true,
+                "data": "    residualVelocity.x = aHandoffVelocity.x;"
+            },
+            {
+                "line": 2874,
+                "deleted": true,
+                "data": "    aHandoffVelocity.x = 0;"
+            },
+            {
+                "line": 2821,
+                "deleted": false,
+                "data": "bool AsyncPanZoomController::AttemptFling(FlingHandoffState& aHandoffState) {"
+            },
+            {
+                "line": 2822,
+                "deleted": false,
+                "data": "  // If we are pannable, take over the fling ourselves."
+            },
+            {
+                "line": 2823,
+                "deleted": false,
+                "data": "  if (IsPannable()) {"
+            },
+            {
+                "line": 2824,
+                "deleted": false,
+                "data": "    AcceptFling(aHandoffState);"
+            },
+            {
+                "line": 2825,
+                "deleted": false,
+                "data": "    return true;"
+            },
+            {
+                "line": 2876,
+                "deleted": true,
+                "data": "  if (!mY.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 2877,
+                "deleted": true,
+                "data": "    residualVelocity.y = aHandoffVelocity.y;"
+            },
+            {
+                "line": 2878,
+                "deleted": true,
+                "data": "    aHandoffVelocity.y = 0;"
+            },
+            {
+                "line": 2879,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 2880,
+                "deleted": true,
+                "data": "  return residualVelocity;"
+            },
+            {
+                "line": 2881,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 2882,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2883,
+                "deleted": true,
+                "data": "bool AsyncPanZoomController::OverscrollBehaviorAllowsSwipe() const"
+            },
+            {
+                "line": 2884,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 2885,
+                "deleted": true,
+                "data": "  RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 2886,
+                "deleted": true,
+                "data": "  // Swipe navigation is a \"non-local\" overscroll behavior like handoff."
+            },
+            {
+                "line": 2887,
+                "deleted": true,
+                "data": "  return mX.OverscrollBehaviorAllowsHandoff();"
+            },
+            {
+                "line": 2827,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 2828,
+                "deleted": false,
+                "data": "  return false;"
+            },
+            {
+                "line": 2895,
+                "deleted": true,
+                "data": "    const FlingHandoffState handoffState{aVelocity,"
+            },
+            {
+                "line": 2896,
+                "deleted": true,
+                "data": "                                         aOverscrollHandoffChain,"
+            },
+            {
+                "line": 2897,
+                "deleted": true,
+                "data": "                                         true /* handoff */,"
+            },
+            {
+                "line": 2898,
+                "deleted": true,
+                "data": "                                         aScrolledApzc};"
+            },
+            {
+                "line": 2899,
+                "deleted": true,
+                "data": "    ParentLayerPoint residualVelocity = treeManagerLocal->DispatchFling(this, handoffState);"
+            },
+            {
+                "line": 2900,
+                "deleted": true,
+                "data": "    if (!IsZero(residualVelocity) && IsPannable() && gfxPrefs::APZOverscrollEnabled()) {"
+            },
+            {
+                "line": 2901,
+                "deleted": true,
+                "data": "      // Obey overscroll-behavior."
+            },
+            {
+                "line": 2902,
+                "deleted": true,
+                "data": "      RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 2903,
+                "deleted": true,
+                "data": "      if (!mX.OverscrollBehaviorAllowsOverscrollEffect()) {"
+            },
+            {
+                "line": 2904,
+                "deleted": true,
+                "data": "        residualVelocity.x = 0;"
+            },
+            {
+                "line": 2905,
+                "deleted": true,
+                "data": "      }"
+            },
+            {
+                "line": 2906,
+                "deleted": true,
+                "data": "      if (!mY.OverscrollBehaviorAllowsOverscrollEffect()) {"
+            },
+            {
+                "line": 2907,
+                "deleted": true,
+                "data": "        residualVelocity.y = 0;"
+            },
+            {
+                "line": 2908,
+                "deleted": true,
+                "data": "      }"
+            },
+            {
+                "line": 2909,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2910,
+                "deleted": true,
+                "data": "      if (!IsZero(residualVelocity)) {"
+            },
+            {
+                "line": 2911,
+                "deleted": true,
+                "data": "        mOverscrollEffect->HandleFlingOverscroll(residualVelocity);"
+            },
+            {
+                "line": 2912,
+                "deleted": true,
+                "data": "      }"
+            },
+            {
+                "line": 2836,
+                "deleted": false,
+                "data": "    FlingHandoffState handoffState{aVelocity,"
+            },
+            {
+                "line": 2837,
+                "deleted": false,
+                "data": "                                   aOverscrollHandoffChain,"
+            },
+            {
+                "line": 2838,
+                "deleted": false,
+                "data": "                                   true /* handoff */,"
+            },
+            {
+                "line": 2839,
+                "deleted": false,
+                "data": "                                   aScrolledApzc};"
+            },
+            {
+                "line": 2840,
+                "deleted": false,
+                "data": "    treeManagerLocal->DispatchFling(this, handoffState);"
+            },
+            {
+                "line": 2841,
+                "deleted": false,
+                "data": "    if (!IsZero(handoffState.mVelocity) && IsPannable() && gfxPrefs::APZOverscrollEnabled()) {"
+            },
+            {
+                "line": 2842,
+                "deleted": false,
+                "data": "      mOverscrollEffect->HandleFlingOverscroll(handoffState.mVelocity);"
+            },
+            {
+                "line": 2966,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2967,
+                "deleted": true,
+                "data": "  // Obey overscroll-behavior."
+            },
+            {
+                "line": 2968,
+                "deleted": true,
+                "data": "  ParentLayerPoint endPoint = aEndPoint;"
+            },
+            {
+                "line": 2969,
+                "deleted": true,
+                "data": "  if (aOverscrollHandoffState.mChainIndex > 0) {"
+            },
+            {
+                "line": 2970,
+                "deleted": true,
+                "data": "    RecursiveMutexAutoLock lock(mRecursiveMutex);"
+            },
+            {
+                "line": 2971,
+                "deleted": true,
+                "data": "    if (!mX.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 2972,
+                "deleted": true,
+                "data": "      endPoint.x = aStartPoint.x;"
+            },
+            {
+                "line": 2973,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2974,
+                "deleted": true,
+                "data": "    if (!mY.OverscrollBehaviorAllowsHandoff()) {"
+            },
+            {
+                "line": 2975,
+                "deleted": true,
+                "data": "      endPoint.y = aStartPoint.y;"
+            },
+            {
+                "line": 2976,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2977,
+                "deleted": true,
+                "data": "    if (aStartPoint == endPoint) {"
+            },
+            {
+                "line": 2978,
+                "deleted": true,
+                "data": "      // Handoff not allowed in either direction - don't even bother."
+            },
+            {
+                "line": 2979,
+                "deleted": true,
+                "data": "      return;"
+            },
+            {
+                "line": 2980,
+                "deleted": true,
+                "data": "    }"
+            },
+            {
+                "line": 2981,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 2982,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 2984,
+                "deleted": true,
+                "data": "                                   aStartPoint, endPoint,"
+            },
+            {
+                "line": 2897,
+                "deleted": false,
+                "data": "                                   aStartPoint, aEndPoint,"
+            },
+            {
+                "line": 3949,
+                "deleted": true,
+                "data": "    mScrollMetadata.SetOverscrollBehavior(aScrollMetadata.GetOverscrollBehavior());"
+            },
+            {
+                "line": 4019,
+                "deleted": true,
+                "data": "const ScrollMetadata& AsyncPanZoomController::GetScrollMetadata() const {"
+            },
+            {
+                "line": 4020,
+                "deleted": true,
+                "data": "  mRecursiveMutex.AssertCurrentThreadIn();"
+            },
+            {
+                "line": 4021,
+                "deleted": true,
+                "data": "  return mScrollMetadata;"
+            },
+            {
+                "line": 4022,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 4023,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/AsyncPanZoomController.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 423,
+                "deleted": true,
+                "data": "  // Return the directions in which this APZC allows handoff (as governed by"
+            },
+            {
+                "line": 424,
+                "deleted": true,
+                "data": "  // overscroll-behavior)."
+            },
+            {
+                "line": 425,
+                "deleted": true,
+                "data": "  ScrollDirections GetAllowedHandoffDirections() const;"
+            },
+            {
+                "line": 426,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 445,
+                "deleted": true,
+                "data": "  bool OverscrollBehaviorAllowsSwipe() const;"
+            },
+            {
+                "line": 446,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 678,
+                "deleted": true,
+                "data": "   * Gets the current scroll metadata. This is *not* the Gecko copy stored in"
+            },
+            {
+                "line": 679,
+                "deleted": true,
+                "data": "   * the layers code/"
+            },
+            {
+                "line": 680,
+                "deleted": true,
+                "data": "   */"
+            },
+            {
+                "line": 681,
+                "deleted": true,
+                "data": "  const ScrollMetadata& GetScrollMetadata() const;"
+            },
+            {
+                "line": 682,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 683,
+                "deleted": true,
+                "data": "  /**"
+            },
+            {
+                "line": 999,
+                "deleted": false,
+                "data": "   * If we are not pannable, the fling is handed off to the next APZC in"
+            },
+            {
+                "line": 1000,
+                "deleted": false,
+                "data": "   * the handoff chain via mTreeManager->DispatchFling()."
+            },
+            {
+                "line": 1001,
+                "deleted": false,
+                "data": "   * Returns true iff. the entire velocity of the fling was consumed by"
+            },
+            {
+                "line": 1002,
+                "deleted": false,
+                "data": "   * this APZC. |aHandoffState.mVelocity| is modified to contain any"
+            },
+            {
+                "line": 1003,
+                "deleted": false,
+                "data": "   * unused, residual velocity."
+            },
+            {
+                "line": 1014,
+                "deleted": true,
+                "data": "   * We only accept the fling in the direction(s) in which we are pannable."
+            },
+            {
+                "line": 1015,
+                "deleted": true,
+                "data": "   * Returns the \"residual velocity\", i.e. the portion of"
+            },
+            {
+                "line": 1016,
+                "deleted": true,
+                "data": "   * |aHandoffState.mVelocity| that this APZC did not consume."
+            },
+            {
+                "line": 1018,
+                "deleted": true,
+                "data": "  ParentLayerPoint AttemptFling(const FlingHandoffState& aHandoffState);"
+            },
+            {
+                "line": 1019,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 1020,
+                "deleted": true,
+                "data": "  ParentLayerPoint AdjustHandoffVelocityForOverscrollBehavior(ParentLayerPoint& aHandoffVelocity) const;"
+            },
+            {
+                "line": 1008,
+                "deleted": false,
+                "data": "  bool AttemptFling(FlingHandoffState& aHandoffState);"
+            },
+            {
+                "line": 1041,
+                "deleted": false,
+                "data": "  // Helper function used by AttemptFling()."
+            },
+            {
+                "line": 1042,
+                "deleted": false,
+                "data": "  void AcceptFling(FlingHandoffState& aHandoffState);"
+            },
+            {
+                "line": 1043,
+                "deleted": false,
+                "data": ""
+            },
+            {
+                "line": 1191,
+                "deleted": true,
+                "data": "  // Helper function for CanScroll()."
+            },
+            {
+                "line": 1192,
+                "deleted": true,
+                "data": "  ParentLayerPoint GetDeltaForEvent(const InputData& aEvent) const;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/Axis.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 494,
+                "deleted": true,
+                "data": "const ScrollMetadata& Axis::GetScrollMetadata() const {"
+            },
+            {
+                "line": 495,
+                "deleted": true,
+                "data": "  return mAsyncPanZoomController->GetScrollMetadata();"
+            },
+            {
+                "line": 496,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 497,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 498,
+                "deleted": true,
+                "data": "bool Axis::OverscrollBehaviorAllowsHandoff() const {"
+            },
+            {
+                "line": 499,
+                "deleted": true,
+                "data": "  // Scroll handoff is a \"non-local\" overscroll behavior, so it's allowed"
+            },
+            {
+                "line": 500,
+                "deleted": true,
+                "data": "  // with \"auto\" and disallowed with \"contain\" and \"none\"."
+            },
+            {
+                "line": 501,
+                "deleted": true,
+                "data": "  return GetOverscrollBehavior() == OverscrollBehavior::Auto;"
+            },
+            {
+                "line": 502,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 503,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 504,
+                "deleted": true,
+                "data": "bool Axis::OverscrollBehaviorAllowsOverscrollEffect() const {"
+            },
+            {
+                "line": 505,
+                "deleted": true,
+                "data": "  // An overscroll effect is a \"local\" overscroll behavior, so it's allowed"
+            },
+            {
+                "line": 506,
+                "deleted": true,
+                "data": "  // with \"auto\" and \"contain\" and disallowed with \"none\"."
+            },
+            {
+                "line": 507,
+                "deleted": true,
+                "data": "  return GetOverscrollBehavior() != OverscrollBehavior::None;"
+            },
+            {
+                "line": 508,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 546,
+                "deleted": true,
+                "data": "OverscrollBehavior AxisX::GetOverscrollBehavior() const"
+            },
+            {
+                "line": 547,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 548,
+                "deleted": true,
+                "data": "  return GetScrollMetadata().GetOverscrollBehavior().mBehaviorX;"
+            },
+            {
+                "line": 549,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 550,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 587,
+                "deleted": true,
+                "data": "OverscrollBehavior AxisY::GetOverscrollBehavior() const"
+            },
+            {
+                "line": 588,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 589,
+                "deleted": true,
+                "data": "  return GetScrollMetadata().GetOverscrollBehavior().mBehaviorY;"
+            },
+            {
+                "line": 590,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 591,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/Axis.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 252,
+                "deleted": true,
+                "data": "  bool OverscrollBehaviorAllowsHandoff() const;"
+            },
+            {
+                "line": 253,
+                "deleted": true,
+                "data": "  bool OverscrollBehaviorAllowsOverscrollEffect() const;"
+            },
+            {
+                "line": 254,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 292,
+                "deleted": true,
+                "data": "  const ScrollMetadata& GetScrollMetadata() const;"
+            },
+            {
+                "line": 293,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 294,
+                "deleted": true,
+                "data": "  virtual OverscrollBehavior GetOverscrollBehavior() const = 0;"
+            },
+            {
+                "line": 316,
+                "deleted": true,
+                "data": "private:"
+            },
+            {
+                "line": 317,
+                "deleted": true,
+                "data": "  virtual OverscrollBehavior GetOverscrollBehavior() const override;"
+            },
+            {
+                "line": 329,
+                "deleted": true,
+                "data": "private:"
+            },
+            {
+                "line": 330,
+                "deleted": true,
+                "data": "  virtual OverscrollBehavior GetOverscrollBehavior() const override;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/InputBlockState.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 325,
+                "deleted": true,
+                "data": "      mOverscrollHandoffChain->FindFirstScrollable("
+            },
+            {
+                "line": 326,
+                "deleted": true,
+                "data": "          aInitialEvent, &mAllowedScrollDirections);"
+            },
+            {
+                "line": 325,
+                "deleted": false,
+                "data": "      mOverscrollHandoffChain->FindFirstScrollable(aInitialEvent);"
+            },
+            {
+                "line": 360,
+                "deleted": true,
+                "data": "    apzc = apzc->BuildOverscrollHandoffChain()->FindFirstScrollable("
+            },
+            {
+                "line": 361,
+                "deleted": true,
+                "data": "        *aFirstInput, &mAllowedScrollDirections);"
+            },
+            {
+                "line": 359,
+                "deleted": false,
+                "data": "    apzc = apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(*aFirstInput);"
+            },
+            {
+                "line": 558,
+                "deleted": true,
+                "data": "      mOverscrollHandoffChain->FindFirstScrollable("
+            },
+            {
+                "line": 559,
+                "deleted": true,
+                "data": "          aInitialEvent, &mAllowedScrollDirections);"
+            },
+            {
+                "line": 556,
+                "deleted": false,
+                "data": "      mOverscrollHandoffChain->FindFirstScrollable(aInitialEvent);"
+            },
+            {
+                "line": 578,
+                "deleted": true,
+                "data": "      apzc->BuildOverscrollHandoffChain()->FindFirstScrollable("
+            },
+            {
+                "line": 579,
+                "deleted": true,
+                "data": "          *aFirstInput, &mAllowedScrollDirections);"
+            },
+            {
+                "line": 575,
+                "deleted": false,
+                "data": "      apzc->BuildOverscrollHandoffChain()->FindFirstScrollable(*aFirstInput);"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/InputBlockState.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 285,
+                "deleted": true,
+                "data": "  ScrollDirections GetAllowedScrollDirections() const { return mAllowedScrollDirections; }"
+            },
+            {
+                "line": 286,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 295,
+                "deleted": true,
+                "data": "  ScrollDirections mAllowedScrollDirections;"
+            },
+            {
+                "line": 360,
+                "deleted": true,
+                "data": "  ScrollDirections GetAllowedScrollDirections() const { return mAllowedScrollDirections; }"
+            },
+            {
+                "line": 361,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 365,
+                "deleted": true,
+                "data": "  ScrollDirections mAllowedScrollDirections;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/InputQueue.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 321,
+                "deleted": true,
+                "data": "  ScrollDirections allowedScrollDirections;"
+            },
+            {
+                "line": 323,
+                "deleted": true,
+                "data": "    aBlock->GetOverscrollHandoffChain()->FindFirstScrollable("
+            },
+            {
+                "line": 324,
+                "deleted": true,
+                "data": "        horizontalComponent, &allowedScrollDirections);"
+            },
+            {
+                "line": 325,
+                "deleted": true,
+                "data": "  return horizontallyScrollableAPZC &&"
+            },
+            {
+                "line": 326,
+                "deleted": true,
+                "data": "      horizontallyScrollableAPZC == aBlock->GetTargetApzc() &&"
+            },
+            {
+                "line": 327,
+                "deleted": true,
+                "data": "      allowedScrollDirections.contains(ScrollDirection::eHorizontal);"
+            },
+            {
+                "line": 322,
+                "deleted": false,
+                "data": "    aBlock->GetOverscrollHandoffChain()->FindFirstScrollable(horizontalComponent);"
+            },
+            {
+                "line": 323,
+                "deleted": false,
+                "data": "  return horizontallyScrollableAPZC && horizontallyScrollableAPZC == aBlock->GetTargetApzc();"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/OverscrollHandoffState.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 164,
+                "deleted": true,
+                "data": "OverscrollHandoffChain::FindFirstScrollable("
+            },
+            {
+                "line": 165,
+                "deleted": true,
+                "data": "    const InputData& aInput,"
+            },
+            {
+                "line": 166,
+                "deleted": true,
+                "data": "    ScrollDirections* aOutAllowedScrollDirections) const"
+            },
+            {
+                "line": 164,
+                "deleted": false,
+                "data": "OverscrollHandoffChain::FindFirstScrollable(const InputData& aInput) const"
+            },
+            {
+                "line": 168,
+                "deleted": true,
+                "data": "  // Start by allowing scrolling in both directions. As we do handoff"
+            },
+            {
+                "line": 169,
+                "deleted": true,
+                "data": "  // overscroll-behavior may restrict one or both of the directions."
+            },
+            {
+                "line": 170,
+                "deleted": true,
+                "data": "  *aOutAllowedScrollDirections += ScrollDirection::eVertical;"
+            },
+            {
+                "line": 171,
+                "deleted": true,
+                "data": "  *aOutAllowedScrollDirections += ScrollDirection::eHorizontal;"
+            },
+            {
+                "line": 172,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 177,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 178,
+                "deleted": true,
+                "data": "    *aOutAllowedScrollDirections &= mChain[i]->GetAllowedHandoffDirections();"
+            },
+            {
+                "line": 179,
+                "deleted": true,
+                "data": "    if (aOutAllowedScrollDirections->isEmpty()) {"
+            },
+            {
+                "line": 180,
+                "deleted": true,
+                "data": "      return nullptr;"
+            },
+            {
+                "line": 181,
+                "deleted": true,
+                "data": "    }"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/apz/src/OverscrollHandoffState.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 92,
+                "deleted": true,
+                "data": "  // Find the first APZC in this handoff chain that can be scrolled by |aInput|."
+            },
+            {
+                "line": 93,
+                "deleted": true,
+                "data": "  // Since overscroll-behavior can restrict handoff in some directions,"
+            },
+            {
+                "line": 94,
+                "deleted": true,
+                "data": "  // |aOutAllowedScrollDirections| is populated with the scroll directions"
+            },
+            {
+                "line": 95,
+                "deleted": true,
+                "data": "  // in which scrolling of the returned APZC is allowed."
+            },
+            {
+                "line": 96,
+                "deleted": true,
+                "data": "  RefPtr<AsyncPanZoomController> FindFirstScrollable("
+            },
+            {
+                "line": 97,
+                "deleted": true,
+                "data": "      const InputData& aInput,"
+            },
+            {
+                "line": 98,
+                "deleted": true,
+                "data": "      ScrollDirections* aOutAllowedScrollDirections) const;"
+            },
+            {
+                "line": 92,
+                "deleted": false,
+                "data": "  RefPtr<AsyncPanZoomController> FindFirstScrollable(const InputData& aInput) const;"
+            }
+        ]
+    },
+    {
+        "filename": "gfx/layers/ipc/LayersMessageUtils.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 81,
+                "deleted": true,
+                "data": "template <>"
+            },
+            {
+                "line": 82,
+                "deleted": true,
+                "data": "struct ParamTraits<mozilla::layers::OverscrollBehavior>"
+            },
+            {
+                "line": 83,
+                "deleted": true,
+                "data": "  : public ContiguousEnumSerializerInclusive<"
+            },
+            {
+                "line": 84,
+                "deleted": true,
+                "data": "            mozilla::layers::OverscrollBehavior,"
+            },
+            {
+                "line": 85,
+                "deleted": true,
+                "data": "            mozilla::layers::OverscrollBehavior::Auto,"
+            },
+            {
+                "line": 86,
+                "deleted": true,
+                "data": "            mozilla::layers::kHighestOverscrollBehavior>"
+            },
+            {
+                "line": 87,
+                "deleted": true,
+                "data": "{};"
+            },
+            {
+                "line": 88,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 236,
+                "deleted": true,
+                "data": "struct ParamTraits<mozilla::layers::OverscrollBehaviorInfo>"
+            },
+            {
+                "line": 237,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 238,
+                "deleted": true,
+                "data": "  // Not using PlainOldDataSerializer so we get enum validation"
+            },
+            {
+                "line": 239,
+                "deleted": true,
+                "data": "  // for the members."
+            },
+            {
+                "line": 240,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 241,
+                "deleted": true,
+                "data": "  typedef mozilla::layers::OverscrollBehaviorInfo paramType;"
+            },
+            {
+                "line": 242,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 243,
+                "deleted": true,
+                "data": "  static void Write(Message* aMsg, const paramType& aParam)"
+            },
+            {
+                "line": 244,
+                "deleted": true,
+                "data": "  {"
+            },
+            {
+                "line": 245,
+                "deleted": true,
+                "data": "    WriteParam(aMsg, aParam.mBehaviorX);"
+            },
+            {
+                "line": 246,
+                "deleted": true,
+                "data": "    WriteParam(aMsg, aParam.mBehaviorY);"
+            },
+            {
+                "line": 247,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 248,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 249,
+                "deleted": true,
+                "data": "  static bool Read(const Message* aMsg, PickleIterator* aIter, paramType* aResult)"
+            },
+            {
+                "line": 250,
+                "deleted": true,
+                "data": "  {"
+            },
+            {
+                "line": 251,
+                "deleted": true,
+                "data": "    return (ReadParam(aMsg, aIter, &aResult->mBehaviorX) &&"
+            },
+            {
+                "line": 252,
+                "deleted": true,
+                "data": "            ReadParam(aMsg, aIter, &aResult->mBehaviorY));"
+            },
+            {
+                "line": 253,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 254,
+                "deleted": true,
+                "data": "};"
+            },
+            {
+                "line": 255,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 256,
+                "deleted": true,
+                "data": "template <>"
+            },
+            {
+                "line": 295,
+                "deleted": true,
+                "data": "    WriteParam(aMsg, aParam.mOverscrollBehavior);"
+            },
+            {
+                "line": 322,
+                "deleted": true,
+                "data": "            ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetForceDisableApz) &&"
+            },
+            {
+                "line": 323,
+                "deleted": true,
+                "data": "            ReadParam(aMsg, aIter, &aResult->mOverscrollBehavior));"
+            },
+            {
+                "line": 292,
+                "deleted": false,
+                "data": "            ReadBoolForBitfield(aMsg, aIter, aResult, &paramType::SetForceDisableApz));"
+            }
+        ]
+    },
+    {
+        "filename": "ipc/glue/IPCMessageUtils.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 259,
+                "deleted": true,
+                "data": " *"
+            },
+            {
+                "line": 260,
+                "deleted": true,
+                "data": " * Note: For POD structures with enumeration fields, this will not do"
+            },
+            {
+                "line": 261,
+                "deleted": true,
+                "data": " *   validation of the enum values the way serializing the fields"
+            },
+            {
+                "line": 262,
+                "deleted": true,
+                "data": " *   individually would. Prefer serializing the fields individually"
+            },
+            {
+                "line": 263,
+                "deleted": true,
+                "data": " *   in such cases."
+            }
+        ]
+    },
+    {
+        "filename": "layout/base/ScrollbarStyles.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 16,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorX(aDisplay->mOverscrollBehaviorX),"
+            },
+            {
+                "line": 17,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorY(aDisplay->mOverscrollBehaviorY),"
+            },
+            {
+                "line": 28,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorX(aDisplay->mOverscrollBehaviorX),"
+            },
+            {
+                "line": 29,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorY(aDisplay->mOverscrollBehaviorY),"
+            }
+        ]
+    },
+    {
+        "filename": "layout/base/ScrollbarStyles.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 29,
+                "deleted": true,
+                "data": "  mozilla::StyleOverscrollBehavior mOverscrollBehaviorX;"
+            },
+            {
+                "line": 30,
+                "deleted": true,
+                "data": "  mozilla::StyleOverscrollBehavior mOverscrollBehaviorY;"
+            },
+            {
+                "line": 43,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorX(StyleOverscrollBehavior::Auto),"
+            },
+            {
+                "line": 44,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorY(StyleOverscrollBehavior::Auto),"
+            },
+            {
+                "line": 63,
+                "deleted": true,
+                "data": "           aStyles.mOverscrollBehaviorX == mOverscrollBehaviorX &&"
+            },
+            {
+                "line": 64,
+                "deleted": true,
+                "data": "           aStyles.mOverscrollBehaviorY == mOverscrollBehaviorY &&"
+            }
+        ]
+    },
+    {
+        "filename": "layout/base/nsLayoutUtils.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 9360,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 9361,
+                "deleted": true,
+                "data": "    ScrollbarStyles scrollbarStyles = scrollableFrame->GetScrollbarStyles();"
+            },
+            {
+                "line": 9362,
+                "deleted": true,
+                "data": "    metadata.SetOverscrollBehavior(OverscrollBehaviorInfo::FromStyleConstants("
+            },
+            {
+                "line": 9363,
+                "deleted": true,
+                "data": "        scrollbarStyles.mOverscrollBehaviorX,"
+            },
+            {
+                "line": 9364,
+                "deleted": true,
+                "data": "        scrollbarStyles.mOverscrollBehaviorY));"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/Declaration.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1471,
+                "deleted": true,
+                "data": "    case eCSSProperty_overscroll_behavior: {"
+            },
+            {
+                "line": 1472,
+                "deleted": true,
+                "data": "      const nsCSSValue& xValue ="
+            },
+            {
+                "line": 1473,
+                "deleted": true,
+                "data": "        *data->ValueFor(eCSSProperty_overscroll_behavior_x);"
+            },
+            {
+                "line": 1474,
+                "deleted": true,
+                "data": "      const nsCSSValue& yValue ="
+            },
+            {
+                "line": 1475,
+                "deleted": true,
+                "data": "        *data->ValueFor(eCSSProperty_overscroll_behavior_y);"
+            },
+            {
+                "line": 1476,
+                "deleted": true,
+                "data": "      AppendValueToString(eCSSProperty_overscroll_behavior_x, aValue);"
+            },
+            {
+                "line": 1477,
+                "deleted": true,
+                "data": "      if (yValue != xValue) {"
+            },
+            {
+                "line": 1478,
+                "deleted": true,
+                "data": "        aValue.Append(char16_t(' '));"
+            },
+            {
+                "line": 1479,
+                "deleted": true,
+                "data": "        AppendValueToString(eCSSProperty_overscroll_behavior_y, aValue);"
+            },
+            {
+                "line": 1480,
+                "deleted": true,
+                "data": "      }"
+            },
+            {
+                "line": 1481,
+                "deleted": true,
+                "data": "      break;"
+            },
+            {
+                "line": 1482,
+                "deleted": true,
+                "data": "    }"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/ServoBindings.toml",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 176,
+                "deleted": true,
+                "data": "    \"StyleOverscrollBehavior\","
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsCSSParser.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 999,
+                "deleted": true,
+                "data": "  bool ParseOverscrollBehavior();"
+            },
+            {
+                "line": 10662,
+                "deleted": true,
+                "data": "//   equivalent to color-stop(0, ...) and color-stop(1.0, ...) respectively."
+            },
+            {
+                "line": 10661,
+                "deleted": false,
+                "data": "//   equivalent to color-stop(0, ...) and color-stop(1.0, \u2026) respectively."
+            },
+            {
+                "line": 11815,
+                "deleted": true,
+                "data": "  case eCSSProperty_overscroll_behavior:"
+            },
+            {
+                "line": 11816,
+                "deleted": true,
+                "data": "    return ParseOverscrollBehavior();"
+            },
+            {
+                "line": 17499,
+                "deleted": true,
+                "data": "CSSParserImpl::ParseOverscrollBehavior()"
+            },
+            {
+                "line": 17500,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 17501,
+                "deleted": true,
+                "data": "  static const nsCSSPropertyID ids[] = {"
+            },
+            {
+                "line": 17502,
+                "deleted": true,
+                "data": "    eCSSProperty_overscroll_behavior_x,"
+            },
+            {
+                "line": 17503,
+                "deleted": true,
+                "data": "    eCSSProperty_overscroll_behavior_y"
+            },
+            {
+                "line": 17504,
+                "deleted": true,
+                "data": "  };"
+            },
+            {
+                "line": 17505,
+                "deleted": true,
+                "data": "  const int32_t numProps = MOZ_ARRAY_LENGTH(ids);"
+            },
+            {
+                "line": 17506,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 17507,
+                "deleted": true,
+                "data": "  nsCSSValue values[numProps];"
+            },
+            {
+                "line": 17508,
+                "deleted": true,
+                "data": "  int32_t found = ParseChoice(values, ids, numProps);"
+            },
+            {
+                "line": 17509,
+                "deleted": true,
+                "data": "  if (found < 1) {"
+            },
+            {
+                "line": 17510,
+                "deleted": true,
+                "data": "    return false;"
+            },
+            {
+                "line": 17511,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 17512,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 17513,
+                "deleted": true,
+                "data": "  // If only one value is specified, it's used for both axes."
+            },
+            {
+                "line": 17514,
+                "deleted": true,
+                "data": "  if (found == 1) {"
+            },
+            {
+                "line": 17515,
+                "deleted": true,
+                "data": "    values[1] = values[0];"
+            },
+            {
+                "line": 17516,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 17517,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 17518,
+                "deleted": true,
+                "data": "  AppendValue(eCSSProperty_overscroll_behavior_x, values[0]);"
+            },
+            {
+                "line": 17519,
+                "deleted": true,
+                "data": "  AppendValue(eCSSProperty_overscroll_behavior_y, values[1]);"
+            },
+            {
+                "line": 17520,
+                "deleted": true,
+                "data": "  return true;"
+            },
+            {
+                "line": 17521,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 17522,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 17523,
+                "deleted": true,
+                "data": "bool"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsCSSPropList.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 3660,
+                "deleted": true,
+                "data": "CSS_PROP_SHORTHAND("
+            },
+            {
+                "line": 3661,
+                "deleted": true,
+                "data": "    overscroll-behavior,"
+            },
+            {
+                "line": 3662,
+                "deleted": true,
+                "data": "    overscroll_behavior,"
+            },
+            {
+                "line": 3663,
+                "deleted": true,
+                "data": "    OverscrollBehavior,"
+            },
+            {
+                "line": 3664,
+                "deleted": true,
+                "data": "    CSS_PROPERTY_PARSE_FUNCTION,"
+            },
+            {
+                "line": 3665,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\")"
+            },
+            {
+                "line": 3666,
+                "deleted": true,
+                "data": "CSS_PROP_DISPLAY("
+            },
+            {
+                "line": 3667,
+                "deleted": true,
+                "data": "    overscroll-behavior-x,"
+            },
+            {
+                "line": 3668,
+                "deleted": true,
+                "data": "    overscroll_behavior_x,"
+            },
+            {
+                "line": 3669,
+                "deleted": true,
+                "data": "    OverscrollBehaviorX,"
+            },
+            {
+                "line": 3670,
+                "deleted": true,
+                "data": "    CSS_PROPERTY_PARSE_VALUE,"
+            },
+            {
+                "line": 3671,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\","
+            },
+            {
+                "line": 3672,
+                "deleted": true,
+                "data": "    VARIANT_HK,"
+            },
+            {
+                "line": 3673,
+                "deleted": true,
+                "data": "    kOverscrollBehaviorKTable,"
+            },
+            {
+                "line": 3674,
+                "deleted": true,
+                "data": "    CSS_PROP_NO_OFFSET,"
+            },
+            {
+                "line": 3675,
+                "deleted": true,
+                "data": "    eStyleAnimType_Discrete)"
+            },
+            {
+                "line": 3676,
+                "deleted": true,
+                "data": "CSS_PROP_DISPLAY("
+            },
+            {
+                "line": 3677,
+                "deleted": true,
+                "data": "    overscroll-behavior-y,"
+            },
+            {
+                "line": 3678,
+                "deleted": true,
+                "data": "    overscroll_behavior_y,"
+            },
+            {
+                "line": 3679,
+                "deleted": true,
+                "data": "    OverscrollBehaviorY,"
+            },
+            {
+                "line": 3680,
+                "deleted": true,
+                "data": "    CSS_PROPERTY_PARSE_VALUE,"
+            },
+            {
+                "line": 3681,
+                "deleted": true,
+                "data": "    \"layout.css.overscroll-behavior.enabled\","
+            },
+            {
+                "line": 3682,
+                "deleted": true,
+                "data": "    VARIANT_HK,"
+            },
+            {
+                "line": 3683,
+                "deleted": true,
+                "data": "    kOverscrollBehaviorKTable,"
+            },
+            {
+                "line": 3684,
+                "deleted": true,
+                "data": "    CSS_PROP_NO_OFFSET,"
+            },
+            {
+                "line": 3685,
+                "deleted": true,
+                "data": "    eStyleAnimType_Discrete)"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsCSSProps.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1942,
+                "deleted": true,
+                "data": "const KTableEntry nsCSSProps::kOverscrollBehaviorKTable[] = {"
+            },
+            {
+                "line": 1943,
+                "deleted": true,
+                "data": "  { eCSSKeyword_auto,       StyleOverscrollBehavior::Auto },"
+            },
+            {
+                "line": 1944,
+                "deleted": true,
+                "data": "  { eCSSKeyword_contain,    StyleOverscrollBehavior::Contain },"
+            },
+            {
+                "line": 1945,
+                "deleted": true,
+                "data": "  { eCSSKeyword_none,       StyleOverscrollBehavior::None },"
+            },
+            {
+                "line": 1946,
+                "deleted": true,
+                "data": "  { eCSSKeyword_UNKNOWN,    -1 }"
+            },
+            {
+                "line": 1947,
+                "deleted": true,
+                "data": "};"
+            },
+            {
+                "line": 1948,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 3013,
+                "deleted": true,
+                "data": "static const nsCSSPropertyID gOverscrollBehaviorSubpropTable[] = {"
+            },
+            {
+                "line": 3014,
+                "deleted": true,
+                "data": "  eCSSProperty_overscroll_behavior_x,"
+            },
+            {
+                "line": 3015,
+                "deleted": true,
+                "data": "  eCSSProperty_overscroll_behavior_y,"
+            },
+            {
+                "line": 3016,
+                "deleted": true,
+                "data": "  eCSSProperty_UNKNOWN"
+            },
+            {
+                "line": 3017,
+                "deleted": true,
+                "data": "};"
+            },
+            {
+                "line": 3018,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsCSSProps.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 840,
+                "deleted": true,
+                "data": "  static const KTableEntry kOverscrollBehaviorKTable[];"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsComputedDOMStyle.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 3626,
+                "deleted": true,
+                "data": "nsComputedDOMStyle::DoGetOverscrollBehaviorX()"
+            },
+            {
+                "line": 3627,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 3628,
+                "deleted": true,
+                "data": "  RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;"
+            },
+            {
+                "line": 3629,
+                "deleted": true,
+                "data": "  val->SetIdent("
+            },
+            {
+                "line": 3630,
+                "deleted": true,
+                "data": "    nsCSSProps::ValueToKeywordEnum(StyleDisplay()->mOverscrollBehaviorX,"
+            },
+            {
+                "line": 3631,
+                "deleted": true,
+                "data": "                                   nsCSSProps::kOverscrollBehaviorKTable));"
+            },
+            {
+                "line": 3632,
+                "deleted": true,
+                "data": "  return val.forget();"
+            },
+            {
+                "line": 3633,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 3634,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 3635,
+                "deleted": true,
+                "data": "already_AddRefed<CSSValue>"
+            },
+            {
+                "line": 3636,
+                "deleted": true,
+                "data": "nsComputedDOMStyle::DoGetOverscrollBehaviorY()"
+            },
+            {
+                "line": 3637,
+                "deleted": true,
+                "data": "{"
+            },
+            {
+                "line": 3638,
+                "deleted": true,
+                "data": "  RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;"
+            },
+            {
+                "line": 3639,
+                "deleted": true,
+                "data": "  val->SetIdent("
+            },
+            {
+                "line": 3640,
+                "deleted": true,
+                "data": "    nsCSSProps::ValueToKeywordEnum(StyleDisplay()->mOverscrollBehaviorY,"
+            },
+            {
+                "line": 3641,
+                "deleted": true,
+                "data": "                                   nsCSSProps::kOverscrollBehaviorKTable));"
+            },
+            {
+                "line": 3642,
+                "deleted": true,
+                "data": "  return val.forget();"
+            },
+            {
+                "line": 3643,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 3644,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 3645,
+                "deleted": true,
+                "data": "already_AddRefed<CSSValue>"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsComputedDOMStyle.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 519,
+                "deleted": true,
+                "data": "  already_AddRefed<CSSValue> DoGetOverscrollBehaviorX();"
+            },
+            {
+                "line": 520,
+                "deleted": true,
+                "data": "  already_AddRefed<CSSValue> DoGetOverscrollBehaviorY();"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsComputedDOMStylePropertyList.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 206,
+                "deleted": true,
+                "data": "COMPUTED_STYLE_PROP(overscroll_behavior_x,         OverscrollBehaviorX)"
+            },
+            {
+                "line": 207,
+                "deleted": true,
+                "data": "COMPUTED_STYLE_PROP(overscroll_behavior_y,         OverscrollBehaviorY)"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsRuleNode.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1440,
+                "deleted": true,
+                "data": "  DEFINE_ENUM_CLASS_SETTER(StyleOverscrollBehavior, Auto, None)"
+            },
+            {
+                "line": 5815,
+                "deleted": true,
+                "data": "  // overscroll-behavior-x: none, enum, inherit, initial"
+            },
+            {
+                "line": 5816,
+                "deleted": true,
+                "data": "  SetValue(*aRuleData->ValueForOverscrollBehaviorX(),"
+            },
+            {
+                "line": 5817,
+                "deleted": true,
+                "data": "           display->mOverscrollBehaviorX,"
+            },
+            {
+                "line": 5818,
+                "deleted": true,
+                "data": "           conditions,"
+            },
+            {
+                "line": 5819,
+                "deleted": true,
+                "data": "           SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,"
+            },
+            {
+                "line": 5820,
+                "deleted": true,
+                "data": "           parentDisplay->mOverscrollBehaviorX,"
+            },
+            {
+                "line": 5821,
+                "deleted": true,
+                "data": "           StyleOverscrollBehavior::Auto);"
+            },
+            {
+                "line": 5822,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 5823,
+                "deleted": true,
+                "data": "  // overscroll-behavior-y: none, enum, inherit, initial"
+            },
+            {
+                "line": 5824,
+                "deleted": true,
+                "data": "  SetValue(*aRuleData->ValueForOverscrollBehaviorY(),"
+            },
+            {
+                "line": 5825,
+                "deleted": true,
+                "data": "           display->mOverscrollBehaviorY,"
+            },
+            {
+                "line": 5826,
+                "deleted": true,
+                "data": "           conditions,"
+            },
+            {
+                "line": 5827,
+                "deleted": true,
+                "data": "           SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,"
+            },
+            {
+                "line": 5828,
+                "deleted": true,
+                "data": "           parentDisplay->mOverscrollBehaviorY,"
+            },
+            {
+                "line": 5829,
+                "deleted": true,
+                "data": "           StyleOverscrollBehavior::Auto);"
+            },
+            {
+                "line": 5830,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsStyleConsts.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1191,
+                "deleted": true,
+                "data": "// See nsStyleDisplay::mOverscrollBehavior{X,Y}"
+            },
+            {
+                "line": 1192,
+                "deleted": true,
+                "data": "enum class StyleOverscrollBehavior : uint8_t {"
+            },
+            {
+                "line": 1193,
+                "deleted": true,
+                "data": "  Auto = 0,"
+            },
+            {
+                "line": 1194,
+                "deleted": true,
+                "data": "  Contain,"
+            },
+            {
+                "line": 1195,
+                "deleted": true,
+                "data": "  None,"
+            },
+            {
+                "line": 1196,
+                "deleted": true,
+                "data": "};"
+            },
+            {
+                "line": 1197,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsStyleStruct.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 3571,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorX(StyleOverscrollBehavior::Auto)"
+            },
+            {
+                "line": 3572,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorY(StyleOverscrollBehavior::Auto)"
+            },
+            {
+                "line": 3636,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorX(aSource.mOverscrollBehaviorX)"
+            },
+            {
+                "line": 3637,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorY(aSource.mOverscrollBehaviorY)"
+            },
+            {
+                "line": 3902,
+                "deleted": true,
+                "data": "  // If overscroll-behavior has changed, the changes are picked up"
+            },
+            {
+                "line": 3903,
+                "deleted": true,
+                "data": "  // during a repaint."
+            },
+            {
+                "line": 3904,
+                "deleted": true,
+                "data": "  if (mOverscrollBehaviorX != aNewData.mOverscrollBehaviorX ||"
+            },
+            {
+                "line": 3905,
+                "deleted": true,
+                "data": "      mOverscrollBehaviorY != aNewData.mOverscrollBehaviorY) {"
+            },
+            {
+                "line": 3906,
+                "deleted": true,
+                "data": "    hint |= nsChangeHint_SchedulePaint;"
+            },
+            {
+                "line": 3907,
+                "deleted": true,
+                "data": "  }"
+            },
+            {
+                "line": 3908,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/nsStyleStruct.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 2590,
+                "deleted": true,
+                "data": "  mozilla::StyleOverscrollBehavior mOverscrollBehaviorX;  // [reset] see nsStyleConsts.h"
+            },
+            {
+                "line": 2591,
+                "deleted": true,
+                "data": "  mozilla::StyleOverscrollBehavior mOverscrollBehaviorY;  // [reset] see nsStyleConsts.h"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/test/mochitest.ini",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 258,
+                "deleted": true,
+                "data": "[test_overscroll_behavior_pref.html]"
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/test/property_database.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 7455,
+                "deleted": true,
+                "data": "if (IsCSSPropertyPrefEnabled(\"layout.css.overscroll-behavior.enabled\")) {"
+            },
+            {
+                "line": 7456,
+                "deleted": true,
+                "data": "  gCSSProperties[\"overscroll-behavior-x\"] = {"
+            },
+            {
+                "line": 7457,
+                "deleted": true,
+                "data": "    domProp: \"overscrollBehaviorX\","
+            },
+            {
+                "line": 7458,
+                "deleted": true,
+                "data": "    inherited: false,"
+            },
+            {
+                "line": 7459,
+                "deleted": true,
+                "data": "    type: CSS_TYPE_LONGHAND,"
+            },
+            {
+                "line": 7460,
+                "deleted": true,
+                "data": "    initial_values: [ \"auto\" ],"
+            },
+            {
+                "line": 7461,
+                "deleted": true,
+                "data": "    other_values: [ \"contain\", \"none\" ],"
+            },
+            {
+                "line": 7462,
+                "deleted": true,
+                "data": "    invalid_values: [ \"left\", \"1px\" ]"
+            },
+            {
+                "line": 7463,
+                "deleted": true,
+                "data": "  };"
+            },
+            {
+                "line": 7464,
+                "deleted": true,
+                "data": "  gCSSProperties[\"overscroll-behavior-y\"] = {"
+            },
+            {
+                "line": 7465,
+                "deleted": true,
+                "data": "    domProp: \"overscrollBehaviorY\","
+            },
+            {
+                "line": 7466,
+                "deleted": true,
+                "data": "    inherited: false,"
+            },
+            {
+                "line": 7467,
+                "deleted": true,
+                "data": "    type: CSS_TYPE_LONGHAND,"
+            },
+            {
+                "line": 7468,
+                "deleted": true,
+                "data": "    initial_values: [ \"auto\" ],"
+            },
+            {
+                "line": 7469,
+                "deleted": true,
+                "data": "    other_values: [ \"contain\", \"none\" ],"
+            },
+            {
+                "line": 7470,
+                "deleted": true,
+                "data": "    invalid_values: [ \"left\", \"1px\" ]"
+            },
+            {
+                "line": 7471,
+                "deleted": true,
+                "data": "  };"
+            },
+            {
+                "line": 7472,
+                "deleted": true,
+                "data": "  gCSSProperties[\"overscroll-behavior\"] = {"
+            },
+            {
+                "line": 7473,
+                "deleted": true,
+                "data": "    domProp: \"overscrollBehavior\","
+            },
+            {
+                "line": 7474,
+                "deleted": true,
+                "data": "    inherited: false,"
+            },
+            {
+                "line": 7475,
+                "deleted": true,
+                "data": "    type: CSS_TYPE_TRUE_SHORTHAND,"
+            },
+            {
+                "line": 7476,
+                "deleted": true,
+                "data": "    subproperties: [ \"overscroll-behavior-x\", \"overscroll-behavior-y\" ],"
+            },
+            {
+                "line": 7477,
+                "deleted": true,
+                "data": "    initial_values: [ \"auto\" ],"
+            },
+            {
+                "line": 7478,
+                "deleted": true,
+                "data": "    other_values: [ \"contain\", \"none\", \"contain contain\", \"contain auto\", \"none contain\" ],"
+            },
+            {
+                "line": 7479,
+                "deleted": true,
+                "data": "    invalid_values: [ \"left\", \"1px\", \"contain auto none\", \"contain nonsense\" ]"
+            },
+            {
+                "line": 7480,
+                "deleted": true,
+                "data": "  };"
+            },
+            {
+                "line": 7481,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 7482,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "layout/style/test/test_overscroll_behavior_pref.html",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1,
+                "deleted": true,
+                "data": "<!doctype html>"
+            },
+            {
+                "line": 2,
+                "deleted": true,
+                "data": "<html>"
+            },
+            {
+                "line": 3,
+                "deleted": true,
+                "data": "  <head>"
+            },
+            {
+                "line": 4,
+                "deleted": true,
+                "data": "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">"
+            },
+            {
+                "line": 5,
+                "deleted": true,
+                "data": "    <title>Test pref for overscroll-behavior property</title>"
+            },
+            {
+                "line": 6,
+                "deleted": true,
+                "data": "    <script type=\"text/javascript\" src=\"/tests/SimpleTest/SimpleTest.js\"></script>"
+            },
+            {
+                "line": 7,
+                "deleted": true,
+                "data": "  </head>"
+            },
+            {
+                "line": 8,
+                "deleted": true,
+                "data": "<script class=\"testbody\" type=\"text/javascript\">"
+            },
+            {
+                "line": 9,
+                "deleted": true,
+                "data": "function runTest() {"
+            },
+            {
+                "line": 10,
+                "deleted": true,
+                "data": "  let css = \"div { overscroll-behavior: auto; }\";"
+            },
+            {
+                "line": 11,
+                "deleted": true,
+                "data": "  let style = document.createElement('style');"
+            },
+            {
+                "line": 12,
+                "deleted": true,
+                "data": "  style.appendChild(document.createTextNode(css));"
+            },
+            {
+                "line": 13,
+                "deleted": true,
+                "data": "  document.head.appendChild(style);"
+            },
+            {
+                "line": 14,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 15,
+                "deleted": true,
+                "data": "  is(document.styleSheets[0].cssRules[0].style.length,"
+            },
+            {
+                "line": 16,
+                "deleted": true,
+                "data": "     0,"
+            },
+            {
+                "line": 17,
+                "deleted": true,
+                "data": "     \"overscroll-behavior shouldn't be parsed if the pref is off\");"
+            },
+            {
+                "line": 18,
+                "deleted": true,
+                "data": "  SimpleTest.finish();"
+            },
+            {
+                "line": 19,
+                "deleted": true,
+                "data": "}"
+            },
+            {
+                "line": 20,
+                "deleted": true,
+                "data": "SpecialPowers.pushPrefEnv({ set: [[\"layout.css.overscroll-behavior.enabled\", false]] },"
+            },
+            {
+                "line": 21,
+                "deleted": true,
+                "data": "                          runTest);"
+            },
+            {
+                "line": 22,
+                "deleted": true,
+                "data": "SimpleTest.waitForExplicitFinish();"
+            },
+            {
+                "line": 23,
+                "deleted": true,
+                "data": "</script>"
+            },
+            {
+                "line": 24,
+                "deleted": true,
+                "data": "</html>"
+            }
+        ]
+    },
+    {
+        "filename": "modules/libpref/init/all.js",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 3034,
+                "deleted": true,
+                "data": "// Is support for overscroll-behavior enabled?"
+            },
+            {
+                "line": 3035,
+                "deleted": true,
+                "data": "#ifdef RELEASE_OR_BETA"
+            },
+            {
+                "line": 3036,
+                "deleted": true,
+                "data": "pref(\"layout.css.overscroll-behavior.enabled\", false);"
+            },
+            {
+                "line": 3037,
+                "deleted": true,
+                "data": "#else"
+            },
+            {
+                "line": 3038,
+                "deleted": true,
+                "data": "pref(\"layout.css.overscroll-behavior.enabled\", true);"
+            },
+            {
+                "line": 3039,
+                "deleted": true,
+                "data": "#endif"
+            },
+            {
+                "line": 3040,
+                "deleted": true,
+                "data": ""
+            }
+        ]
+    },
+    {
+        "filename": "testing/web-platform/tests/css/cssom-view/overscrollBehavior-manual.html",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 55,
+                "deleted": true,
+                "data": "setup({explicit_timeout: true});"
+            }
+        ]
+    },
+    {
+        "filename": "widget/InputData.cpp",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 493,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorAllowsSwipe(false)"
+            },
+            {
+                "line": 513,
+                "deleted": true,
+                "data": "  , mOverscrollBehaviorAllowsSwipe(false)"
+            }
+        ]
+    },
+    {
+        "filename": "widget/InputData.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 388,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 389,
+                "deleted": true,
+                "data": "  // This is used by APZ to communicate to the macOS widget code whether"
+            },
+            {
+                "line": 390,
+                "deleted": true,
+                "data": "  // the overscroll-behavior of the scroll frame handling this swipe allows"
+            },
+            {
+                "line": 391,
+                "deleted": true,
+                "data": "  // non-local overscroll behaviors in the horizontal direction (such as"
+            },
+            {
+                "line": 392,
+                "deleted": true,
+                "data": "  // swipe navigation)."
+            },
+            {
+                "line": 393,
+                "deleted": true,
+                "data": "  bool mOverscrollBehaviorAllowsSwipe;"
+            },
+            {
+                "line": 394,
+                "deleted": true,
+                "data": ""
+            },
+            {
+                "line": 395,
+                "deleted": true,
+                "data": "  // XXX: If adding any more bools, switch to using bitfields instead."
+            }
+        ]
+    },
+    {
+        "filename": "widget/cocoa/nsChildView.mm",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 2926,
+                "deleted": true,
+                "data": "        if (aCanTriggerSwipe && panInput.mOverscrollBehaviorAllowsSwipe) {"
+            },
+            {
+                "line": 2926,
+                "deleted": false,
+                "data": "        if (aCanTriggerSwipe) {"
+            }
+        ]
+    },
+    {
+        "filename": "widget/nsGUIEventIPC.h",
+        "new": false,
+        "deleted": false,
+        "binary": false,
+        "renamed_from": null,
+        "lines": [
+            {
+                "line": 1228,
+                "deleted": true,
+                "data": "    WriteParam(aMsg, aParam.mOverscrollBehaviorAllowsSwipe);"
+            },
+            {
+                "line": 1245,
+                "deleted": true,
+                "data": "           ReadParam(aMsg, aIter, &aResult->mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection) &&"
+            },
+            {
+                "line": 1246,
+                "deleted": true,
+                "data": "           ReadParam(aMsg, aIter, &aResult->mOverscrollBehaviorAllowsSwipe);"
+            },
+            {
+                "line": 1244,
+                "deleted": false,
+                "data": "           ReadParam(aMsg, aIter, &aResult->mRequiresContentResponseIfCannotScrollHorizontallyInStartDirection);"
+            }
+        ]
+    }
+]

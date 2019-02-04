@@ -1,0 +1,345 @@
+
+# HG changeset patch
+# User sotaro <sotaro.ikeda.g@gmail.com>
+# Date 1511524704 -32400
+# Node ID 7e60ad275b73df53b06eebe2d71b788016e45cd6
+# Parent  45e4387bc585d3187d5fd945c2115e75195b0bfa
+Bug 1391159 - Handle WebRender ProgramBinary usage r=nical
+
+diff --git a/gfx/config/gfxVars.h b/gfx/config/gfxVars.h
+--- a/gfx/config/gfxVars.h
++++ b/gfx/config/gfxVars.h
+@@ -31,16 +31,17 @@ class gfxVarReceiver;
+   _(OffscreenFormat,            gfxImageFormat,   mozilla::gfx::SurfaceFormat::X8R8G8B8_UINT32) \
+   _(RequiresAcceleratedGLContextForCompositorOGL, bool, false)          \
+   _(CanUseHardwareVideoDecoding, bool,            false)                \
+   _(PDMWMFDisableD3D11Dlls,     nsCString,        nsCString())          \
+   _(PDMWMFDisableD3D9Dlls,      nsCString,        nsCString())          \
+   _(DXInterop2Blocked,          bool,             false)                \
+   _(UseWebRender,               bool,             false)                \
+   _(UseWebRenderANGLE,          bool,             false)                \
++  _(UseWebRenderProgramBinary,  bool,             false)                \
+   _(WebRenderDebugFlags,        int32_t,          0)                    \
+   _(ScreenDepth,                int32_t,          0)                    \
+   _(GREDirectory,               nsCString,        nsCString())          \
+   _(UseOMTP,                    bool,             false)                \
+   _(AllowD3D11KeyedMutex,       bool,             false)                \
+ 
+   /* Add new entries above this line. */
+ 
+diff --git a/gfx/thebes/gfxPlatform.cpp b/gfx/thebes/gfxPlatform.cpp
+--- a/gfx/thebes/gfxPlatform.cpp
++++ b/gfx/thebes/gfxPlatform.cpp
+@@ -2548,16 +2548,20 @@ gfxPlatform::InitWebRenderConfig()
+         "ANGLE is disabled",
+         NS_LITERAL_CSTRING("FEATURE_FAILURE_ANGLE_DISABLED"));
+     } else {
+       gfxVars::SetUseWebRenderANGLE(gfxConfig::IsEnabled(Feature::WEBRENDER));
+     }
+   }
+ #endif
+ 
++  if (Preferences::GetBool("gfx.webrender.program-binary", false)) {
++    gfx::gfxVars::SetUseWebRenderProgramBinary(gfxConfig::IsEnabled(Feature::WEBRENDER));
++  }
++
+ #ifdef MOZ_WIDGET_ANDROID
+   featureWebRender.ForceDisable(
+     FeatureStatus::Unavailable,
+     "WebRender not ready for use on Android",
+     NS_LITERAL_CSTRING("FEATURE_FAILURE_ANDROID"));
+ #endif
+ 
+   // gfxFeature is not usable in the GPU process, so we use gfxVars to transmit this feature
+diff --git a/gfx/webrender_bindings/RenderThread.cpp b/gfx/webrender_bindings/RenderThread.cpp
+--- a/gfx/webrender_bindings/RenderThread.cpp
++++ b/gfx/webrender_bindings/RenderThread.cpp
+@@ -417,26 +417,47 @@ RenderThread::GetRenderTexture(wr::WrExt
+ {
+   MOZ_ASSERT(IsInRenderThread());
+ 
+   MutexAutoLock lock(mRenderTextureMapLock);
+   MOZ_ASSERT(mRenderTextures.GetWeak(aExternalImageId.mHandle));
+   return mRenderTextures.GetWeak(aExternalImageId.mHandle);
+ }
+ 
++WebRenderProgramCache*
++RenderThread::ProgramCache()
++{
++  MOZ_ASSERT(IsInRenderThread());
++
++  if (!mProgramCache) {
++    mProgramCache = MakeUnique<WebRenderProgramCache>();
++  }
++  return mProgramCache.get();
++}
++
+ WebRenderThreadPool::WebRenderThreadPool()
+ {
+   mThreadPool = wr_thread_pool_new();
+ }
+ 
+ WebRenderThreadPool::~WebRenderThreadPool()
+ {
+   wr_thread_pool_delete(mThreadPool);
+ }
+ 
++WebRenderProgramCache::WebRenderProgramCache()
++{
++  mProgramCache = wr_program_cache_new();
++}
++
++WebRenderProgramCache::~WebRenderProgramCache()
++{
++  wr_program_cache_delete(mProgramCache);
++}
++
+ } // namespace wr
+ } // namespace mozilla
+ 
+ extern "C" {
+ 
+ void wr_notifier_new_frame_ready(mozilla::wr::WrWindowId aWindowId)
+ {
+   mozilla::wr::RenderThread::Get()->IncRenderingFrameCount(aWindowId);
+diff --git a/gfx/webrender_bindings/RenderThread.h b/gfx/webrender_bindings/RenderThread.h
+--- a/gfx/webrender_bindings/RenderThread.h
++++ b/gfx/webrender_bindings/RenderThread.h
+@@ -35,16 +35,27 @@ public:
+   ~WebRenderThreadPool();
+ 
+   wr::WrThreadPool* Raw() { return mThreadPool; }
+ 
+ protected:
+   wr::WrThreadPool* mThreadPool;
+ };
+ 
++class WebRenderProgramCache {
++public:
++  WebRenderProgramCache();
++
++  ~WebRenderProgramCache();
++
++  wr::WrProgramCache* Raw() { return mProgramCache; }
++
++protected:
++  wr::WrProgramCache* mProgramCache;
++};
+ 
+ /// Base class for an event that can be scheduled to run on the render thread.
+ ///
+ /// The event can be passed through the same channels as regular WebRender messages
+ /// to preserve ordering.
+ class RendererEvent
+ {
+ public:
+@@ -138,27 +149,31 @@ public:
+   /// Can be called from any thread.
+   void IncRenderingFrameCount(wr::WindowId aWindowId);
+   /// Can be called from any thread.
+   void DecPendingFrameCount(wr::WindowId aWindowId);
+ 
+   /// Can be called from any thread.
+   WebRenderThreadPool& ThreadPool() { return mThreadPool; }
+ 
++  /// Can only be called from the render thread.
++  WebRenderProgramCache* ProgramCache();
++
+ private:
+   explicit RenderThread(base::Thread* aThread);
+ 
+   void DeferredRenderTextureHostDestroy(RefPtr<RenderTextureHost> aTexture);
+   void ShutDownTask(layers::SynchronousTask* aTask);
+ 
+   ~RenderThread();
+ 
+   base::Thread* const mThread;
+ 
+   WebRenderThreadPool mThreadPool;
++  UniquePtr<WebRenderProgramCache> mProgramCache;
+ 
+   std::map<wr::WindowId, UniquePtr<RendererOGL>> mRenderers;
+ 
+   struct WindowInfo {
+     bool mIsDestroyed = false;
+     int64_t mPendingCount = 0;
+     int64_t mRenderingCount = 0;
+   };
+diff --git a/gfx/webrender_bindings/WebRenderAPI.cpp b/gfx/webrender_bindings/WebRenderAPI.cpp
+--- a/gfx/webrender_bindings/WebRenderAPI.cpp
++++ b/gfx/webrender_bindings/WebRenderAPI.cpp
+@@ -85,16 +85,19 @@ public:
+                                             Move(gl),
+                                             Move(mCompositorWidget),
+                                             aWindowId,
+                                             wrRenderer,
+                                             mBridge);
+     if (wrRenderer && renderer) {
+       wr::WrExternalImageHandler handler = renderer->GetExternalImageHandler();
+       wr_renderer_set_external_image_handler(wrRenderer, &handler);
++      if (gfx::gfxVars::UseWebRenderProgramBinary()) {
++        wr_renderer_update_program_cache(wrRenderer, aRenderThread.ProgramCache()->Raw());
++      }
+     }
+ 
+     if (renderer) {
+       layers::SyncObjectHost* syncObj = renderer->GetSyncObject();
+       if (syncObj) {
+         *mSyncHandle = syncObj->GetSyncHandle();
+       }
+     }
+diff --git a/gfx/webrender_bindings/src/bindings.rs b/gfx/webrender_bindings/src/bindings.rs
+--- a/gfx/webrender_bindings/src/bindings.rs
++++ b/gfx/webrender_bindings/src/bindings.rs
+@@ -1,21 +1,23 @@
+ use std::ffi::{CStr, CString};
+ use std::{mem, slice};
+ use std::path::PathBuf;
+ use std::ptr;
++use std::rc::Rc;
+ use std::sync::Arc;
+ use std::os::raw::{c_void, c_char, c_float};
+ use gleam::gl;
+ 
+ use webrender::api::*;
+ use webrender::{ReadPixelsFormat, Renderer, RendererOptions, ThreadListener};
+ use webrender::{ExternalImage, ExternalImageHandler, ExternalImageSource};
+ use webrender::DebugFlags;
+ use webrender::{ApiRecordingReceiver, BinaryRecorder};
++use webrender::ProgramCache;
+ use thread_profiler::register_thread_with_profiler;
+ use moz2d_renderer::Moz2dImageRenderer;
+ use app_units::Au;
+ use rayon;
+ use euclid::SideOffsets2D;
+ use log::{set_logger, shutdown_logger, LogLevelFilter, Log, LogLevel, LogMetadata, LogRecord};
+ 
+ #[cfg(target_os = "windows")]
+@@ -655,16 +657,36 @@ pub unsafe extern "C" fn wr_thread_pool_
+ }
+ 
+ /// cbindgen:postfix=WR_DESTRUCTOR_SAFE_FUNC
+ #[no_mangle]
+ pub unsafe extern "C" fn wr_thread_pool_delete(thread_pool: *mut WrThreadPool) {
+     Box::from_raw(thread_pool);
+ }
+ 
++pub struct WrProgramCache(Rc<ProgramCache>);
++
++#[no_mangle]
++pub unsafe extern "C" fn wr_program_cache_new() -> *mut WrProgramCache {
++    let program_cache = ProgramCache::new();
++    Box::into_raw(Box::new(WrProgramCache(program_cache)))
++}
++
++/// cbindgen:postfix=WR_DESTRUCTOR_SAFE_FUNC
++#[no_mangle]
++pub unsafe extern "C" fn wr_program_cache_delete(program_cache: *mut WrProgramCache) {
++    Rc::from_raw(program_cache);
++}
++
++#[no_mangle]
++pub extern "C" fn wr_renderer_update_program_cache(renderer: &mut Renderer, program_cache: &mut WrProgramCache) {
++    let program_cache = Rc::clone(&program_cache.0);
++    renderer.update_program_cache(program_cache);
++}
++
+ // Call MakeCurrent before this.
+ #[no_mangle]
+ pub extern "C" fn wr_window_new(window_id: WrWindowId,
+                                 window_width: u32,
+                                 window_height: u32,
+                                 gl_context: *mut c_void,
+                                 thread_pool: *mut WrThreadPool,
+                                 out_handle: &mut *mut DocumentHandle,
+diff --git a/gfx/webrender_bindings/webrender_ffi_generated.h b/gfx/webrender_bindings/webrender_ffi_generated.h
+--- a/gfx/webrender_bindings/webrender_ffi_generated.h
++++ b/gfx/webrender_bindings/webrender_ffi_generated.h
+@@ -245,16 +245,18 @@ struct DocumentHandle;
+ // RenderBackend.
+ struct Renderer;
+ 
+ // The resource updates for a given transaction (they must be applied in the same frame).
+ struct ResourceUpdates;
+ 
+ struct Vec_u8;
+ 
++struct WrProgramCache;
++
+ struct WrRenderedEpochs;
+ 
+ struct WrState;
+ 
+ struct WrThreadPool;
+ 
+ struct IdNamespace {
+   uint32_t mHandle;
+@@ -1405,16 +1407,24 @@ extern void wr_notifier_external_event(W
+                                        size_t aRawEvent);
+ 
+ extern void wr_notifier_new_frame_ready(WrWindowId aWindowId);
+ 
+ extern void wr_notifier_new_scroll_frame_ready(WrWindowId aWindowId,
+                                                bool aCompositeNeeded);
+ 
+ WR_INLINE
++void wr_program_cache_delete(WrProgramCache *aProgramCache)
++WR_DESTRUCTOR_SAFE_FUNC;
++
++WR_INLINE
++WrProgramCache *wr_program_cache_new()
++WR_FUNC;
++
++WR_INLINE
+ void wr_rendered_epochs_delete(WrRenderedEpochs *aPipelineEpochs)
+ WR_DESTRUCTOR_SAFE_FUNC;
+ 
+ WR_INLINE
+ bool wr_rendered_epochs_next(WrRenderedEpochs *aPipelineEpochs,
+                              WrPipelineId *aOutPipeline,
+                              WrEpoch *aOutEpoch)
+ WR_FUNC;
+@@ -1461,16 +1471,21 @@ void wr_renderer_set_external_image_hand
+                                             WrExternalImageHandler *aExternalImageHandler)
+ WR_FUNC;
+ 
+ WR_INLINE
+ void wr_renderer_update(Renderer *aRenderer)
+ WR_FUNC;
+ 
+ WR_INLINE
++void wr_renderer_update_program_cache(Renderer *aRenderer,
++                                      WrProgramCache *aProgramCache)
++WR_FUNC;
++
++WR_INLINE
+ void wr_resource_updates_add_blob_image(ResourceUpdates *aResources,
+                                         WrImageKey aImageKey,
+                                         const WrImageDescriptor *aDescriptor,
+                                         WrVecU8 *aBytes)
+ WR_FUNC;
+ 
+ WR_INLINE
+ void wr_resource_updates_add_external_image(ResourceUpdates *aResources,
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -855,16 +855,17 @@ pref("gfx.ycbcr.accurate-conversion", fa
+ 
+ #ifdef MOZ_ENABLE_WEBRENDER
+ pref("gfx.webrender.enabled", true);
+ #else
+ pref("gfx.webrender.enabled", false);
+ #endif
+ #ifdef XP_WIN
+ pref("gfx.webrender.force-angle", true);
++pref("gfx.webrender.program-binary", true);
+ #endif
+ 
+ pref("gfx.webrender.highlight-painted-layers", false);
+ pref("gfx.webrender.blob-images", false);
+ 
+ // WebRender debugging utilities.
+ pref("gfx.webrender.debug.texture-cache", false);
+ pref("gfx.webrender.debug.render-targets", false);
+

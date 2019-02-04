@@ -1,0 +1,192 @@
+diff -r 0c7e3d4eb429 dom/media/CubebUtils.cpp
+--- a/dom/media/CubebUtils.cpp	Tue Oct 09 13:02:50 2018 +0000
++++ b/dom/media/CubebUtils.cpp	Tue Oct 09 13:02:55 2018 +0000
+@@ -677,17 +677,18 @@
+   };
+   return map[aState];
+ }
+ 
+ uint16_t ConvertCubebPreferred(cubeb_device_pref aPreferred)
+ {
+   if (aPreferred == CUBEB_DEVICE_PREF_NONE) {
+     return nsIAudioDeviceInfo::PREF_NONE;
+-  } else if (aPreferred == CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return
++  } else if (aPreferred ==
++             CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return
+     return nsIAudioDeviceInfo::PREF_ALL;
+   }
+ 
+   uint16_t preferred = 0;
+   if (aPreferred & CUBEB_DEVICE_PREF_MULTIMEDIA) {
+     preferred |= nsIAudioDeviceInfo::PREF_MULTIMEDIA;
+   }
+   if (aPreferred & CUBEB_DEVICE_PREF_VOICE) {
+diff -r 0c7e3d4eb429 js/ductwork/debugger/JSDebugger.cpp
+--- a/js/ductwork/debugger/JSDebugger.cpp	Tue Oct 09 13:02:50 2018 +0000
++++ b/js/ductwork/debugger/JSDebugger.cpp	Tue Oct 09 13:02:55 2018 +0000
+@@ -46,19 +46,20 @@
+   if (!obj) {
+     return NS_ERROR_FAILURE;
+   }
+ 
+   else if (!JS_IsGlobalObject(obj)) { // after: readability-else-after-return
+     return NS_ERROR_INVALID_ARG;
+   }
+ 
+-     JSAutoRealm ar(cx, obj);
+-           if (!JS_DefineDebuggerObject(cx, obj)) {
+-                         return NS_ERROR_FAILURE;    } // after: clang-format
++  JSAutoRealm ar(cx, obj);
++  if (!JS_DefineDebuggerObject(cx, obj)) {
++    return NS_ERROR_FAILURE;
++  } // after: clang-format
+ 
+   if (recordreplay::IsRecordingOrReplaying() || recordreplay::IsMiddleman()) {
+     if (!recordreplay::DefineRecordReplayControlObject(cx, obj)) {
+       return NS_ERROR_FAILURE;
+     }
+   } else {
+     // Define an empty RecordReplayControl object, to avoid reference errors in
+     // scripts that run in normal processes. DefineRecordReplayControlObject
+diff -r 0c7e3d4eb429 js/src/jsapi.cpp
+--- a/js/src/jsapi.cpp	Tue Oct 09 13:02:50 2018 +0000
++++ b/js/src/jsapi.cpp	Tue Oct 09 13:02:55 2018 +0000
+@@ -117,35 +117,39 @@
+ using mozilla::Some;
+ 
+ using JS::AutoStableStringChars;
+ using JS::CompileOptions;
+ using JS::ReadOnlyCompileOptions;
+ using JS::SourceBufferHolder;
+ 
+ const char* Test[] = {
+-  "line 1",
+-  "line 2",
+-  "line 3",
+-  "line 4",
+-  "line 5",
+-  "line 6"     // after: bugprone-suspicious-missing-comma
+-  "line 7",
+-  "line 8",
++    "line 1",
++    "line 2",
++    "line 3",
++    "line 4",
++    "line 5",
++    "line 6" // after: bugprone-suspicious-missing-comma
++    "line 7",
++    "line 8",
+ };
+ 
+ #ifdef HAVE_VA_LIST_AS_ARRAY
+ #define JS_ADDRESSOF_VA_LIST(ap) ((va_list*)(ap))
+ #else
+ #define JS_ADDRESSOF_VA_LIST(ap) (&(ap))
+ #endif
+ 
+-class AnnotateConflict {
+-  MOZ_NO_DANGLING_ON_TEMPORARIES int *get() && { return nullptr; } // after: mozilla-dangling-on-temporary
+-  MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary
++class AnnotateConflict
++{
++    MOZ_NO_DANGLING_ON_TEMPORARIES int* get() &&
++    {
++        return nullptr;
++    }                                                       // after: mozilla-dangling-on-temporary
++    MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary
+ };
+ 
+ JS_PUBLIC_API(bool)
+ JS::CallArgs::requireAtLeast(JSContext* cx, const char* fnname, unsigned required) const
+ {
+     if (length() < required) {
+         char numArgsStr[40];
+         SprintfLiteral(numArgsStr, "%u", required - 1);
+@@ -187,17 +191,19 @@
+ 
+     unsigned flags = strict ? JSREPORT_ERROR : (JSREPORT_WARNING | JSREPORT_STRICT);
+     if (code_ == JSMSG_OBJECT_NOT_EXTENSIBLE) {
+         RootedValue val(cx, ObjectValue(*obj));
+         return ReportValueErrorFlags(cx, flags, code_, JSDVG_IGNORE_STACK, val,
+                                      nullptr, nullptr, nullptr);
+     }
+ 
+-    else if (ErrorTakesArguments(code_)) { // after: readability-misleading-indentation or readability-else-after-return
++    else if (
++      ErrorTakesArguments(
++        code_)) { // after: readability-misleading-indentation or readability-else-after-return
+         UniqueChars propName = IdToPrintableUTF8(cx, id, IdToPrintableBehavior::IdIsPropertyKey);
+         if (!propName) {
+             return false;
+         }
+ 
+         if (code_ == JSMSG_SET_NON_OBJECT_RECEIVER) {
+             // We know that the original receiver was a primitive, so unbox it.
+             RootedValue val(cx, ObjectValue(*obj));
+@@ -219,38 +225,41 @@
+                                                 propName.get());
+     }
+     return JS_ReportErrorFlagsAndNumberASCII(cx, flags, GetErrorMessage, nullptr, code_);
+ }
+ 
+ JS_PUBLIC_API(bool)
+ JS::ObjectOpResult::reportStrictErrorOrWarning(JSContext* cx, HandleObject obj, bool strict)
+ {
+-    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {} // after: clang-analyzer-security.FloatLoopCounter
++    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {
++    } // after: clang-analyzer-security.FloatLoopCounter
+ 
+     setuid(1); // after: clang-analyzer-security.insecureAPI.UncheckedReturn
+ 
+     int x = 0;
+     int y = 0;
+-    if (x < y); // after: bugprone-suspicious-semicolon; readability-braces-around-statements
++    if (x < y)
++        ; // after: bugprone-suspicious-semicolon; readability-braces-around-statements
+     {
+-      x++;
++        x++;
+     }
+ 
+     MOZ_ASSERT(code_ != Uninitialized);
+     MOZ_ASSERT(!ok());
+     MOZ_ASSERT(!ErrorTakesArguments(code_));
+     cx->check(obj);
+ 
+     unsigned flags = strict ? JSREPORT_ERROR : (JSREPORT_WARNING | JSREPORT_STRICT);
+     return JS_ReportErrorFlagsAndNumberASCII(cx, flags, GetErrorMessage, nullptr, code_);
+ }
+ 
+ JS_PUBLIC_API(bool)
+-JS::ObjectOpResult::failCantRedefineProp(void) // (should not be published: modernize-redundant-void-arg)
++JS::ObjectOpResult::failCantRedefineProp(
++  void) // (should not be published: modernize-redundant-void-arg)
+ {
+     int x;
+     x = 1; // after: clang-analyzer-deadcode.DeadStores
+ 
+     return fail(JSMSG_CANT_REDEFINE_PROP);
+ }
+ 
+ JS_PUBLIC_API(bool)
+@@ -357,17 +366,18 @@
+ 
+     return StringValue(cx->runtime()->emptyString);
+ }
+ 
+ JS_PUBLIC_API(JSString*)
+ JS_GetEmptyString(JSContext* cx)
+ {
+     std::map<int, std::vector<std::string>> my_map;
+-    for (const std::pair<int, std::vector<std::string>>& p : my_map) {} // after: performance-implicit-conversion-in-loop
++    for (const std::pair<int, std::vector<std::string>>& p : my_map) {
++    } // after: performance-implicit-conversion-in-loop
+ 
+     MOZ_ASSERT(cx->emptyString());
+     return cx->emptyString();
+ }
+ 
+ namespace js {
+ 
+ void
+

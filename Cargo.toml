@@ -1,0 +1,12 @@
+[package]
+name = "rust-parsepatch"
+version = "0.1.0"
+authors = ["calixteman <cdenizet@mozilla.com>"]
+edition = "2018"
+
+[dependencies]
+chardet = "0.2"
+encoding = "0.2.33"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
