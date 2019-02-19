@@ -77,7 +77,11 @@ impl<'a> LineReader<'a> {
     }
 
     fn first_is(&self, c: u8) -> bool {
-        !self.buf.is_empty() && self.buf[0] == c
+        if let Some(cc) = self.buf.get(0) {
+            *cc == c
+        } else {
+            false
+        }
     }
 
     fn parse_numbers(&self) -> (u64, u64) {
@@ -118,11 +122,16 @@ impl<'a> LineReader<'a> {
         let mut old_path = iter.next().unwrap();
         let mut new_path = iter.next().unwrap();
 
-        if old_path.len() >= 2 && old_path[..2] == [b'a', b'/'] {
-            old_path = &old_path[2..]
+        if let Some(x) = old_path.get(0..2) {
+            if x == [b'a', b'/'] {
+                old_path = &old_path[2..];
+            }
         }
-        if new_path.len() >= 2 && new_path[..2] == [b'b', b'/'] {
-            new_path = &new_path[2..]
+
+        if let Some(x) = new_path.get(0..2) {
+            if x == [b'b', b'/'] {
+                new_path = &new_path[2..];
+            }
         }
         (
             std::str::from_utf8(old_path).unwrap(),
@@ -198,7 +207,9 @@ impl<'a> PatchReader<'a> {
         let mut old_count = o;
         let mut new_count = n;
         while let Some(line) = self.next(PatchReader::hunk_change, true) {
-            match line.buf[0] {
+            // we know that line is beginning with -, +, ... so no need to check bounds
+            let first = unsafe { *line.buf.get_unchecked(0) };
+            match first {
                 b'-' => {
                     diff.add_line(old_count, 0, &line.buf[1..]);
                     old_count += 1;
@@ -229,11 +240,14 @@ impl<'a> PatchReader<'a> {
         for (n, c) in self.buf[self.pos..].iter().enumerate() {
             if *c == b'\n' {
                 let mut npos = self.pos + n;
-                if npos > 0 && self.buf[npos - 1] == b'\r' {
-                    npos -= 1;
+                if npos > 0 {
+                    let prev = unsafe { *self.buf.get_unchecked(npos - 1) };
+                    if prev == b'\r' {
+                        npos -= 1;
+                    }
                 }
                 let line = LineReader {
-                    buf: &self.buf[pos..npos],
+                    buf: unsafe { self.buf.get_unchecked(pos..npos) },
                 };
                 if filter(&line) {
                     self.pos += n + 1;
