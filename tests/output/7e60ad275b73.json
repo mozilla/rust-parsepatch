@@ -1,484 +1,486 @@
-[
-    {
-        "filename": "gfx/config/gfxVars.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 39,
-                "deleted": false,
-                "data": "  _(UseWebRenderProgramBinary,  bool,             false)                \\"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/thebes/gfxPlatform.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 2556,
-                "deleted": false,
-                "data": "  if (Preferences::GetBool(\"gfx.webrender.program-binary\", false)) {"
-            },
-            {
-                "line": 2557,
-                "deleted": false,
-                "data": "    gfx::gfxVars::SetUseWebRenderProgramBinary(gfxConfig::IsEnabled(Feature::WEBRENDER));"
-            },
-            {
-                "line": 2558,
-                "deleted": false,
-                "data": "  }"
-            },
-            {
-                "line": 2559,
-                "deleted": false,
-                "data": ""
-            }
-        ]
-    },
-    {
-        "filename": "gfx/webrender_bindings/RenderThread.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 425,
-                "deleted": false,
-                "data": "WebRenderProgramCache*"
-            },
-            {
-                "line": 426,
-                "deleted": false,
-                "data": "RenderThread::ProgramCache()"
-            },
-            {
-                "line": 427,
-                "deleted": false,
-                "data": "{"
-            },
-            {
-                "line": 428,
-                "deleted": false,
-                "data": "  MOZ_ASSERT(IsInRenderThread());"
-            },
-            {
-                "line": 429,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 430,
-                "deleted": false,
-                "data": "  if (!mProgramCache) {"
-            },
-            {
-                "line": 431,
-                "deleted": false,
-                "data": "    mProgramCache = MakeUnique<WebRenderProgramCache>();"
-            },
-            {
-                "line": 432,
-                "deleted": false,
-                "data": "  }"
-            },
-            {
-                "line": 433,
-                "deleted": false,
-                "data": "  return mProgramCache.get();"
-            },
-            {
-                "line": 434,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 435,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 446,
-                "deleted": false,
-                "data": "WebRenderProgramCache::WebRenderProgramCache()"
-            },
-            {
-                "line": 447,
-                "deleted": false,
-                "data": "{"
-            },
-            {
-                "line": 448,
-                "deleted": false,
-                "data": "  mProgramCache = wr_program_cache_new();"
-            },
-            {
-                "line": 449,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 450,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 451,
-                "deleted": false,
-                "data": "WebRenderProgramCache::~WebRenderProgramCache()"
-            },
-            {
-                "line": 452,
-                "deleted": false,
-                "data": "{"
-            },
-            {
-                "line": 453,
-                "deleted": false,
-                "data": "  wr_program_cache_delete(mProgramCache);"
-            },
-            {
-                "line": 454,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 455,
-                "deleted": false,
-                "data": ""
-            }
-        ]
-    },
-    {
-        "filename": "gfx/webrender_bindings/RenderThread.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 43,
-                "deleted": false,
-                "data": "class WebRenderProgramCache {"
-            },
-            {
-                "line": 44,
-                "deleted": false,
-                "data": "public:"
-            },
-            {
-                "line": 45,
-                "deleted": false,
-                "data": "  WebRenderProgramCache();"
-            },
-            {
-                "line": 46,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 47,
-                "deleted": false,
-                "data": "  ~WebRenderProgramCache();"
-            },
-            {
-                "line": 48,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 49,
-                "deleted": false,
-                "data": "  wr::WrProgramCache* Raw() { return mProgramCache; }"
-            },
-            {
-                "line": 50,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 51,
-                "deleted": false,
-                "data": "protected:"
-            },
-            {
-                "line": 52,
-                "deleted": false,
-                "data": "  wr::WrProgramCache* mProgramCache;"
-            },
-            {
-                "line": 53,
-                "deleted": false,
-                "data": "};"
-            },
-            {
-                "line": 157,
-                "deleted": false,
-                "data": "  /// Can only be called from the render thread."
-            },
-            {
-                "line": 158,
-                "deleted": false,
-                "data": "  WebRenderProgramCache* ProgramCache();"
-            },
-            {
-                "line": 159,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 171,
-                "deleted": false,
-                "data": "  UniquePtr<WebRenderProgramCache> mProgramCache;"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/webrender_bindings/WebRenderAPI.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 93,
-                "deleted": false,
-                "data": "      if (gfx::gfxVars::UseWebRenderProgramBinary()) {"
-            },
-            {
-                "line": 94,
-                "deleted": false,
-                "data": "        wr_renderer_update_program_cache(wrRenderer, aRenderThread.ProgramCache()->Raw());"
-            },
-            {
-                "line": 95,
-                "deleted": false,
-                "data": "      }"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/webrender_bindings/src/bindings.rs",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 5,
-                "deleted": false,
-                "data": "use std::rc::Rc;"
-            },
-            {
-                "line": 15,
-                "deleted": false,
-                "data": "use webrender::ProgramCache;"
-            },
-            {
-                "line": 665,
-                "deleted": false,
-                "data": "pub struct WrProgramCache(Rc<ProgramCache>);"
-            },
-            {
-                "line": 666,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 667,
-                "deleted": false,
-                "data": "#[no_mangle]"
-            },
-            {
-                "line": 668,
-                "deleted": false,
-                "data": "pub unsafe extern \"C\" fn wr_program_cache_new() -> *mut WrProgramCache {"
-            },
-            {
-                "line": 669,
-                "deleted": false,
-                "data": "    let program_cache = ProgramCache::new();"
-            },
-            {
-                "line": 670,
-                "deleted": false,
-                "data": "    Box::into_raw(Box::new(WrProgramCache(program_cache)))"
-            },
-            {
-                "line": 671,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 672,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 673,
-                "deleted": false,
-                "data": "/// cbindgen:postfix=WR_DESTRUCTOR_SAFE_FUNC"
-            },
-            {
-                "line": 674,
-                "deleted": false,
-                "data": "#[no_mangle]"
-            },
-            {
-                "line": 675,
-                "deleted": false,
-                "data": "pub unsafe extern \"C\" fn wr_program_cache_delete(program_cache: *mut WrProgramCache) {"
-            },
-            {
-                "line": 676,
-                "deleted": false,
-                "data": "    Rc::from_raw(program_cache);"
-            },
-            {
-                "line": 677,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 678,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 679,
-                "deleted": false,
-                "data": "#[no_mangle]"
-            },
-            {
-                "line": 680,
-                "deleted": false,
-                "data": "pub extern \"C\" fn wr_renderer_update_program_cache(renderer: &mut Renderer, program_cache: &mut WrProgramCache) {"
-            },
-            {
-                "line": 681,
-                "deleted": false,
-                "data": "    let program_cache = Rc::clone(&program_cache.0);"
-            },
-            {
-                "line": 682,
-                "deleted": false,
-                "data": "    renderer.update_program_cache(program_cache);"
-            },
-            {
-                "line": 683,
-                "deleted": false,
-                "data": "}"
-            },
-            {
-                "line": 684,
-                "deleted": false,
-                "data": ""
-            }
-        ]
-    },
-    {
-        "filename": "gfx/webrender_bindings/webrender_ffi_generated.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 253,
-                "deleted": false,
-                "data": "struct WrProgramCache;"
-            },
-            {
-                "line": 254,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 1415,
-                "deleted": false,
-                "data": "void wr_program_cache_delete(WrProgramCache *aProgramCache)"
-            },
-            {
-                "line": 1416,
-                "deleted": false,
-                "data": "WR_DESTRUCTOR_SAFE_FUNC;"
-            },
-            {
-                "line": 1417,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 1418,
-                "deleted": false,
-                "data": "WR_INLINE"
-            },
-            {
-                "line": 1419,
-                "deleted": false,
-                "data": "WrProgramCache *wr_program_cache_new()"
-            },
-            {
-                "line": 1420,
-                "deleted": false,
-                "data": "WR_FUNC;"
-            },
-            {
-                "line": 1421,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 1422,
-                "deleted": false,
-                "data": "WR_INLINE"
-            },
-            {
-                "line": 1479,
-                "deleted": false,
-                "data": "void wr_renderer_update_program_cache(Renderer *aRenderer,"
-            },
-            {
-                "line": 1480,
-                "deleted": false,
-                "data": "                                      WrProgramCache *aProgramCache)"
-            },
-            {
-                "line": 1481,
-                "deleted": false,
-                "data": "WR_FUNC;"
-            },
-            {
-                "line": 1482,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 1483,
-                "deleted": false,
-                "data": "WR_INLINE"
-            }
-        ]
-    },
-    {
-        "filename": "modules/libpref/init/all.js",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 863,
-                "deleted": false,
-                "data": "pref(\"gfx.webrender.program-binary\", true);"
-            }
-        ]
-    }
-]
+{
+    "diffs": [
+        {
+            "filename": "gfx/config/gfxVars.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 39,
+                    "deleted": false,
+                    "data": "  _(UseWebRenderProgramBinary,  bool,             false)                \\"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/thebes/gfxPlatform.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 2556,
+                    "deleted": false,
+                    "data": "  if (Preferences::GetBool(\"gfx.webrender.program-binary\", false)) {"
+                },
+                {
+                    "line": 2557,
+                    "deleted": false,
+                    "data": "    gfx::gfxVars::SetUseWebRenderProgramBinary(gfxConfig::IsEnabled(Feature::WEBRENDER));"
+                },
+                {
+                    "line": 2558,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 2559,
+                    "deleted": false,
+                    "data": ""
+                }
+            ]
+        },
+        {
+            "filename": "gfx/webrender_bindings/RenderThread.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 425,
+                    "deleted": false,
+                    "data": "WebRenderProgramCache*"
+                },
+                {
+                    "line": 426,
+                    "deleted": false,
+                    "data": "RenderThread::ProgramCache()"
+                },
+                {
+                    "line": 427,
+                    "deleted": false,
+                    "data": "{"
+                },
+                {
+                    "line": 428,
+                    "deleted": false,
+                    "data": "  MOZ_ASSERT(IsInRenderThread());"
+                },
+                {
+                    "line": 429,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 430,
+                    "deleted": false,
+                    "data": "  if (!mProgramCache) {"
+                },
+                {
+                    "line": 431,
+                    "deleted": false,
+                    "data": "    mProgramCache = MakeUnique<WebRenderProgramCache>();"
+                },
+                {
+                    "line": 432,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 433,
+                    "deleted": false,
+                    "data": "  return mProgramCache.get();"
+                },
+                {
+                    "line": 434,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 435,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 446,
+                    "deleted": false,
+                    "data": "WebRenderProgramCache::WebRenderProgramCache()"
+                },
+                {
+                    "line": 447,
+                    "deleted": false,
+                    "data": "{"
+                },
+                {
+                    "line": 448,
+                    "deleted": false,
+                    "data": "  mProgramCache = wr_program_cache_new();"
+                },
+                {
+                    "line": 449,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 450,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 451,
+                    "deleted": false,
+                    "data": "WebRenderProgramCache::~WebRenderProgramCache()"
+                },
+                {
+                    "line": 452,
+                    "deleted": false,
+                    "data": "{"
+                },
+                {
+                    "line": 453,
+                    "deleted": false,
+                    "data": "  wr_program_cache_delete(mProgramCache);"
+                },
+                {
+                    "line": 454,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 455,
+                    "deleted": false,
+                    "data": ""
+                }
+            ]
+        },
+        {
+            "filename": "gfx/webrender_bindings/RenderThread.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 43,
+                    "deleted": false,
+                    "data": "class WebRenderProgramCache {"
+                },
+                {
+                    "line": 44,
+                    "deleted": false,
+                    "data": "public:"
+                },
+                {
+                    "line": 45,
+                    "deleted": false,
+                    "data": "  WebRenderProgramCache();"
+                },
+                {
+                    "line": 46,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 47,
+                    "deleted": false,
+                    "data": "  ~WebRenderProgramCache();"
+                },
+                {
+                    "line": 48,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 49,
+                    "deleted": false,
+                    "data": "  wr::WrProgramCache* Raw() { return mProgramCache; }"
+                },
+                {
+                    "line": 50,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 51,
+                    "deleted": false,
+                    "data": "protected:"
+                },
+                {
+                    "line": 52,
+                    "deleted": false,
+                    "data": "  wr::WrProgramCache* mProgramCache;"
+                },
+                {
+                    "line": 53,
+                    "deleted": false,
+                    "data": "};"
+                },
+                {
+                    "line": 157,
+                    "deleted": false,
+                    "data": "  /// Can only be called from the render thread."
+                },
+                {
+                    "line": 158,
+                    "deleted": false,
+                    "data": "  WebRenderProgramCache* ProgramCache();"
+                },
+                {
+                    "line": 159,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 171,
+                    "deleted": false,
+                    "data": "  UniquePtr<WebRenderProgramCache> mProgramCache;"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/webrender_bindings/WebRenderAPI.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 93,
+                    "deleted": false,
+                    "data": "      if (gfx::gfxVars::UseWebRenderProgramBinary()) {"
+                },
+                {
+                    "line": 94,
+                    "deleted": false,
+                    "data": "        wr_renderer_update_program_cache(wrRenderer, aRenderThread.ProgramCache()->Raw());"
+                },
+                {
+                    "line": 95,
+                    "deleted": false,
+                    "data": "      }"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/webrender_bindings/src/bindings.rs",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 5,
+                    "deleted": false,
+                    "data": "use std::rc::Rc;"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "use webrender::ProgramCache;"
+                },
+                {
+                    "line": 665,
+                    "deleted": false,
+                    "data": "pub struct WrProgramCache(Rc<ProgramCache>);"
+                },
+                {
+                    "line": 666,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 667,
+                    "deleted": false,
+                    "data": "#[no_mangle]"
+                },
+                {
+                    "line": 668,
+                    "deleted": false,
+                    "data": "pub unsafe extern \"C\" fn wr_program_cache_new() -> *mut WrProgramCache {"
+                },
+                {
+                    "line": 669,
+                    "deleted": false,
+                    "data": "    let program_cache = ProgramCache::new();"
+                },
+                {
+                    "line": 670,
+                    "deleted": false,
+                    "data": "    Box::into_raw(Box::new(WrProgramCache(program_cache)))"
+                },
+                {
+                    "line": 671,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 672,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 673,
+                    "deleted": false,
+                    "data": "/// cbindgen:postfix=WR_DESTRUCTOR_SAFE_FUNC"
+                },
+                {
+                    "line": 674,
+                    "deleted": false,
+                    "data": "#[no_mangle]"
+                },
+                {
+                    "line": 675,
+                    "deleted": false,
+                    "data": "pub unsafe extern \"C\" fn wr_program_cache_delete(program_cache: *mut WrProgramCache) {"
+                },
+                {
+                    "line": 676,
+                    "deleted": false,
+                    "data": "    Rc::from_raw(program_cache);"
+                },
+                {
+                    "line": 677,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 678,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 679,
+                    "deleted": false,
+                    "data": "#[no_mangle]"
+                },
+                {
+                    "line": 680,
+                    "deleted": false,
+                    "data": "pub extern \"C\" fn wr_renderer_update_program_cache(renderer: &mut Renderer, program_cache: &mut WrProgramCache) {"
+                },
+                {
+                    "line": 681,
+                    "deleted": false,
+                    "data": "    let program_cache = Rc::clone(&program_cache.0);"
+                },
+                {
+                    "line": 682,
+                    "deleted": false,
+                    "data": "    renderer.update_program_cache(program_cache);"
+                },
+                {
+                    "line": 683,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 684,
+                    "deleted": false,
+                    "data": ""
+                }
+            ]
+        },
+        {
+            "filename": "gfx/webrender_bindings/webrender_ffi_generated.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 253,
+                    "deleted": false,
+                    "data": "struct WrProgramCache;"
+                },
+                {
+                    "line": 254,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 1415,
+                    "deleted": false,
+                    "data": "void wr_program_cache_delete(WrProgramCache *aProgramCache)"
+                },
+                {
+                    "line": 1416,
+                    "deleted": false,
+                    "data": "WR_DESTRUCTOR_SAFE_FUNC;"
+                },
+                {
+                    "line": 1417,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 1418,
+                    "deleted": false,
+                    "data": "WR_INLINE"
+                },
+                {
+                    "line": 1419,
+                    "deleted": false,
+                    "data": "WrProgramCache *wr_program_cache_new()"
+                },
+                {
+                    "line": 1420,
+                    "deleted": false,
+                    "data": "WR_FUNC;"
+                },
+                {
+                    "line": 1421,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 1422,
+                    "deleted": false,
+                    "data": "WR_INLINE"
+                },
+                {
+                    "line": 1479,
+                    "deleted": false,
+                    "data": "void wr_renderer_update_program_cache(Renderer *aRenderer,"
+                },
+                {
+                    "line": 1480,
+                    "deleted": false,
+                    "data": "                                      WrProgramCache *aProgramCache)"
+                },
+                {
+                    "line": 1481,
+                    "deleted": false,
+                    "data": "WR_FUNC;"
+                },
+                {
+                    "line": 1482,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 1483,
+                    "deleted": false,
+                    "data": "WR_INLINE"
+                }
+            ]
+        },
+        {
+            "filename": "modules/libpref/init/all.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 863,
+                    "deleted": false,
+                    "data": "pref(\"gfx.webrender.program-binary\", true);"
+                }
+            ]
+        }
+    ]
+}

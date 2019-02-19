@@ -1,1430 +1,1432 @@
-[
-    {
-        "filename": "gfx/layers/apz/public/IAPZCTreeManager.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 14,
-                "deleted": true,
-                "data": "#include \"mozilla/layers/APZUtils.h\"    // for HitTestResult"
-            },
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "#include \"mozilla/layers/APZUtils.h\"    // for TouchBehaviorFlags, etc"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/src/APZCTreeManager.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 60,
-                "deleted": false,
-                "data": "using mozilla::gfx::CompositorHitTestInfo;"
-            },
-            {
-                "line": 61,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 224,
-                "deleted": true,
-                "data": "      mHitResultForInputBlock(HitNothing),"
-            },
-            {
-                "line": 226,
-                "deleted": false,
-                "data": "      mHitResultForInputBlock(CompositorHitTestInfo::eInvisibleToHitTest),"
-            },
-            {
-                "line": 1023,
-                "deleted": true,
-                "data": "  HitTestResult hitResult = HitNothing;"
-            },
-            {
-                "line": 1025,
-                "deleted": false,
-                "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 1059,
-                "deleted": true,
-                "data": "        bool targetConfirmed = (hitResult != HitNothing && hitResult != HitDispatchToContentRegion);"
-            },
-            {
-                "line": 1061,
-                "deleted": false,
-                "data": "        bool targetConfirmed = (hitResult != CompositorHitTestInfo::eInvisibleToHitTest)"
-            },
-            {
-                "line": 1062,
-                "deleted": false,
-                "data": "                            && !(hitResult & CompositorHitTestInfo::eDispatchToContent);"
-            },
-            {
-                "line": 1122,
-                "deleted": true,
-                "data": "        MOZ_ASSERT(hitResult != HitNothing);"
-            },
-            {
-                "line": 1125,
-                "deleted": false,
-                "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 1142,
-                "deleted": true,
-                "data": "          /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
-            },
-            {
-                "line": 1145,
-                "deleted": false,
-                "data": "          /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
-            },
-            {
-                "line": 1172,
-                "deleted": true,
-                "data": "        MOZ_ASSERT(hitResult != HitNothing);"
-            },
-            {
-                "line": 1175,
-                "deleted": false,
-                "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 1194,
-                "deleted": true,
-                "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
-            },
-            {
-                "line": 1197,
-                "deleted": false,
-                "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
-            },
-            {
-                "line": 1211,
-                "deleted": true,
-                "data": "        MOZ_ASSERT(hitResult != HitNothing);"
-            },
-            {
-                "line": 1214,
-                "deleted": false,
-                "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 1224,
-                "deleted": true,
-                "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
-            },
-            {
-                "line": 1227,
-                "deleted": false,
-                "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
-            },
-            {
-                "line": 1237,
-                "deleted": true,
-                "data": "        MOZ_ASSERT(hitResult != HitNothing);"
-            },
-            {
-                "line": 1240,
-                "deleted": false,
-                "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 1250,
-                "deleted": true,
-                "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
-            },
-            {
-                "line": 1253,
-                "deleted": false,
-                "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
-            },
-            {
-                "line": 1352,
-                "deleted": true,
-                "data": "ConvertToTouchBehavior(HitTestResult result)"
-            },
-            {
-                "line": 1355,
-                "deleted": false,
-                "data": "ConvertToTouchBehavior(CompositorHitTestInfo info)"
-            },
-            {
-                "line": 1354,
-                "deleted": true,
-                "data": "  switch (result) {"
-            },
-            {
-                "line": 1355,
-                "deleted": true,
-                "data": "    case HitNothing:"
-            },
-            {
-                "line": 1356,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::NONE;"
-            },
-            {
-                "line": 1357,
-                "deleted": true,
-                "data": "    case HitLayer:"
-            },
-            {
-                "line": 1358,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::VERTICAL_PAN"
-            },
-            {
-                "line": 1357,
-                "deleted": false,
-                "data": "  TouchBehaviorFlags result = AllowedTouchBehavior::UNKNOWN;"
-            },
-            {
-                "line": 1358,
-                "deleted": false,
-                "data": "  if (info == CompositorHitTestInfo::eInvisibleToHitTest) {"
-            },
-            {
-                "line": 1359,
-                "deleted": false,
-                "data": "    result = AllowedTouchBehavior::NONE;"
-            },
-            {
-                "line": 1360,
-                "deleted": false,
-                "data": "  } else if (info & CompositorHitTestInfo::eDispatchToContent) {"
-            },
-            {
-                "line": 1361,
-                "deleted": false,
-                "data": "    result = AllowedTouchBehavior::UNKNOWN;"
-            },
-            {
-                "line": 1362,
-                "deleted": false,
-                "data": "  } else {"
-            },
-            {
-                "line": 1363,
-                "deleted": false,
-                "data": "    result = AllowedTouchBehavior::VERTICAL_PAN"
-            },
-            {
-                "line": 1362,
-                "deleted": true,
-                "data": "    case HitLayerTouchActionNone:"
-            },
-            {
-                "line": 1363,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::NONE;"
-            },
-            {
-                "line": 1364,
-                "deleted": true,
-                "data": "    case HitLayerTouchActionPanX:"
-            },
-            {
-                "line": 1365,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::HORIZONTAL_PAN;"
-            },
-            {
-                "line": 1366,
-                "deleted": true,
-                "data": "    case HitLayerTouchActionPanY:"
-            },
-            {
-                "line": 1367,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::VERTICAL_PAN;"
-            },
-            {
-                "line": 1368,
-                "deleted": true,
-                "data": "    case HitLayerTouchActionPanXY:"
-            },
-            {
-                "line": 1369,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::HORIZONTAL_PAN"
-            },
-            {
-                "line": 1370,
-                "deleted": true,
-                "data": "           | AllowedTouchBehavior::VERTICAL_PAN;"
-            },
-            {
-                "line": 1371,
-                "deleted": true,
-                "data": "    case HitDispatchToContentRegion:"
-            },
-            {
-                "line": 1372,
-                "deleted": true,
-                "data": "      return AllowedTouchBehavior::UNKNOWN;"
-            },
-            {
-                "line": 1367,
-                "deleted": false,
-                "data": "    if (info & CompositorHitTestInfo::eTouchActionPanXDisabled) {"
-            },
-            {
-                "line": 1368,
-                "deleted": false,
-                "data": "      result &= ~AllowedTouchBehavior::HORIZONTAL_PAN;"
-            },
-            {
-                "line": 1369,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 1370,
-                "deleted": false,
-                "data": "    if (info & CompositorHitTestInfo::eTouchActionPanYDisabled) {"
-            },
-            {
-                "line": 1371,
-                "deleted": false,
-                "data": "      result &= ~AllowedTouchBehavior::VERTICAL_PAN;"
-            },
-            {
-                "line": 1372,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 1373,
-                "deleted": false,
-                "data": "    if (info & CompositorHitTestInfo::eTouchActionPinchZoomDisabled) {"
-            },
-            {
-                "line": 1374,
-                "deleted": false,
-                "data": "      result &= ~AllowedTouchBehavior::PINCH_ZOOM;"
-            },
-            {
-                "line": 1375,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 1376,
-                "deleted": false,
-                "data": "    if (info & CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled) {"
-            },
-            {
-                "line": 1377,
-                "deleted": false,
-                "data": "      result &= ~AllowedTouchBehavior::DOUBLE_TAP_ZOOM;"
-            },
-            {
-                "line": 1378,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 1374,
-                "deleted": true,
-                "data": "  MOZ_ASSERT_UNREACHABLE(\"Invalid value\");"
-            },
-            {
-                "line": 1375,
-                "deleted": true,
-                "data": "  return AllowedTouchBehavior::UNKNOWN;"
-            },
-            {
-                "line": 1380,
-                "deleted": false,
-                "data": "  return result;"
-            },
-            {
-                "line": 1381,
-                "deleted": true,
-                "data": "                                        HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 1386,
-                "deleted": false,
-                "data": "                                        CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 1391,
-                "deleted": true,
-                "data": "  HitTestResult hitResult;"
-            },
-            {
-                "line": 1396,
-                "deleted": false,
-                "data": "  CompositorHitTestInfo hitResult;"
-            },
-            {
-                "line": 1442,
-                "deleted": true,
-                "data": "    mHitResultForInputBlock = HitNothing;"
-            },
-            {
-                "line": 1447,
-                "deleted": false,
-                "data": "    mHitResultForInputBlock = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 1501,
-                "deleted": true,
-                "data": "      MOZ_ASSERT(mHitResultForInputBlock != HitNothing);"
-            },
-            {
-                "line": 1506,
-                "deleted": false,
-                "data": "      MOZ_ASSERT(mHitResultForInputBlock != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 1506,
-                "deleted": true,
-                "data": "          /* aTargetConfirmed = */ mHitResultForInputBlock != HitDispatchToContentRegion,"
-            },
-            {
-                "line": 1511,
-                "deleted": false,
-                "data": "          /* aTargetConfirmed = */ !(mHitResultForInputBlock & CompositorHitTestInfo::eDispatchToContent),"
-            },
-            {
-                "line": 1540,
-                "deleted": true,
-                "data": "    mHitResultForInputBlock = HitNothing;"
-            },
-            {
-                "line": 1545,
-                "deleted": false,
-                "data": "    mHitResultForInputBlock = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 1733,
-                "deleted": true,
-                "data": "  HitTestResult hitResult = HitNothing;"
-            },
-            {
-                "line": 1738,
-                "deleted": false,
-                "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 1739,
-                "deleted": true,
-                "data": "    MOZ_ASSERT(hitResult != HitNothing);"
-            },
-            {
-                "line": 1744,
-                "deleted": false,
-                "data": "    MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
-            },
-            {
-                "line": 2202,
-                "deleted": true,
-                "data": "                               HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 2207,
-                "deleted": false,
-                "data": "                               CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 2207,
-                "deleted": true,
-                "data": "  HitTestResult hitResult = HitNothing;"
-            },
-            {
-                "line": 2212,
-                "deleted": false,
-                "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 2213,
-                "deleted": true,
-                "data": "    HitTestResult wrHitResult = HitNothing;"
-            },
-            {
-                "line": 2218,
-                "deleted": false,
-                "data": "    CompositorHitTestInfo wrHitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 2218,
-                "deleted": true,
-                "data": "      printf_stderr(\"WR hit result mismatch at %s: got %d, expected %d\\n\","
-            },
-            {
-                "line": 2223,
-                "deleted": false,
-                "data": "      printf_stderr(\"WR hit result mismatch at %s: got 0x%x, expected 0x%x\\n\","
-            },
-            {
-                "line": 2247,
-                "deleted": true,
-                "data": "                                  HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 2252,
-                "deleted": false,
-                "data": "                                  CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 2297,
-                "deleted": true,
-                "data": "  *aOutHitResult = HitLayer;"
-            },
-            {
-                "line": 2298,
-                "deleted": true,
-                "data": "  if (hitInfo & gfx::CompositorHitTestInfo::eDispatchToContent) {"
-            },
-            {
-                "line": 2299,
-                "deleted": true,
-                "data": "    *aOutHitResult = HitDispatchToContentRegion;"
-            },
-            {
-                "line": 2300,
-                "deleted": true,
-                "data": "    return result.forget();"
-            },
-            {
-                "line": 2301,
-                "deleted": true,
-                "data": "  }"
-            },
-            {
-                "line": 2302,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 2303,
-                "deleted": true,
-                "data": "  auto touchFlags = hitInfo & gfx::CompositorHitTestInfo::eTouchActionMask;"
-            },
-            {
-                "line": 2304,
-                "deleted": true,
-                "data": "  if (!touchFlags) {"
-            },
-            {
-                "line": 2305,
-                "deleted": true,
-                "data": "    return result.forget();"
-            },
-            {
-                "line": 2306,
-                "deleted": true,
-                "data": "  }"
-            },
-            {
-                "line": 2307,
-                "deleted": true,
-                "data": "  if (touchFlags == gfx::CompositorHitTestInfo::eTouchActionMask) {"
-            },
-            {
-                "line": 2308,
-                "deleted": true,
-                "data": "    *aOutHitResult = HitLayerTouchActionNone;"
-            },
-            {
-                "line": 2309,
-                "deleted": true,
-                "data": "    return result.forget();"
-            },
-            {
-                "line": 2310,
-                "deleted": true,
-                "data": "  }"
-            },
-            {
-                "line": 2311,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 2312,
-                "deleted": true,
-                "data": "  bool panX = !(hitInfo & gfx::CompositorHitTestInfo::eTouchActionPanXDisabled);"
-            },
-            {
-                "line": 2313,
-                "deleted": true,
-                "data": "  bool panY = !(hitInfo & gfx::CompositorHitTestInfo::eTouchActionPanYDisabled);"
-            },
-            {
-                "line": 2314,
-                "deleted": true,
-                "data": "  if (panX && panY) {"
-            },
-            {
-                "line": 2315,
-                "deleted": true,
-                "data": "    *aOutHitResult = HitLayerTouchActionPanXY;"
-            },
-            {
-                "line": 2316,
-                "deleted": true,
-                "data": "  } else if (panY) {"
-            },
-            {
-                "line": 2317,
-                "deleted": true,
-                "data": "    *aOutHitResult = HitLayerTouchActionPanY;"
-            },
-            {
-                "line": 2318,
-                "deleted": true,
-                "data": "  } else if (panX) {"
-            },
-            {
-                "line": 2319,
-                "deleted": true,
-                "data": "    *aOutHitResult = HitLayerTouchActionPanX;"
-            },
-            {
-                "line": 2320,
-                "deleted": true,
-                "data": "  }"
-            },
-            {
-                "line": 2302,
-                "deleted": false,
-                "data": "  *aOutHitResult = hitInfo;"
-            },
-            {
-                "line": 2442,
-                "deleted": true,
-                "data": "                                HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 2424,
-                "deleted": false,
-                "data": "                                CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 2483,
-                "deleted": true,
-                "data": "        HitTestResult hitResult = aNode->HitTest(hitTestPoints.top());"
-            },
-            {
-                "line": 2465,
-                "deleted": false,
-                "data": "        CompositorHitTestInfo hitResult = aNode->HitTest(hitTestPoints.top());"
-            },
-            {
-                "line": 2487,
-                "deleted": true,
-                "data": "        if (hitResult != HitTestResult::HitNothing) {"
-            },
-            {
-                "line": 2469,
-                "deleted": false,
-                "data": "        if (hitResult != CompositorHitTestInfo::eInvisibleToHitTest) {"
-            },
-            {
-                "line": 2489,
-                "deleted": true,
-                "data": "          // If event regions are disabled, *aOutHitResult will be HitLayer"
-            },
-            {
-                "line": 2497,
-                "deleted": true,
-                "data": "  if (*aOutHitResult != HitNothing) {"
-            },
-            {
-                "line": 2498,
-                "deleted": true,
-                "data": "      MOZ_ASSERT(resultNode);"
-            },
-            {
-                "line": 2499,
-                "deleted": true,
-                "data": "      for (HitTestingTreeNode* n = resultNode; n; n = n->GetParent()) {"
-            },
-            {
-                "line": 2500,
-                "deleted": true,
-                "data": "        if (n->IsScrollbarNode()) {"
-            },
-            {
-                "line": 2501,
-                "deleted": true,
-                "data": "          *aOutScrollbarNode = n;"
-            },
-            {
-                "line": 2502,
-                "deleted": true,
-                "data": "          // If we hit a scrollbar, target the APZC for the content scrolled"
-            },
-            {
-                "line": 2503,
-                "deleted": true,
-                "data": "          // by the scrollbar. (The scrollbar itself doesn't scroll with the"
-            },
-            {
-                "line": 2504,
-                "deleted": true,
-                "data": "          // scrolled content, so it doesn't carry the scrolled content's"
-            },
-            {
-                "line": 2505,
-                "deleted": true,
-                "data": "          // scroll metadata)."
-            },
-            {
-                "line": 2506,
-                "deleted": true,
-                "data": "          ScrollableLayerGuid guid(n->GetLayersId(), 0, n->GetScrollTargetId());"
-            },
-            {
-                "line": 2507,
-                "deleted": true,
-                "data": "          if (RefPtr<HitTestingTreeNode> scrollTarget = GetTargetNode(guid, &GuidComparatorIgnoringPresShell)) {"
-            },
-            {
-                "line": 2508,
-                "deleted": true,
-                "data": "            MOZ_ASSERT(scrollTarget->GetApzc());"
-            },
-            {
-                "line": 2509,
-                "deleted": true,
-                "data": "            return scrollTarget->GetApzc();"
-            },
-            {
-                "line": 2510,
-                "deleted": true,
-                "data": "          }"
-            },
-            {
-                "line": 2478,
-                "deleted": false,
-                "data": "  if (*aOutHitResult != CompositorHitTestInfo::eInvisibleToHitTest) {"
-            },
-            {
-                "line": 2479,
-                "deleted": false,
-                "data": "    MOZ_ASSERT(resultNode);"
-            },
-            {
-                "line": 2480,
-                "deleted": false,
-                "data": "    for (HitTestingTreeNode* n = resultNode; n; n = n->GetParent()) {"
-            },
-            {
-                "line": 2481,
-                "deleted": false,
-                "data": "      if (n->IsScrollbarNode()) {"
-            },
-            {
-                "line": 2482,
-                "deleted": false,
-                "data": "        *aOutScrollbarNode = n;"
-            },
-            {
-                "line": 2483,
-                "deleted": false,
-                "data": "        *aOutHitResult |= CompositorHitTestInfo::eScrollbar;"
-            },
-            {
-                "line": 2484,
-                "deleted": false,
-                "data": "        if (n->IsScrollThumbNode()) {"
-            },
-            {
-                "line": 2485,
-                "deleted": false,
-                "data": "          *aOutHitResult |= CompositorHitTestInfo::eScrollbarThumb;"
-            },
-            {
-                "line": 2486,
-                "deleted": false,
-                "data": "        }"
-            },
-            {
-                "line": 2487,
-                "deleted": false,
-                "data": "        if (n->GetScrollbarDirection() == ScrollDirection::eVertical) {"
-            },
-            {
-                "line": 2488,
-                "deleted": false,
-                "data": "          *aOutHitResult |= CompositorHitTestInfo::eScrollbarVertical;"
-            },
-            {
-                "line": 2489,
-                "deleted": false,
-                "data": "        }"
-            },
-            {
-                "line": 2490,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 2491,
-                "deleted": false,
-                "data": "        // If we hit a scrollbar, target the APZC for the content scrolled"
-            },
-            {
-                "line": 2492,
-                "deleted": false,
-                "data": "        // by the scrollbar. (The scrollbar itself doesn't scroll with the"
-            },
-            {
-                "line": 2493,
-                "deleted": false,
-                "data": "        // scrolled content, so it doesn't carry the scrolled content's"
-            },
-            {
-                "line": 2494,
-                "deleted": false,
-                "data": "        // scroll metadata)."
-            },
-            {
-                "line": 2495,
-                "deleted": false,
-                "data": "        ScrollableLayerGuid guid(n->GetLayersId(), 0, n->GetScrollTargetId());"
-            },
-            {
-                "line": 2496,
-                "deleted": false,
-                "data": "        if (RefPtr<HitTestingTreeNode> scrollTarget = GetTargetNode(guid, &GuidComparatorIgnoringPresShell)) {"
-            },
-            {
-                "line": 2497,
-                "deleted": false,
-                "data": "          MOZ_ASSERT(scrollTarget->GetApzc());"
-            },
-            {
-                "line": 2498,
-                "deleted": false,
-                "data": "          return scrollTarget->GetApzc();"
-            },
-            {
-                "line": 2501,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 2514,
-                "deleted": true,
-                "data": "      AsyncPanZoomController* result = GetTargetApzcForNode(resultNode);"
-            },
-            {
-                "line": 2515,
-                "deleted": true,
-                "data": "      if (!result) {"
-            },
-            {
-                "line": 2516,
-                "deleted": true,
-                "data": "        result = FindRootApzcForLayersId(resultNode->GetLayersId());"
-            },
-            {
-                "line": 2517,
-                "deleted": true,
-                "data": "        MOZ_ASSERT(result);"
-            },
-            {
-                "line": 2518,
-                "deleted": true,
-                "data": "        APZCTM_LOG(\"Found target %p using root lookup\\n\", result);"
-            },
-            {
-                "line": 2519,
-                "deleted": true,
-                "data": "      }"
-            },
-            {
-                "line": 2520,
-                "deleted": true,
-                "data": "      APZCTM_LOG(\"Successfully matched APZC %p via node %p (hit result %d)\\n\","
-            },
-            {
-                "line": 2521,
-                "deleted": true,
-                "data": "          result, resultNode, *aOutHitResult);"
-            },
-            {
-                "line": 2522,
-                "deleted": true,
-                "data": "      return result;"
-            },
-            {
-                "line": 2503,
-                "deleted": false,
-                "data": "    AsyncPanZoomController* result = GetTargetApzcForNode(resultNode);"
-            },
-            {
-                "line": 2504,
-                "deleted": false,
-                "data": "    if (!result) {"
-            },
-            {
-                "line": 2505,
-                "deleted": false,
-                "data": "      result = FindRootApzcForLayersId(resultNode->GetLayersId());"
-            },
-            {
-                "line": 2506,
-                "deleted": false,
-                "data": "      MOZ_ASSERT(result);"
-            },
-            {
-                "line": 2507,
-                "deleted": false,
-                "data": "      APZCTM_LOG(\"Found target %p using root lookup\\n\", result);"
-            },
-            {
-                "line": 2508,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 2509,
-                "deleted": false,
-                "data": "    APZCTM_LOG(\"Successfully matched APZC %p via node %p (hit result 0x%x)\\n\","
-            },
-            {
-                "line": 2510,
-                "deleted": false,
-                "data": "        result, resultNode, (int)*aOutHitResult);"
-            },
-            {
-                "line": 2511,
-                "deleted": false,
-                "data": "    return result;"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/src/APZCTreeManager.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "#include \"mozilla/gfx/CompositorHitTestInfo.h\""
-            },
-            {
-                "line": 487,
-                "deleted": true,
-                "data": "                                                         HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 488,
-                "deleted": false,
-                "data": "                                                         gfx::CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 525,
-                "deleted": true,
-                "data": "                                         HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 526,
-                "deleted": false,
-                "data": "                                         gfx::CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 528,
-                "deleted": true,
-                "data": "                                                            HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 529,
-                "deleted": false,
-                "data": "                                                            gfx::CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 555,
-                "deleted": true,
-                "data": "                                                                  HitTestResult* aOutHitResult,"
-            },
-            {
-                "line": 556,
-                "deleted": false,
-                "data": "                                                                  gfx::CompositorHitTestInfo* aOutHitResult,"
-            },
-            {
-                "line": 661,
-                "deleted": true,
-                "data": "  HitTestResult mHitResultForInputBlock;"
-            },
-            {
-                "line": 662,
-                "deleted": false,
-                "data": "  gfx::CompositorHitTestInfo mHitResultForInputBlock;"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/src/APZUtils.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 20,
-                "deleted": true,
-                "data": "enum HitTestResult {"
-            },
-            {
-                "line": 21,
-                "deleted": true,
-                "data": "  HitNothing,"
-            },
-            {
-                "line": 22,
-                "deleted": true,
-                "data": "  HitLayer,"
-            },
-            {
-                "line": 23,
-                "deleted": true,
-                "data": "  HitLayerTouchActionNone,"
-            },
-            {
-                "line": 24,
-                "deleted": true,
-                "data": "  HitLayerTouchActionPanX,"
-            },
-            {
-                "line": 25,
-                "deleted": true,
-                "data": "  HitLayerTouchActionPanY,"
-            },
-            {
-                "line": 26,
-                "deleted": true,
-                "data": "  HitLayerTouchActionPanXY,"
-            },
-            {
-                "line": 27,
-                "deleted": true,
-                "data": "  HitDispatchToContentRegion,"
-            },
-            {
-                "line": 28,
-                "deleted": true,
-                "data": "};"
-            },
-            {
-                "line": 29,
-                "deleted": true,
-                "data": ""
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/src/HitTestingTreeNode.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 23,
-                "deleted": false,
-                "data": "using gfx::CompositorHitTestInfo;"
-            },
-            {
-                "line": 24,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 291,
-                "deleted": true,
-                "data": "HitTestResult"
-            },
-            {
-                "line": 293,
-                "deleted": false,
-                "data": "CompositorHitTestInfo"
-            },
-            {
-                "line": 296,
-                "deleted": false,
-                "data": "  CompositorHitTestInfo result = CompositorHitTestInfo::eInvisibleToHitTest;"
-            },
-            {
-                "line": 297,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 295,
-                "deleted": true,
-                "data": "    return HitTestResult::HitNothing;"
-            },
-            {
-                "line": 299,
-                "deleted": false,
-                "data": "    return result;"
-            },
-            {
-                "line": 302,
-                "deleted": true,
-                "data": "    return HitTestResult::HitNothing;"
-            },
-            {
-                "line": 306,
-                "deleted": false,
-                "data": "    return result;"
-            },
-            {
-                "line": 308,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 309,
-                "deleted": false,
-                "data": "  result |= CompositorHitTestInfo::eVisibleToHitTest;"
-            },
-            {
-                "line": 310,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 307,
-                "deleted": true,
-                "data": "    return HitTestResult::HitDispatchToContentRegion;"
-            },
-            {
-                "line": 308,
-                "deleted": true,
-                "data": "  }"
-            },
-            {
-                "line": 309,
-                "deleted": true,
-                "data": "  if (gfxPrefs::TouchActionEnabled()) {"
-            },
-            {
-                "line": 314,
-                "deleted": false,
-                "data": "    result |= CompositorHitTestInfo::eDispatchToContent;"
-            },
-            {
-                "line": 315,
-                "deleted": false,
-                "data": "  } else if (gfxPrefs::TouchActionEnabled()) {"
-            },
-            {
-                "line": 311,
-                "deleted": true,
-                "data": "      return HitTestResult::HitLayerTouchActionNone;"
-            },
-            {
-                "line": 312,
-                "deleted": true,
-                "data": "    }"
-            },
-            {
-                "line": 313,
-                "deleted": true,
-                "data": "    bool panX = mEventRegions.mHorizontalPanRegion.Contains(point.x, point.y);"
-            },
-            {
-                "line": 314,
-                "deleted": true,
-                "data": "    bool panY = mEventRegions.mVerticalPanRegion.Contains(point.x, point.y);"
-            },
-            {
-                "line": 315,
-                "deleted": true,
-                "data": "    if (panX && panY) {"
-            },
-            {
-                "line": 316,
-                "deleted": true,
-                "data": "      return HitTestResult::HitLayerTouchActionPanXY;"
-            },
-            {
-                "line": 317,
-                "deleted": true,
-                "data": "    } else if (panX) {"
-            },
-            {
-                "line": 318,
-                "deleted": true,
-                "data": "      return HitTestResult::HitLayerTouchActionPanX;"
-            },
-            {
-                "line": 319,
-                "deleted": true,
-                "data": "    } else if (panY) {"
-            },
-            {
-                "line": 320,
-                "deleted": true,
-                "data": "      return HitTestResult::HitLayerTouchActionPanY;"
-            },
-            {
-                "line": 317,
-                "deleted": false,
-                "data": "      // set all the touch-action flags as disabled"
-            },
-            {
-                "line": 318,
-                "deleted": false,
-                "data": "      result |= CompositorHitTestInfo::eTouchActionMask;"
-            },
-            {
-                "line": 319,
-                "deleted": false,
-                "data": "    } else {"
-            },
-            {
-                "line": 320,
-                "deleted": false,
-                "data": "      bool panX = mEventRegions.mHorizontalPanRegion.Contains(point.x, point.y);"
-            },
-            {
-                "line": 321,
-                "deleted": false,
-                "data": "      bool panY = mEventRegions.mVerticalPanRegion.Contains(point.x, point.y);"
-            },
-            {
-                "line": 322,
-                "deleted": false,
-                "data": "      if (panX && panY) {"
-            },
-            {
-                "line": 323,
-                "deleted": false,
-                "data": "        // touch-action: pan-x pan-y"
-            },
-            {
-                "line": 324,
-                "deleted": false,
-                "data": "        result |= CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled"
-            },
-            {
-                "line": 325,
-                "deleted": false,
-                "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled;"
-            },
-            {
-                "line": 326,
-                "deleted": false,
-                "data": "      } else if (panX) {"
-            },
-            {
-                "line": 327,
-                "deleted": false,
-                "data": "        // touch-action: pan-x"
-            },
-            {
-                "line": 328,
-                "deleted": false,
-                "data": "        result |= CompositorHitTestInfo::eTouchActionPanYDisabled"
-            },
-            {
-                "line": 329,
-                "deleted": false,
-                "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled"
-            },
-            {
-                "line": 330,
-                "deleted": false,
-                "data": "                | CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled;"
-            },
-            {
-                "line": 331,
-                "deleted": false,
-                "data": "      } else if (panY) {"
-            },
-            {
-                "line": 332,
-                "deleted": false,
-                "data": "        // touch-action: pan-y"
-            },
-            {
-                "line": 333,
-                "deleted": false,
-                "data": "        result |= CompositorHitTestInfo::eTouchActionPanXDisabled"
-            },
-            {
-                "line": 334,
-                "deleted": false,
-                "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled"
-            },
-            {
-                "line": 335,
-                "deleted": false,
-                "data": "                | CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled;"
-            },
-            {
-                "line": 336,
-                "deleted": false,
-                "data": "      } // else we're in the touch-action: auto or touch-action: manipulation"
-            },
-            {
-                "line": 337,
-                "deleted": false,
-                "data": "        // cases and we'll allow all actions. Technically we shouldn't allow"
-            },
-            {
-                "line": 338,
-                "deleted": false,
-                "data": "        // double-tap zooming in the manipulation case but apparently this has"
-            },
-            {
-                "line": 339,
-                "deleted": false,
-                "data": "        // been broken since the dawn of time."
-            },
-            {
-                "line": 323,
-                "deleted": true,
-                "data": "  return HitTestResult::HitLayer;"
-            },
-            {
-                "line": 342,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 343,
-                "deleted": false,
-                "data": "  // The scrollbar flags are set at the call site in GetAPZCAtPoint, because"
-            },
-            {
-                "line": 344,
-                "deleted": false,
-                "data": "  // those require walking up the tree to see if we are contained inside a"
-            },
-            {
-                "line": 345,
-                "deleted": false,
-                "data": "  // scrollbar or scrollthumb, and we do that there anyway to get the scrollbar"
-            },
-            {
-                "line": 346,
-                "deleted": false,
-                "data": "  // node."
-            },
-            {
-                "line": 347,
-                "deleted": false,
-                "data": ""
-            },
-            {
-                "line": 348,
-                "deleted": false,
-                "data": "  return result;"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/src/HitTestingTreeNode.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 10,
-                "deleted": true,
-                "data": "#include \"APZUtils.h\"                       // for HitTestResult"
-            },
-            {
-                "line": 12,
-                "deleted": false,
-                "data": "#include \"mozilla/gfx/CompositorHitTestInfo.h\""
-            },
-            {
-                "line": 122,
-                "deleted": true,
-                "data": "  HitTestResult HitTest(const LayerPoint& aPoint) const;"
-            },
-            {
-                "line": 122,
-                "deleted": false,
-                "data": "  gfx::CompositorHitTestInfo HitTest(const LayerPoint& aPoint) const;"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/layers/apz/test/gtest/TestEventRegions.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 239,
-                "deleted": true,
-                "data": "  HitTestResult result;"
-            },
-            {
-                "line": 239,
-                "deleted": false,
-                "data": "  gfx::CompositorHitTestInfo result;"
-            },
-            {
-                "line": 242,
-                "deleted": true,
-                "data": "  EXPECT_EQ(HitTestResult::HitLayer, result);"
-            },
-            {
-                "line": 242,
-                "deleted": false,
-                "data": "  EXPECT_EQ(CompositorHitTestInfo::eVisibleToHitTest, result);"
-            },
-            {
-                "line": 248,
-                "deleted": true,
-                "data": "  HitTestResult result;"
-            },
-            {
-                "line": 248,
-                "deleted": false,
-                "data": "  gfx::CompositorHitTestInfo result;"
-            },
-            {
-                "line": 250,
-                "deleted": true,
-                "data": "  // We should hit layers[2], so |result| will be HitLayer but there's no"
-            },
-            {
-                "line": 250,
-                "deleted": false,
-                "data": "  // We should hit layers[2], so |result| will be eVisibleToHitTest but there's no"
-            },
-            {
-                "line": 253,
-                "deleted": true,
-                "data": "  EXPECT_EQ(HitTestResult::HitLayer, result);"
-            },
-            {
-                "line": 253,
-                "deleted": false,
-                "data": "  EXPECT_EQ(CompositorHitTestInfo::eVisibleToHitTest, result);"
-            }
-        ]
-    }
-]
+{
+    "diffs": [
+        {
+            "filename": "gfx/layers/apz/public/IAPZCTreeManager.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 14,
+                    "deleted": true,
+                    "data": "#include \"mozilla/layers/APZUtils.h\"    // for HitTestResult"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "#include \"mozilla/layers/APZUtils.h\"    // for TouchBehaviorFlags, etc"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/src/APZCTreeManager.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 60,
+                    "deleted": false,
+                    "data": "using mozilla::gfx::CompositorHitTestInfo;"
+                },
+                {
+                    "line": 61,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 224,
+                    "deleted": true,
+                    "data": "      mHitResultForInputBlock(HitNothing),"
+                },
+                {
+                    "line": 226,
+                    "deleted": false,
+                    "data": "      mHitResultForInputBlock(CompositorHitTestInfo::eInvisibleToHitTest),"
+                },
+                {
+                    "line": 1023,
+                    "deleted": true,
+                    "data": "  HitTestResult hitResult = HitNothing;"
+                },
+                {
+                    "line": 1025,
+                    "deleted": false,
+                    "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 1059,
+                    "deleted": true,
+                    "data": "        bool targetConfirmed = (hitResult != HitNothing && hitResult != HitDispatchToContentRegion);"
+                },
+                {
+                    "line": 1061,
+                    "deleted": false,
+                    "data": "        bool targetConfirmed = (hitResult != CompositorHitTestInfo::eInvisibleToHitTest)"
+                },
+                {
+                    "line": 1062,
+                    "deleted": false,
+                    "data": "                            && !(hitResult & CompositorHitTestInfo::eDispatchToContent);"
+                },
+                {
+                    "line": 1122,
+                    "deleted": true,
+                    "data": "        MOZ_ASSERT(hitResult != HitNothing);"
+                },
+                {
+                    "line": 1125,
+                    "deleted": false,
+                    "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 1142,
+                    "deleted": true,
+                    "data": "          /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 1145,
+                    "deleted": false,
+                    "data": "          /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
+                },
+                {
+                    "line": 1172,
+                    "deleted": true,
+                    "data": "        MOZ_ASSERT(hitResult != HitNothing);"
+                },
+                {
+                    "line": 1175,
+                    "deleted": false,
+                    "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 1194,
+                    "deleted": true,
+                    "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 1197,
+                    "deleted": false,
+                    "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
+                },
+                {
+                    "line": 1211,
+                    "deleted": true,
+                    "data": "        MOZ_ASSERT(hitResult != HitNothing);"
+                },
+                {
+                    "line": 1214,
+                    "deleted": false,
+                    "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 1224,
+                    "deleted": true,
+                    "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 1227,
+                    "deleted": false,
+                    "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
+                },
+                {
+                    "line": 1237,
+                    "deleted": true,
+                    "data": "        MOZ_ASSERT(hitResult != HitNothing);"
+                },
+                {
+                    "line": 1240,
+                    "deleted": false,
+                    "data": "        MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 1250,
+                    "deleted": true,
+                    "data": "            /* aTargetConfirmed = */ hitResult != HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 1253,
+                    "deleted": false,
+                    "data": "            /* aTargetConfirmed = */ !(hitResult & CompositorHitTestInfo::eDispatchToContent),"
+                },
+                {
+                    "line": 1352,
+                    "deleted": true,
+                    "data": "ConvertToTouchBehavior(HitTestResult result)"
+                },
+                {
+                    "line": 1355,
+                    "deleted": false,
+                    "data": "ConvertToTouchBehavior(CompositorHitTestInfo info)"
+                },
+                {
+                    "line": 1354,
+                    "deleted": true,
+                    "data": "  switch (result) {"
+                },
+                {
+                    "line": 1355,
+                    "deleted": true,
+                    "data": "    case HitNothing:"
+                },
+                {
+                    "line": 1356,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::NONE;"
+                },
+                {
+                    "line": 1357,
+                    "deleted": true,
+                    "data": "    case HitLayer:"
+                },
+                {
+                    "line": 1358,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::VERTICAL_PAN"
+                },
+                {
+                    "line": 1357,
+                    "deleted": false,
+                    "data": "  TouchBehaviorFlags result = AllowedTouchBehavior::UNKNOWN;"
+                },
+                {
+                    "line": 1358,
+                    "deleted": false,
+                    "data": "  if (info == CompositorHitTestInfo::eInvisibleToHitTest) {"
+                },
+                {
+                    "line": 1359,
+                    "deleted": false,
+                    "data": "    result = AllowedTouchBehavior::NONE;"
+                },
+                {
+                    "line": 1360,
+                    "deleted": false,
+                    "data": "  } else if (info & CompositorHitTestInfo::eDispatchToContent) {"
+                },
+                {
+                    "line": 1361,
+                    "deleted": false,
+                    "data": "    result = AllowedTouchBehavior::UNKNOWN;"
+                },
+                {
+                    "line": 1362,
+                    "deleted": false,
+                    "data": "  } else {"
+                },
+                {
+                    "line": 1363,
+                    "deleted": false,
+                    "data": "    result = AllowedTouchBehavior::VERTICAL_PAN"
+                },
+                {
+                    "line": 1362,
+                    "deleted": true,
+                    "data": "    case HitLayerTouchActionNone:"
+                },
+                {
+                    "line": 1363,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::NONE;"
+                },
+                {
+                    "line": 1364,
+                    "deleted": true,
+                    "data": "    case HitLayerTouchActionPanX:"
+                },
+                {
+                    "line": 1365,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::HORIZONTAL_PAN;"
+                },
+                {
+                    "line": 1366,
+                    "deleted": true,
+                    "data": "    case HitLayerTouchActionPanY:"
+                },
+                {
+                    "line": 1367,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::VERTICAL_PAN;"
+                },
+                {
+                    "line": 1368,
+                    "deleted": true,
+                    "data": "    case HitLayerTouchActionPanXY:"
+                },
+                {
+                    "line": 1369,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::HORIZONTAL_PAN"
+                },
+                {
+                    "line": 1370,
+                    "deleted": true,
+                    "data": "           | AllowedTouchBehavior::VERTICAL_PAN;"
+                },
+                {
+                    "line": 1371,
+                    "deleted": true,
+                    "data": "    case HitDispatchToContentRegion:"
+                },
+                {
+                    "line": 1372,
+                    "deleted": true,
+                    "data": "      return AllowedTouchBehavior::UNKNOWN;"
+                },
+                {
+                    "line": 1367,
+                    "deleted": false,
+                    "data": "    if (info & CompositorHitTestInfo::eTouchActionPanXDisabled) {"
+                },
+                {
+                    "line": 1368,
+                    "deleted": false,
+                    "data": "      result &= ~AllowedTouchBehavior::HORIZONTAL_PAN;"
+                },
+                {
+                    "line": 1369,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 1370,
+                    "deleted": false,
+                    "data": "    if (info & CompositorHitTestInfo::eTouchActionPanYDisabled) {"
+                },
+                {
+                    "line": 1371,
+                    "deleted": false,
+                    "data": "      result &= ~AllowedTouchBehavior::VERTICAL_PAN;"
+                },
+                {
+                    "line": 1372,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 1373,
+                    "deleted": false,
+                    "data": "    if (info & CompositorHitTestInfo::eTouchActionPinchZoomDisabled) {"
+                },
+                {
+                    "line": 1374,
+                    "deleted": false,
+                    "data": "      result &= ~AllowedTouchBehavior::PINCH_ZOOM;"
+                },
+                {
+                    "line": 1375,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 1376,
+                    "deleted": false,
+                    "data": "    if (info & CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled) {"
+                },
+                {
+                    "line": 1377,
+                    "deleted": false,
+                    "data": "      result &= ~AllowedTouchBehavior::DOUBLE_TAP_ZOOM;"
+                },
+                {
+                    "line": 1378,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 1374,
+                    "deleted": true,
+                    "data": "  MOZ_ASSERT_UNREACHABLE(\"Invalid value\");"
+                },
+                {
+                    "line": 1375,
+                    "deleted": true,
+                    "data": "  return AllowedTouchBehavior::UNKNOWN;"
+                },
+                {
+                    "line": 1380,
+                    "deleted": false,
+                    "data": "  return result;"
+                },
+                {
+                    "line": 1381,
+                    "deleted": true,
+                    "data": "                                        HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 1386,
+                    "deleted": false,
+                    "data": "                                        CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 1391,
+                    "deleted": true,
+                    "data": "  HitTestResult hitResult;"
+                },
+                {
+                    "line": 1396,
+                    "deleted": false,
+                    "data": "  CompositorHitTestInfo hitResult;"
+                },
+                {
+                    "line": 1442,
+                    "deleted": true,
+                    "data": "    mHitResultForInputBlock = HitNothing;"
+                },
+                {
+                    "line": 1447,
+                    "deleted": false,
+                    "data": "    mHitResultForInputBlock = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 1501,
+                    "deleted": true,
+                    "data": "      MOZ_ASSERT(mHitResultForInputBlock != HitNothing);"
+                },
+                {
+                    "line": 1506,
+                    "deleted": false,
+                    "data": "      MOZ_ASSERT(mHitResultForInputBlock != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 1506,
+                    "deleted": true,
+                    "data": "          /* aTargetConfirmed = */ mHitResultForInputBlock != HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 1511,
+                    "deleted": false,
+                    "data": "          /* aTargetConfirmed = */ !(mHitResultForInputBlock & CompositorHitTestInfo::eDispatchToContent),"
+                },
+                {
+                    "line": 1540,
+                    "deleted": true,
+                    "data": "    mHitResultForInputBlock = HitNothing;"
+                },
+                {
+                    "line": 1545,
+                    "deleted": false,
+                    "data": "    mHitResultForInputBlock = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 1733,
+                    "deleted": true,
+                    "data": "  HitTestResult hitResult = HitNothing;"
+                },
+                {
+                    "line": 1738,
+                    "deleted": false,
+                    "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 1739,
+                    "deleted": true,
+                    "data": "    MOZ_ASSERT(hitResult != HitNothing);"
+                },
+                {
+                    "line": 1744,
+                    "deleted": false,
+                    "data": "    MOZ_ASSERT(hitResult != CompositorHitTestInfo::eInvisibleToHitTest);"
+                },
+                {
+                    "line": 2202,
+                    "deleted": true,
+                    "data": "                               HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 2207,
+                    "deleted": false,
+                    "data": "                               CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 2207,
+                    "deleted": true,
+                    "data": "  HitTestResult hitResult = HitNothing;"
+                },
+                {
+                    "line": 2212,
+                    "deleted": false,
+                    "data": "  CompositorHitTestInfo hitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 2213,
+                    "deleted": true,
+                    "data": "    HitTestResult wrHitResult = HitNothing;"
+                },
+                {
+                    "line": 2218,
+                    "deleted": false,
+                    "data": "    CompositorHitTestInfo wrHitResult = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 2218,
+                    "deleted": true,
+                    "data": "      printf_stderr(\"WR hit result mismatch at %s: got %d, expected %d\\n\","
+                },
+                {
+                    "line": 2223,
+                    "deleted": false,
+                    "data": "      printf_stderr(\"WR hit result mismatch at %s: got 0x%x, expected 0x%x\\n\","
+                },
+                {
+                    "line": 2247,
+                    "deleted": true,
+                    "data": "                                  HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 2252,
+                    "deleted": false,
+                    "data": "                                  CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 2297,
+                    "deleted": true,
+                    "data": "  *aOutHitResult = HitLayer;"
+                },
+                {
+                    "line": 2298,
+                    "deleted": true,
+                    "data": "  if (hitInfo & gfx::CompositorHitTestInfo::eDispatchToContent) {"
+                },
+                {
+                    "line": 2299,
+                    "deleted": true,
+                    "data": "    *aOutHitResult = HitDispatchToContentRegion;"
+                },
+                {
+                    "line": 2300,
+                    "deleted": true,
+                    "data": "    return result.forget();"
+                },
+                {
+                    "line": 2301,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 2302,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 2303,
+                    "deleted": true,
+                    "data": "  auto touchFlags = hitInfo & gfx::CompositorHitTestInfo::eTouchActionMask;"
+                },
+                {
+                    "line": 2304,
+                    "deleted": true,
+                    "data": "  if (!touchFlags) {"
+                },
+                {
+                    "line": 2305,
+                    "deleted": true,
+                    "data": "    return result.forget();"
+                },
+                {
+                    "line": 2306,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 2307,
+                    "deleted": true,
+                    "data": "  if (touchFlags == gfx::CompositorHitTestInfo::eTouchActionMask) {"
+                },
+                {
+                    "line": 2308,
+                    "deleted": true,
+                    "data": "    *aOutHitResult = HitLayerTouchActionNone;"
+                },
+                {
+                    "line": 2309,
+                    "deleted": true,
+                    "data": "    return result.forget();"
+                },
+                {
+                    "line": 2310,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 2311,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 2312,
+                    "deleted": true,
+                    "data": "  bool panX = !(hitInfo & gfx::CompositorHitTestInfo::eTouchActionPanXDisabled);"
+                },
+                {
+                    "line": 2313,
+                    "deleted": true,
+                    "data": "  bool panY = !(hitInfo & gfx::CompositorHitTestInfo::eTouchActionPanYDisabled);"
+                },
+                {
+                    "line": 2314,
+                    "deleted": true,
+                    "data": "  if (panX && panY) {"
+                },
+                {
+                    "line": 2315,
+                    "deleted": true,
+                    "data": "    *aOutHitResult = HitLayerTouchActionPanXY;"
+                },
+                {
+                    "line": 2316,
+                    "deleted": true,
+                    "data": "  } else if (panY) {"
+                },
+                {
+                    "line": 2317,
+                    "deleted": true,
+                    "data": "    *aOutHitResult = HitLayerTouchActionPanY;"
+                },
+                {
+                    "line": 2318,
+                    "deleted": true,
+                    "data": "  } else if (panX) {"
+                },
+                {
+                    "line": 2319,
+                    "deleted": true,
+                    "data": "    *aOutHitResult = HitLayerTouchActionPanX;"
+                },
+                {
+                    "line": 2320,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 2302,
+                    "deleted": false,
+                    "data": "  *aOutHitResult = hitInfo;"
+                },
+                {
+                    "line": 2442,
+                    "deleted": true,
+                    "data": "                                HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 2424,
+                    "deleted": false,
+                    "data": "                                CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 2483,
+                    "deleted": true,
+                    "data": "        HitTestResult hitResult = aNode->HitTest(hitTestPoints.top());"
+                },
+                {
+                    "line": 2465,
+                    "deleted": false,
+                    "data": "        CompositorHitTestInfo hitResult = aNode->HitTest(hitTestPoints.top());"
+                },
+                {
+                    "line": 2487,
+                    "deleted": true,
+                    "data": "        if (hitResult != HitTestResult::HitNothing) {"
+                },
+                {
+                    "line": 2469,
+                    "deleted": false,
+                    "data": "        if (hitResult != CompositorHitTestInfo::eInvisibleToHitTest) {"
+                },
+                {
+                    "line": 2489,
+                    "deleted": true,
+                    "data": "          // If event regions are disabled, *aOutHitResult will be HitLayer"
+                },
+                {
+                    "line": 2497,
+                    "deleted": true,
+                    "data": "  if (*aOutHitResult != HitNothing) {"
+                },
+                {
+                    "line": 2498,
+                    "deleted": true,
+                    "data": "      MOZ_ASSERT(resultNode);"
+                },
+                {
+                    "line": 2499,
+                    "deleted": true,
+                    "data": "      for (HitTestingTreeNode* n = resultNode; n; n = n->GetParent()) {"
+                },
+                {
+                    "line": 2500,
+                    "deleted": true,
+                    "data": "        if (n->IsScrollbarNode()) {"
+                },
+                {
+                    "line": 2501,
+                    "deleted": true,
+                    "data": "          *aOutScrollbarNode = n;"
+                },
+                {
+                    "line": 2502,
+                    "deleted": true,
+                    "data": "          // If we hit a scrollbar, target the APZC for the content scrolled"
+                },
+                {
+                    "line": 2503,
+                    "deleted": true,
+                    "data": "          // by the scrollbar. (The scrollbar itself doesn't scroll with the"
+                },
+                {
+                    "line": 2504,
+                    "deleted": true,
+                    "data": "          // scrolled content, so it doesn't carry the scrolled content's"
+                },
+                {
+                    "line": 2505,
+                    "deleted": true,
+                    "data": "          // scroll metadata)."
+                },
+                {
+                    "line": 2506,
+                    "deleted": true,
+                    "data": "          ScrollableLayerGuid guid(n->GetLayersId(), 0, n->GetScrollTargetId());"
+                },
+                {
+                    "line": 2507,
+                    "deleted": true,
+                    "data": "          if (RefPtr<HitTestingTreeNode> scrollTarget = GetTargetNode(guid, &GuidComparatorIgnoringPresShell)) {"
+                },
+                {
+                    "line": 2508,
+                    "deleted": true,
+                    "data": "            MOZ_ASSERT(scrollTarget->GetApzc());"
+                },
+                {
+                    "line": 2509,
+                    "deleted": true,
+                    "data": "            return scrollTarget->GetApzc();"
+                },
+                {
+                    "line": 2510,
+                    "deleted": true,
+                    "data": "          }"
+                },
+                {
+                    "line": 2478,
+                    "deleted": false,
+                    "data": "  if (*aOutHitResult != CompositorHitTestInfo::eInvisibleToHitTest) {"
+                },
+                {
+                    "line": 2479,
+                    "deleted": false,
+                    "data": "    MOZ_ASSERT(resultNode);"
+                },
+                {
+                    "line": 2480,
+                    "deleted": false,
+                    "data": "    for (HitTestingTreeNode* n = resultNode; n; n = n->GetParent()) {"
+                },
+                {
+                    "line": 2481,
+                    "deleted": false,
+                    "data": "      if (n->IsScrollbarNode()) {"
+                },
+                {
+                    "line": 2482,
+                    "deleted": false,
+                    "data": "        *aOutScrollbarNode = n;"
+                },
+                {
+                    "line": 2483,
+                    "deleted": false,
+                    "data": "        *aOutHitResult |= CompositorHitTestInfo::eScrollbar;"
+                },
+                {
+                    "line": 2484,
+                    "deleted": false,
+                    "data": "        if (n->IsScrollThumbNode()) {"
+                },
+                {
+                    "line": 2485,
+                    "deleted": false,
+                    "data": "          *aOutHitResult |= CompositorHitTestInfo::eScrollbarThumb;"
+                },
+                {
+                    "line": 2486,
+                    "deleted": false,
+                    "data": "        }"
+                },
+                {
+                    "line": 2487,
+                    "deleted": false,
+                    "data": "        if (n->GetScrollbarDirection() == ScrollDirection::eVertical) {"
+                },
+                {
+                    "line": 2488,
+                    "deleted": false,
+                    "data": "          *aOutHitResult |= CompositorHitTestInfo::eScrollbarVertical;"
+                },
+                {
+                    "line": 2489,
+                    "deleted": false,
+                    "data": "        }"
+                },
+                {
+                    "line": 2490,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 2491,
+                    "deleted": false,
+                    "data": "        // If we hit a scrollbar, target the APZC for the content scrolled"
+                },
+                {
+                    "line": 2492,
+                    "deleted": false,
+                    "data": "        // by the scrollbar. (The scrollbar itself doesn't scroll with the"
+                },
+                {
+                    "line": 2493,
+                    "deleted": false,
+                    "data": "        // scrolled content, so it doesn't carry the scrolled content's"
+                },
+                {
+                    "line": 2494,
+                    "deleted": false,
+                    "data": "        // scroll metadata)."
+                },
+                {
+                    "line": 2495,
+                    "deleted": false,
+                    "data": "        ScrollableLayerGuid guid(n->GetLayersId(), 0, n->GetScrollTargetId());"
+                },
+                {
+                    "line": 2496,
+                    "deleted": false,
+                    "data": "        if (RefPtr<HitTestingTreeNode> scrollTarget = GetTargetNode(guid, &GuidComparatorIgnoringPresShell)) {"
+                },
+                {
+                    "line": 2497,
+                    "deleted": false,
+                    "data": "          MOZ_ASSERT(scrollTarget->GetApzc());"
+                },
+                {
+                    "line": 2498,
+                    "deleted": false,
+                    "data": "          return scrollTarget->GetApzc();"
+                },
+                {
+                    "line": 2501,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 2514,
+                    "deleted": true,
+                    "data": "      AsyncPanZoomController* result = GetTargetApzcForNode(resultNode);"
+                },
+                {
+                    "line": 2515,
+                    "deleted": true,
+                    "data": "      if (!result) {"
+                },
+                {
+                    "line": 2516,
+                    "deleted": true,
+                    "data": "        result = FindRootApzcForLayersId(resultNode->GetLayersId());"
+                },
+                {
+                    "line": 2517,
+                    "deleted": true,
+                    "data": "        MOZ_ASSERT(result);"
+                },
+                {
+                    "line": 2518,
+                    "deleted": true,
+                    "data": "        APZCTM_LOG(\"Found target %p using root lookup\\n\", result);"
+                },
+                {
+                    "line": 2519,
+                    "deleted": true,
+                    "data": "      }"
+                },
+                {
+                    "line": 2520,
+                    "deleted": true,
+                    "data": "      APZCTM_LOG(\"Successfully matched APZC %p via node %p (hit result %d)\\n\","
+                },
+                {
+                    "line": 2521,
+                    "deleted": true,
+                    "data": "          result, resultNode, *aOutHitResult);"
+                },
+                {
+                    "line": 2522,
+                    "deleted": true,
+                    "data": "      return result;"
+                },
+                {
+                    "line": 2503,
+                    "deleted": false,
+                    "data": "    AsyncPanZoomController* result = GetTargetApzcForNode(resultNode);"
+                },
+                {
+                    "line": 2504,
+                    "deleted": false,
+                    "data": "    if (!result) {"
+                },
+                {
+                    "line": 2505,
+                    "deleted": false,
+                    "data": "      result = FindRootApzcForLayersId(resultNode->GetLayersId());"
+                },
+                {
+                    "line": 2506,
+                    "deleted": false,
+                    "data": "      MOZ_ASSERT(result);"
+                },
+                {
+                    "line": 2507,
+                    "deleted": false,
+                    "data": "      APZCTM_LOG(\"Found target %p using root lookup\\n\", result);"
+                },
+                {
+                    "line": 2508,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 2509,
+                    "deleted": false,
+                    "data": "    APZCTM_LOG(\"Successfully matched APZC %p via node %p (hit result 0x%x)\\n\","
+                },
+                {
+                    "line": 2510,
+                    "deleted": false,
+                    "data": "        result, resultNode, (int)*aOutHitResult);"
+                },
+                {
+                    "line": 2511,
+                    "deleted": false,
+                    "data": "    return result;"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/src/APZCTreeManager.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "#include \"mozilla/gfx/CompositorHitTestInfo.h\""
+                },
+                {
+                    "line": 487,
+                    "deleted": true,
+                    "data": "                                                         HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 488,
+                    "deleted": false,
+                    "data": "                                                         gfx::CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 525,
+                    "deleted": true,
+                    "data": "                                         HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 526,
+                    "deleted": false,
+                    "data": "                                         gfx::CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 528,
+                    "deleted": true,
+                    "data": "                                                            HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 529,
+                    "deleted": false,
+                    "data": "                                                            gfx::CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 555,
+                    "deleted": true,
+                    "data": "                                                                  HitTestResult* aOutHitResult,"
+                },
+                {
+                    "line": 556,
+                    "deleted": false,
+                    "data": "                                                                  gfx::CompositorHitTestInfo* aOutHitResult,"
+                },
+                {
+                    "line": 661,
+                    "deleted": true,
+                    "data": "  HitTestResult mHitResultForInputBlock;"
+                },
+                {
+                    "line": 662,
+                    "deleted": false,
+                    "data": "  gfx::CompositorHitTestInfo mHitResultForInputBlock;"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/src/APZUtils.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 20,
+                    "deleted": true,
+                    "data": "enum HitTestResult {"
+                },
+                {
+                    "line": 21,
+                    "deleted": true,
+                    "data": "  HitNothing,"
+                },
+                {
+                    "line": 22,
+                    "deleted": true,
+                    "data": "  HitLayer,"
+                },
+                {
+                    "line": 23,
+                    "deleted": true,
+                    "data": "  HitLayerTouchActionNone,"
+                },
+                {
+                    "line": 24,
+                    "deleted": true,
+                    "data": "  HitLayerTouchActionPanX,"
+                },
+                {
+                    "line": 25,
+                    "deleted": true,
+                    "data": "  HitLayerTouchActionPanY,"
+                },
+                {
+                    "line": 26,
+                    "deleted": true,
+                    "data": "  HitLayerTouchActionPanXY,"
+                },
+                {
+                    "line": 27,
+                    "deleted": true,
+                    "data": "  HitDispatchToContentRegion,"
+                },
+                {
+                    "line": 28,
+                    "deleted": true,
+                    "data": "};"
+                },
+                {
+                    "line": 29,
+                    "deleted": true,
+                    "data": ""
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/src/HitTestingTreeNode.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 23,
+                    "deleted": false,
+                    "data": "using gfx::CompositorHitTestInfo;"
+                },
+                {
+                    "line": 24,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 291,
+                    "deleted": true,
+                    "data": "HitTestResult"
+                },
+                {
+                    "line": 293,
+                    "deleted": false,
+                    "data": "CompositorHitTestInfo"
+                },
+                {
+                    "line": 296,
+                    "deleted": false,
+                    "data": "  CompositorHitTestInfo result = CompositorHitTestInfo::eInvisibleToHitTest;"
+                },
+                {
+                    "line": 297,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 295,
+                    "deleted": true,
+                    "data": "    return HitTestResult::HitNothing;"
+                },
+                {
+                    "line": 299,
+                    "deleted": false,
+                    "data": "    return result;"
+                },
+                {
+                    "line": 302,
+                    "deleted": true,
+                    "data": "    return HitTestResult::HitNothing;"
+                },
+                {
+                    "line": 306,
+                    "deleted": false,
+                    "data": "    return result;"
+                },
+                {
+                    "line": 308,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 309,
+                    "deleted": false,
+                    "data": "  result |= CompositorHitTestInfo::eVisibleToHitTest;"
+                },
+                {
+                    "line": 310,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 307,
+                    "deleted": true,
+                    "data": "    return HitTestResult::HitDispatchToContentRegion;"
+                },
+                {
+                    "line": 308,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 309,
+                    "deleted": true,
+                    "data": "  if (gfxPrefs::TouchActionEnabled()) {"
+                },
+                {
+                    "line": 314,
+                    "deleted": false,
+                    "data": "    result |= CompositorHitTestInfo::eDispatchToContent;"
+                },
+                {
+                    "line": 315,
+                    "deleted": false,
+                    "data": "  } else if (gfxPrefs::TouchActionEnabled()) {"
+                },
+                {
+                    "line": 311,
+                    "deleted": true,
+                    "data": "      return HitTestResult::HitLayerTouchActionNone;"
+                },
+                {
+                    "line": 312,
+                    "deleted": true,
+                    "data": "    }"
+                },
+                {
+                    "line": 313,
+                    "deleted": true,
+                    "data": "    bool panX = mEventRegions.mHorizontalPanRegion.Contains(point.x, point.y);"
+                },
+                {
+                    "line": 314,
+                    "deleted": true,
+                    "data": "    bool panY = mEventRegions.mVerticalPanRegion.Contains(point.x, point.y);"
+                },
+                {
+                    "line": 315,
+                    "deleted": true,
+                    "data": "    if (panX && panY) {"
+                },
+                {
+                    "line": 316,
+                    "deleted": true,
+                    "data": "      return HitTestResult::HitLayerTouchActionPanXY;"
+                },
+                {
+                    "line": 317,
+                    "deleted": true,
+                    "data": "    } else if (panX) {"
+                },
+                {
+                    "line": 318,
+                    "deleted": true,
+                    "data": "      return HitTestResult::HitLayerTouchActionPanX;"
+                },
+                {
+                    "line": 319,
+                    "deleted": true,
+                    "data": "    } else if (panY) {"
+                },
+                {
+                    "line": 320,
+                    "deleted": true,
+                    "data": "      return HitTestResult::HitLayerTouchActionPanY;"
+                },
+                {
+                    "line": 317,
+                    "deleted": false,
+                    "data": "      // set all the touch-action flags as disabled"
+                },
+                {
+                    "line": 318,
+                    "deleted": false,
+                    "data": "      result |= CompositorHitTestInfo::eTouchActionMask;"
+                },
+                {
+                    "line": 319,
+                    "deleted": false,
+                    "data": "    } else {"
+                },
+                {
+                    "line": 320,
+                    "deleted": false,
+                    "data": "      bool panX = mEventRegions.mHorizontalPanRegion.Contains(point.x, point.y);"
+                },
+                {
+                    "line": 321,
+                    "deleted": false,
+                    "data": "      bool panY = mEventRegions.mVerticalPanRegion.Contains(point.x, point.y);"
+                },
+                {
+                    "line": 322,
+                    "deleted": false,
+                    "data": "      if (panX && panY) {"
+                },
+                {
+                    "line": 323,
+                    "deleted": false,
+                    "data": "        // touch-action: pan-x pan-y"
+                },
+                {
+                    "line": 324,
+                    "deleted": false,
+                    "data": "        result |= CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled"
+                },
+                {
+                    "line": 325,
+                    "deleted": false,
+                    "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled;"
+                },
+                {
+                    "line": 326,
+                    "deleted": false,
+                    "data": "      } else if (panX) {"
+                },
+                {
+                    "line": 327,
+                    "deleted": false,
+                    "data": "        // touch-action: pan-x"
+                },
+                {
+                    "line": 328,
+                    "deleted": false,
+                    "data": "        result |= CompositorHitTestInfo::eTouchActionPanYDisabled"
+                },
+                {
+                    "line": 329,
+                    "deleted": false,
+                    "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled"
+                },
+                {
+                    "line": 330,
+                    "deleted": false,
+                    "data": "                | CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled;"
+                },
+                {
+                    "line": 331,
+                    "deleted": false,
+                    "data": "      } else if (panY) {"
+                },
+                {
+                    "line": 332,
+                    "deleted": false,
+                    "data": "        // touch-action: pan-y"
+                },
+                {
+                    "line": 333,
+                    "deleted": false,
+                    "data": "        result |= CompositorHitTestInfo::eTouchActionPanXDisabled"
+                },
+                {
+                    "line": 334,
+                    "deleted": false,
+                    "data": "                | CompositorHitTestInfo::eTouchActionPinchZoomDisabled"
+                },
+                {
+                    "line": 335,
+                    "deleted": false,
+                    "data": "                | CompositorHitTestInfo::eTouchActionDoubleTapZoomDisabled;"
+                },
+                {
+                    "line": 336,
+                    "deleted": false,
+                    "data": "      } // else we're in the touch-action: auto or touch-action: manipulation"
+                },
+                {
+                    "line": 337,
+                    "deleted": false,
+                    "data": "        // cases and we'll allow all actions. Technically we shouldn't allow"
+                },
+                {
+                    "line": 338,
+                    "deleted": false,
+                    "data": "        // double-tap zooming in the manipulation case but apparently this has"
+                },
+                {
+                    "line": 339,
+                    "deleted": false,
+                    "data": "        // been broken since the dawn of time."
+                },
+                {
+                    "line": 323,
+                    "deleted": true,
+                    "data": "  return HitTestResult::HitLayer;"
+                },
+                {
+                    "line": 342,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 343,
+                    "deleted": false,
+                    "data": "  // The scrollbar flags are set at the call site in GetAPZCAtPoint, because"
+                },
+                {
+                    "line": 344,
+                    "deleted": false,
+                    "data": "  // those require walking up the tree to see if we are contained inside a"
+                },
+                {
+                    "line": 345,
+                    "deleted": false,
+                    "data": "  // scrollbar or scrollthumb, and we do that there anyway to get the scrollbar"
+                },
+                {
+                    "line": 346,
+                    "deleted": false,
+                    "data": "  // node."
+                },
+                {
+                    "line": 347,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 348,
+                    "deleted": false,
+                    "data": "  return result;"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/src/HitTestingTreeNode.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 10,
+                    "deleted": true,
+                    "data": "#include \"APZUtils.h\"                       // for HitTestResult"
+                },
+                {
+                    "line": 12,
+                    "deleted": false,
+                    "data": "#include \"mozilla/gfx/CompositorHitTestInfo.h\""
+                },
+                {
+                    "line": 122,
+                    "deleted": true,
+                    "data": "  HitTestResult HitTest(const LayerPoint& aPoint) const;"
+                },
+                {
+                    "line": 122,
+                    "deleted": false,
+                    "data": "  gfx::CompositorHitTestInfo HitTest(const LayerPoint& aPoint) const;"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/layers/apz/test/gtest/TestEventRegions.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 239,
+                    "deleted": true,
+                    "data": "  HitTestResult result;"
+                },
+                {
+                    "line": 239,
+                    "deleted": false,
+                    "data": "  gfx::CompositorHitTestInfo result;"
+                },
+                {
+                    "line": 242,
+                    "deleted": true,
+                    "data": "  EXPECT_EQ(HitTestResult::HitLayer, result);"
+                },
+                {
+                    "line": 242,
+                    "deleted": false,
+                    "data": "  EXPECT_EQ(CompositorHitTestInfo::eVisibleToHitTest, result);"
+                },
+                {
+                    "line": 248,
+                    "deleted": true,
+                    "data": "  HitTestResult result;"
+                },
+                {
+                    "line": 248,
+                    "deleted": false,
+                    "data": "  gfx::CompositorHitTestInfo result;"
+                },
+                {
+                    "line": 250,
+                    "deleted": true,
+                    "data": "  // We should hit layers[2], so |result| will be HitLayer but there's no"
+                },
+                {
+                    "line": 250,
+                    "deleted": false,
+                    "data": "  // We should hit layers[2], so |result| will be eVisibleToHitTest but there's no"
+                },
+                {
+                    "line": 253,
+                    "deleted": true,
+                    "data": "  EXPECT_EQ(HitTestResult::HitLayer, result);"
+                },
+                {
+                    "line": 253,
+                    "deleted": false,
+                    "data": "  EXPECT_EQ(CompositorHitTestInfo::eVisibleToHitTest, result);"
+                }
+            ]
+        }
+    ]
+}

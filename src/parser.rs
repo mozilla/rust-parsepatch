@@ -1,57 +1,37 @@
-use chardet::{charset2encoding, detect};
-use encoding::all::UTF_8;
-use encoding::label::encoding_from_whatwg_label;
-use encoding::{DecoderTrap, Encoding};
-use serde::Deserialize;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-struct Patch<'a> {
-    pub buf: &'a [u8],
-    pub pos: usize,
+pub trait Diff {
+    fn set_info(&mut self, old_name: &str, new_name: &str, op: FileOp, binary: bool);
+    fn add_line(&mut self, old_line: u64, new_line: u64, line: &[u8]);
+    fn close(&mut self);
+}
+
+pub trait Patch<D: Diff> {
+    fn new_diff(&mut self) -> &mut D;
+    fn close(&mut self);
+}
+
+#[derive(Debug, PartialEq)]
+pub enum FileOp {
+    New,
+    Deleted,
+    Renamed,
+    None,
+}
+
+pub struct PatchReader<'a> {
+    buf: &'a [u8],
+    pos: usize,
 }
 
 #[derive(Debug)]
-struct Line<'a> {
+struct LineReader<'a> {
     buf: &'a [u8],
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-pub struct LineChange {
-    pub line: u64,
-    pub deleted: bool,
-    pub data: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Changes {
-    pub filename: String,
-    pub new: bool,
-    pub deleted: bool,
-    pub binary: bool,
-    pub renamed_from: Option<String>,
-    pub lines: Vec<LineChange>,
-}
-
-impl Changes {
-    fn new(filename: String) -> Changes {
-        Changes {
-            filename,
-            new: false,
-            deleted: false,
-            binary: false,
-            renamed_from: None,
-            lines: Vec::new(),
-        }
-    }
-
-    fn set_renamed(&mut self, filename: String) {
-        self.renamed_from = Some(filename);
-    }
-}
-
-impl<'a> Line<'a> {
+impl<'a> LineReader<'a> {
     fn to_string(&self) -> String {
         std::str::from_utf8(self.buf).unwrap().to_string()
     }
@@ -62,6 +42,34 @@ impl<'a> Line<'a> {
                 b'G', b'I', b'T', b' ', b'b', b'i', b'n', b'a', b'r', b'y', b' ', b'p', b'a', b't',
                 b'c', b'h',
             ]
+    }
+
+    fn is_rename_from(&self) -> bool {
+        self.starts_with(&[
+            b'r', b'e', b'n', b'a', b'm', b'e', b' ', b'f', b'r', b'o', b'm',
+        ])
+    }
+
+    fn is_new_file(&self) -> bool {
+        self.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e'])
+    }
+
+    fn is_deleted_file(&self) -> bool {
+        self.starts_with(&[
+            b'd', b'e', b'l', b'e', b't', b'e', b'd', b' ', b'f', b'i', b'l', b'e',
+        ])
+    }
+
+    fn get_file_op(&self) -> FileOp {
+        if self.is_new_file() {
+            FileOp::New
+        } else if self.is_deleted_file() {
+            FileOp::Deleted
+        } else if self.is_rename_from() {
+            FileOp::Renamed
+        } else {
+            FileOp::None
+        }
     }
 
     fn starts_with(&self, v: &[u8]) -> bool {
@@ -76,7 +84,7 @@ impl<'a> Line<'a> {
         let buf = &self.buf[4..];
         let mut x = 0;
         let mut y = 0;
-        let mut iter = buf.into_iter();
+        let mut iter = buf.iter();
         while let Some(c) = iter.next() {
             if *c >= b'0' && *c <= b'9' {
                 x = x * 10 + u64::from(*c - b'0');
@@ -89,7 +97,7 @@ impl<'a> Line<'a> {
                 break;
             }
         }
-        while let Some(c) = iter.next() {
+        for c in iter {
             if *c >= b'0' && *c <= b'9' {
                 y = y * 10 + u64::from(*c - b'0');
             } else {
@@ -99,29 +107,17 @@ impl<'a> Line<'a> {
         (x, y)
     }
 
-    fn parse_files(&mut self) -> (String, String) {
-        // diff --git a/... b/...
-        // diff -r
-        let mut old_path: &[u8] = &[];
-        let mut pos = 0;
-        let mut white_count = 0;
-        for (n, c) in self.buf.iter().enumerate() {
-            if *c == b' ' {
-                white_count += 1;
-                match white_count {
-                    2 => {
-                        pos = n + 1;
-                    }
-                    3 => {
-                        old_path = &self.buf[pos..n];
-                        pos = n + 1;
-                        break;
-                    }
-                    _ => {}
-                }
-            }
-        }
-        let mut new_path = &self.buf[pos..];
+    fn parse_files(&self) -> (&str, &str) {
+        // We know we start with 'diff '
+        let buf = &self.buf[5..];
+        let mut iter = buf.split(|c| *c == b' ');
+
+        // skip --git or -r
+        iter.next();
+
+        let mut old_path = iter.next().unwrap();
+        let mut new_path = iter.next().unwrap();
+
         if old_path.len() >= 2 && old_path[..2] == [b'a', b'/'] {
             old_path = &old_path[2..]
         }
@@ -129,19 +125,19 @@ impl<'a> Line<'a> {
             new_path = &new_path[2..]
         }
         (
-            std::str::from_utf8(old_path).unwrap().to_string(),
-            std::str::from_utf8(new_path).unwrap().to_string(),
+            std::str::from_utf8(old_path).unwrap(),
+            std::str::from_utf8(new_path).unwrap(),
         )
     }
 }
 
-impl<'a> Patch<'a> {
-    pub fn by_path(path: &PathBuf) -> Vec<Changes> {
+impl<'a> PatchReader<'a> {
+    pub fn by_path<D: Diff, P: Patch<D>>(path: &PathBuf, patch: &mut P) {
         match File::open(path) {
             Ok(mut reader) => {
                 let mut data = Vec::new();
                 reader.read_to_end(&mut data).unwrap();
-                Patch::by_buf(&data)
+                PatchReader::by_buf(&data, patch);
             }
             Err(_) => {
                 panic!(format!("Failed to read the file: {:?}", path));
@@ -149,105 +145,81 @@ impl<'a> Patch<'a> {
         }
     }
 
-    pub fn by_buf(buf: &[u8]) -> Vec<Changes> {
-        let mut p = Patch { buf, pos: 0 };
-        p.parse()
+    pub fn by_buf<D: Diff, P: Patch<D>>(buf: &[u8], patch: &mut P) {
+        let mut p = PatchReader { buf, pos: 0 };
+        p.parse(patch);
     }
 
-    fn parse(&mut self) -> Vec<Changes> {
-        let mut all_changes = Vec::new();
-        while let Some(mut line) = self.next(Patch::diff, false) {
-            self.parse_diff(&mut line, &mut all_changes);
+    fn parse<D: Diff, P: Patch<D>>(&mut self, patch: &mut P) {
+        while let Some(mut line) = self.next(PatchReader::diff, false) {
+            self.parse_diff(&mut line, patch);
         }
-        all_changes
+        patch.close();
     }
 
-    fn parse_diff(&mut self, line: &mut Line, all_changes: &mut Vec<Changes>) {
+    fn parse_diff<D: Diff, P: Patch<D>>(&mut self, line: &mut LineReader, patch: &mut P) {
         let (old, new) = line.parse_files();
-        let mut changes = Changes::new(new);
-        let mut line = self.next(Patch::mv, false).unwrap();
-        if line.starts_with(&[
-            b'r', b'e', b'n', b'a', b'm', b'e', b' ', b'f', b'r', b'o', b'm',
-        ]) {
-            changes.set_renamed(old);
-        } else if line.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e']) {
-            changes.new = true;
-        } else if line.starts_with(&[
-            b'd', b'e', b'l', b'e', b't', b'e', b'd', b' ', b'f', b'i', b'l', b'e',
-        ]) {
-            changes.deleted = true;
-        } else if Patch::diff(&line) {
-            all_changes.push(changes);
-            self.parse_diff(&mut line, all_changes);
-            return;
-        }
-        if let Some(mut line) = self.next(Patch::useful, false) {
-            if Patch::diff(&line) {
-                all_changes.push(changes);
-                self.parse_diff(&mut line, all_changes);
-                return;
-            } else if Patch::hunk_at(&line) {
-                self.parse_hunks(&mut line, &mut changes);
+        let diff = patch.new_diff();
+        let mut line = self.next(PatchReader::mv, false).unwrap();
+        let op = line.get_file_op();
+
+        if op == FileOp::None && PatchReader::diff(&line) {
+            diff.set_info(old, new, op, false);
+            diff.close();
+            self.parse_diff(&mut line, patch);
+        } else if let Some(mut line) = self.next(PatchReader::useful, false) {
+            diff.set_info(old, new, op, line.is_binary());
+            if PatchReader::diff(&line) {
+                diff.close();
+                self.parse_diff(&mut line, patch);
+            } else if PatchReader::hunk_at(&line) {
+                self.parse_hunks(&mut line, diff);
+                diff.close();
             } else if line.is_binary() {
-                changes.binary = true;
+                diff.close();
                 self.skip_until_empty_line();
             }
+        } else {
+            diff.set_info(old, new, op, false);
+            diff.close();
         }
-        all_changes.push(changes);
     }
 
-    fn parse_hunks(&mut self, line: &mut Line, mut changes: &mut Changes) {
+    fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
         let (o1, n1) = line.parse_numbers();
-        self.parse_hunk(o1, n1, &mut changes);
-        while let Some(line) = self.next(Patch::hunk_at, true) {
+        self.parse_hunk(o1, n1, diff);
+        while let Some(line) = self.next(PatchReader::hunk_at, true) {
             let (o1, n1) = line.parse_numbers();
-            self.parse_hunk(o1, n1, &mut changes);
+            self.parse_hunk(o1, n1, diff);
         }
     }
 
-    fn parse_hunk(&mut self, o: u64, n: u64, changes: &mut Changes) {
+    fn parse_hunk<D: Diff>(&mut self, o: u64, n: u64, diff: &mut D) {
         let mut old_count = o;
         let mut new_count = n;
-        while let Some(line) = self.next(Patch::hunk_change, true) {
-            if line.first_is(b'-') {
-                changes.lines.push(LineChange {
-                    line: old_count,
-                    deleted: true,
-                    data: Patch::get_line(&line.buf[1..]),
-                });
-                old_count += 1;
-            } else if line.first_is(b'+') {
-                changes.lines.push(LineChange {
-                    line: new_count,
-                    deleted: false,
-                    data: Patch::get_line(&line.buf[1..]),
-                });
-                new_count += 1;
-            } else if !line.first_is(b'\\') {
-                old_count += 1;
-                new_count += 1;
-            }
-        }
-    }
-
-    fn get_line(buf: &[u8]) -> String {
-        match std::str::from_utf8(buf) {
-            Ok(s) => s.to_string(),
-            Err(_) => {
-                let res = detect(buf);
-                let coder = encoding_from_whatwg_label(charset2encoding(&res.0));
-                if let Some(coder) = coder {
-                    coder.decode(buf, DecoderTrap::Ignore).unwrap()
-                } else {
-                    UTF_8.decode(buf, DecoderTrap::Ignore).unwrap()
+        while let Some(line) = self.next(PatchReader::hunk_change, true) {
+            match line.buf[0] {
+                b'-' => {
+                    diff.add_line(old_count, 0, &line.buf[1..]);
+                    old_count += 1;
                 }
+                b'+' => {
+                    diff.add_line(0, new_count, &line.buf[1..]);
+                    new_count += 1;
+                }
+                b' ' => {
+                    diff.add_line(old_count, new_count, &line.buf[1..]);
+                    old_count += 1;
+                    new_count += 1;
+                }
+                _ => {}
             }
         }
     }
 
-    fn next<F>(&mut self, filter: F, return_on_false: bool) -> Option<Line<'a>>
+    fn next<F>(&mut self, filter: F, return_on_false: bool) -> Option<LineReader<'a>>
     where
-        F: Fn(&Line) -> bool,
+        F: Fn(&LineReader) -> bool,
     {
         if self.pos >= self.buf.len() {
             return None;
@@ -257,10 +229,10 @@ impl<'a> Patch<'a> {
         for (n, c) in self.buf[self.pos..].iter().enumerate() {
             if *c == b'\n' {
                 let mut npos = self.pos + n;
-                if npos > 0 && npos - 1 < self.buf.len() && self.buf[npos - 1] == b'\r' {
+                if npos > 0 && self.buf[npos - 1] == b'\r' {
                     npos -= 1;
                 }
-                let line = Line {
+                let line = LineReader {
                     buf: &self.buf[pos..npos],
                 };
                 if filter(&line) {
@@ -290,7 +262,7 @@ impl<'a> Patch<'a> {
         self.pos = self.buf.len();
     }
 
-    fn useful(line: &Line) -> bool {
+    fn useful(line: &LineReader) -> bool {
         !line.starts_with(&[b'-', b'-', b'-'])
             && !line.starts_with(&[b'+', b'+', b'+'])
             && !line.starts_with(&[b'i', b'n', b'd', b'e', b'x', b' '])
@@ -299,26 +271,24 @@ impl<'a> Patch<'a> {
             && !line.starts_with(&[b'r', b'e', b'n', b'a', b'm', b'e', b' '])
     }
 
-    fn diff(line: &Line) -> bool {
-        line.starts_with(&[
-            b'd', b'i', b'f', b'f', b' ', b'-', b'-', b'g', b'i', b't', b' ', b'a', b'/',
-        ]) || line.starts_with(&[b'd', b'i', b'f', b'f', b' ', b'-', b'r', b' '])
+    fn diff(line: &LineReader) -> bool {
+        line.starts_with(&[b'd', b'i', b'f', b'f', b' '])
     }
 
-    fn mv(_: &Line) -> bool {
+    fn mv(_: &LineReader) -> bool {
         true
     }
 
-    fn hunk_at(line: &Line) -> bool {
+    fn hunk_at(line: &LineReader) -> bool {
         line.first_is(b'@')
     }
 
-    fn hunk_change(line: &Line) -> bool {
+    fn hunk_change(line: &LineReader) -> bool {
         line.first_is(b'-')
             || line.first_is(b'+')
             || line.first_is(b' ')
             || line.starts_with(&[
-                b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e', b' ',
+                b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e',
             ])
     }
 }
@@ -326,45 +296,7 @@ impl<'a> Patch<'a> {
 #[cfg(test)]
 mod tests {
 
-    use std::fs::{self, DirEntry};
-    use std::io::BufReader;
-
     use super::*;
-
-    fn compare(json: &Vec<Changes>, patch: &mut Vec<Changes>) {
-        patch.retain(|c| !c.binary);
-        assert!(json.len() == patch.len(), "Not the same length");
-        for (cj, cp) in json.iter().zip(patch.iter()) {
-            assert!(
-                cj.filename == cp.filename,
-                format!(
-                    "Not the same filename: {} ({} expected)",
-                    cp.filename, cj.filename
-                )
-            );
-            assert!(
-                cj.renamed_from == cp.renamed_from,
-                format!(
-                    "Not the same filename: {:?} ({:?} expected)",
-                    cj.filename, cp.filename
-                )
-            );
-            assert!(
-                cj.lines.len() == cp.lines.len(),
-                format!(
-                    "Not the same length for changed lines: {} ({} expected)",
-                    cp.lines.len(),
-                    cj.lines.len()
-                )
-            );
-            for (lj, lp) in cj.lines.iter().zip(cp.lines.iter()) {
-                assert!(
-                    lj == lp,
-                    format!("Not the same line change: {:?} ({:?} expected", lp, lj)
-                );
-            }
-        }
-    }
 
     #[test]
     fn test_numbers() {
@@ -376,7 +308,7 @@ mod tests {
         ];
         for c in cases.into_iter() {
             let buf = c.0.as_bytes();
-            let line = Line { buf: &buf };
+            let line = LineReader { buf: &buf };
             assert!(line.parse_numbers() == c.1);
         }
     }
@@ -386,7 +318,7 @@ mod tests {
         let cases = [("+++ hello", "+++"), ("+++ hello", "++++")];
         for c in cases.into_iter() {
             let buf = c.0.as_bytes();
-            let line = Line { buf: &buf };
+            let line = LineReader { buf: &buf };
             let pat = c.1.as_bytes();
             assert!(line.starts_with(pat) == c.0.starts_with(c.1));
         }
@@ -397,7 +329,7 @@ mod tests {
         let s = vec!["a. string1", "b. string2", "", "c. string3"];
         let s = s.join("\n");
         let cpos = s.find('c').unwrap();
-        let mut p = Patch {
+        let mut p = PatchReader {
             buf: s.as_bytes(),
             pos: 0,
         };
@@ -421,15 +353,15 @@ mod tests {
             let s = v.join(sep);
             let cpos = s.find('C').unwrap();
             let ppos = s.find('+').unwrap();
-            let mut p = Patch {
+            let mut p = PatchReader {
                 buf: s.as_bytes(),
                 pos: 0,
             };
-            let line = p.next(Patch::mv, false).unwrap();
+            let line = p.next(PatchReader::mv, false).unwrap();
             assert!(line.to_string() == "a. string1".to_string());
             assert!(p.pos == ppos);
 
-            let line = p.next(Patch::useful, false).unwrap();
+            let line = p.next(PatchReader::useful, false).unwrap();
             assert!(line.to_string() == "b. string2".to_string());
             assert!(p.pos == cpos);
         }
@@ -438,29 +370,9 @@ mod tests {
     #[test]
     fn test_parse_files() {
         let s = "diff --git a/foo/bar.cpp b/Foo/Bar/bar.cpp";
-        let mut line = Line { buf: s.as_bytes() };
+        let line = LineReader { buf: s.as_bytes() };
         let (old, new) = line.parse_files();
-        assert!(old == "foo/bar.cpp".to_string());
-        assert!(new == "Foo/Bar/bar.cpp".to_string());
-    }
-
-    #[test]
-    fn test_parse() {
-        for entry in fs::read_dir(PathBuf::from("./tests/output")).unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-            if !path.is_dir() && path.extension().unwrap() == "json" {
-                let file = File::open(&path).unwrap();
-                let reader = BufReader::new(file);
-                let json_patch = serde_json::from_reader::<_, Vec<Changes>>(reader).unwrap();
-
-                let filename = path.with_extension("patch");
-                let filename = filename.file_name().unwrap();
-                let path = PathBuf::from("./tests/patches/").join(filename);
-                let mut patch = Patch::by_path(&path);
-
-                compare(&json_patch, &mut patch);
-            }
-        }
+        assert!(old == "foo/bar.cpp");
+        assert!(new == "Foo/Bar/bar.cpp");
     }
 }
