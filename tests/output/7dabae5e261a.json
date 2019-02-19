@@ -1,304 +1,306 @@
-[
-    {
-        "filename": "browser/branding/aurora/content/jar.mn",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 11,
-                "deleted": true,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 12,
-                "deleted": true,
-                "data": "  content/branding/icon64.png"
-            },
-            {
-                "line": 15,
-                "deleted": true,
-                "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-            },
-            {
-                "line": 13,
-                "deleted": false,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "  content/branding/icon64.png                    (../default64.png)"
-            },
-            {
-                "line": 15,
-                "deleted": false,
-                "data": "  content/branding/icon128.png                   (../default128.png)"
-            }
-        ]
-    },
-    {
-        "filename": "browser/branding/aurora/default128.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/aurora/mozicon128.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/aurora/default64.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/aurora/content/icon64.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/branding-common.mozbuild",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 45,
-                "deleted": false,
-                "data": "            'default128.png',"
-            },
-            {
-                "line": 48,
-                "deleted": true,
-                "data": "            'mozicon128.png',"
-            },
-            {
-                "line": 49,
-                "deleted": false,
-                "data": "            'default64.png',"
-            },
-            {
-                "line": 50,
-                "deleted": true,
-                "data": "        FINAL_TARGET_FILES.icons += ['mozicon128.png']"
-            },
-            {
-                "line": 52,
-                "deleted": false,
-                "data": "            'default128.png',"
-            },
-            {
-                "line": 56,
-                "deleted": false,
-                "data": "            'default64.png',"
-            }
-        ]
-    },
-    {
-        "filename": "browser/branding/nightly/content/jar.mn",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 11,
-                "deleted": true,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 12,
-                "deleted": true,
-                "data": "  content/branding/icon64.png"
-            },
-            {
-                "line": 15,
-                "deleted": true,
-                "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-            },
-            {
-                "line": 13,
-                "deleted": false,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "  content/branding/icon64.png                    (../default64.png)"
-            },
-            {
-                "line": 15,
-                "deleted": false,
-                "data": "  content/branding/icon128.png                   (../default128.png)"
-            }
-        ]
-    },
-    {
-        "filename": "browser/branding/nightly/default128.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/nightly/mozicon128.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/nightly/default64.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/nightly/content/icon64.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/official/content/jar.mn",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 11,
-                "deleted": true,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 12,
-                "deleted": true,
-                "data": "  content/branding/icon64.png"
-            },
-            {
-                "line": 13,
-                "deleted": false,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "  content/branding/icon64.png                    (../default64.png)"
-            }
-        ]
-    },
-    {
-        "filename": "browser/branding/official/default128.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/official/mozicon128.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/official/default64.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/official/content/icon64.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/unofficial/content/jar.mn",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 12,
-                "deleted": true,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 13,
-                "deleted": true,
-                "data": "  content/branding/icon64.png"
-            },
-            {
-                "line": 16,
-                "deleted": true,
-                "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-            },
-            {
-                "line": 14,
-                "deleted": false,
-                "data": "  content/branding/icon48.png"
-            },
-            {
-                "line": 15,
-                "deleted": false,
-                "data": "  content/branding/icon64.png                    (../default64.png)"
-            },
-            {
-                "line": 16,
-                "deleted": false,
-                "data": "  content/branding/icon128.png                   (../default128.png)"
-            }
-        ]
-    },
-    {
-        "filename": "browser/branding/unofficial/default128.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/unofficial/mozicon128.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/branding/unofficial/default64.png",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": "browser/branding/unofficial/content/icon64.png",
-        "lines": []
-    },
-    {
-        "filename": "browser/installer/allowed-dupes.mn",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 79,
-                "deleted": false,
-                "data": "browser/chrome/icons/default/default64.png"
-            },
-            {
-                "line": 80,
-                "deleted": false,
-                "data": "browser/chrome/icons/default/default128.png"
-            },
-            {
-                "line": 108,
-                "deleted": true,
-                "data": "browser/icons/mozicon128.png"
-            }
-        ]
-    },
-    {
-        "filename": "browser/installer/package-manifest.in",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 618,
-                "deleted": false,
-                "data": "@RESPATH@/browser/chrome/icons/default/default64.png"
-            },
-            {
-                "line": 619,
-                "deleted": false,
-                "data": "@RESPATH@/browser/chrome/icons/default/default128.png"
-            },
-            {
-                "line": 640,
-                "deleted": true,
-                "data": "; shell icons"
-            },
-            {
-                "line": 641,
-                "deleted": true,
-                "data": "@RESPATH@/browser/icons/*.png"
-            }
-        ]
-    }
-]
+{
+    "diffs": [
+        {
+            "filename": "browser/branding/aurora/content/jar.mn",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 11,
+                    "deleted": true,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 12,
+                    "deleted": true,
+                    "data": "  content/branding/icon64.png"
+                },
+                {
+                    "line": 15,
+                    "deleted": true,
+                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                },
+                {
+                    "line": 13,
+                    "deleted": false,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "  content/branding/icon64.png                    (../default64.png)"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                }
+            ]
+        },
+        {
+            "filename": "browser/branding/aurora/default128.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/aurora/mozicon128.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/aurora/default64.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/aurora/content/icon64.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/branding-common.mozbuild",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 45,
+                    "deleted": false,
+                    "data": "            'default128.png',"
+                },
+                {
+                    "line": 48,
+                    "deleted": true,
+                    "data": "            'mozicon128.png',"
+                },
+                {
+                    "line": 49,
+                    "deleted": false,
+                    "data": "            'default64.png',"
+                },
+                {
+                    "line": 50,
+                    "deleted": true,
+                    "data": "        FINAL_TARGET_FILES.icons += ['mozicon128.png']"
+                },
+                {
+                    "line": 52,
+                    "deleted": false,
+                    "data": "            'default128.png',"
+                },
+                {
+                    "line": 56,
+                    "deleted": false,
+                    "data": "            'default64.png',"
+                }
+            ]
+        },
+        {
+            "filename": "browser/branding/nightly/content/jar.mn",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 11,
+                    "deleted": true,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 12,
+                    "deleted": true,
+                    "data": "  content/branding/icon64.png"
+                },
+                {
+                    "line": 15,
+                    "deleted": true,
+                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                },
+                {
+                    "line": 13,
+                    "deleted": false,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "  content/branding/icon64.png                    (../default64.png)"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                }
+            ]
+        },
+        {
+            "filename": "browser/branding/nightly/default128.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/nightly/mozicon128.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/nightly/default64.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/nightly/content/icon64.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/official/content/jar.mn",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 11,
+                    "deleted": true,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 12,
+                    "deleted": true,
+                    "data": "  content/branding/icon64.png"
+                },
+                {
+                    "line": 13,
+                    "deleted": false,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "  content/branding/icon64.png                    (../default64.png)"
+                }
+            ]
+        },
+        {
+            "filename": "browser/branding/official/default128.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/official/mozicon128.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/official/default64.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/official/content/icon64.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/unofficial/content/jar.mn",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 12,
+                    "deleted": true,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 13,
+                    "deleted": true,
+                    "data": "  content/branding/icon64.png"
+                },
+                {
+                    "line": 16,
+                    "deleted": true,
+                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "  content/branding/icon48.png"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "  content/branding/icon64.png                    (../default64.png)"
+                },
+                {
+                    "line": 16,
+                    "deleted": false,
+                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                }
+            ]
+        },
+        {
+            "filename": "browser/branding/unofficial/default128.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/unofficial/mozicon128.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/branding/unofficial/default64.png",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "browser/branding/unofficial/content/icon64.png",
+            "lines": []
+        },
+        {
+            "filename": "browser/installer/allowed-dupes.mn",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 79,
+                    "deleted": false,
+                    "data": "browser/chrome/icons/default/default64.png"
+                },
+                {
+                    "line": 80,
+                    "deleted": false,
+                    "data": "browser/chrome/icons/default/default128.png"
+                },
+                {
+                    "line": 108,
+                    "deleted": true,
+                    "data": "browser/icons/mozicon128.png"
+                }
+            ]
+        },
+        {
+            "filename": "browser/installer/package-manifest.in",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 618,
+                    "deleted": false,
+                    "data": "@RESPATH@/browser/chrome/icons/default/default64.png"
+                },
+                {
+                    "line": 619,
+                    "deleted": false,
+                    "data": "@RESPATH@/browser/chrome/icons/default/default128.png"
+                },
+                {
+                    "line": 640,
+                    "deleted": true,
+                    "data": "; shell icons"
+                },
+                {
+                    "line": 641,
+                    "deleted": true,
+                    "data": "@RESPATH@/browser/icons/*.png"
+                }
+            ]
+        }
+    ]
+}

@@ -1,372 +1,374 @@
-[
-    {
-        "filename": "gfx/thebes/gfxFont.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 3484,
-                "deleted": true,
-                "data": "        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID, &svgBounds)) {"
-            },
-            {
-                "line": 3484,
-                "deleted": false,
-                "data": "        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID,"
-            },
-            {
-                "line": 3485,
-                "deleted": false,
-                "data": "                                       GetAdjustedSize(), &svgBounds)) {"
-            },
-            {
-                "line": 3494,
-                "deleted": true,
-                "data": "    cairo_glyph_t glyph;"
-            },
-            {
-                "line": 3495,
-                "deleted": true,
-                "data": "    glyph.index = aGlyphID;"
-            },
-            {
-                "line": 3496,
-                "deleted": true,
-                "data": "    glyph.x = 0;"
-            },
-            {
-                "line": 3497,
-                "deleted": true,
-                "data": "    glyph.y = 0;"
-            },
-            {
-                "line": 3498,
-                "deleted": true,
-                "data": "    cairo_text_extents_t extents;"
-            },
-            {
-                "line": 3499,
-                "deleted": true,
-                "data": "    cairo_glyph_extents(gfxFont::RefCairo(aDrawTarget), &glyph, 1, &extents);"
-            },
-            {
-                "line": 3495,
-                "deleted": false,
-                "data": "    RefPtr<ScaledFont> sf = GetScaledFont(aDrawTarget);"
-            },
-            {
-                "line": 3496,
-                "deleted": false,
-                "data": "    uint16_t glyphIndex = aGlyphID;"
-            },
-            {
-                "line": 3497,
-                "deleted": false,
-                "data": "    GlyphMetrics metrics;"
-            },
-            {
-                "line": 3498,
-                "deleted": false,
-                "data": "    if (mAntialiasOption == kAntialiasNone) {"
-            },
-            {
-                "line": 3499,
-                "deleted": false,
-                "data": "        sf->GetGlyphDesignMetrics(&glyphIndex, 1, &metrics);"
-            },
-            {
-                "line": 3500,
-                "deleted": false,
-                "data": "    } else {"
-            },
-            {
-                "line": 3501,
-                "deleted": false,
-                "data": "        aDrawTarget->GetGlyphRasterizationMetrics(sf, &glyphIndex, 1, &metrics);"
-            },
-            {
-                "line": 3502,
-                "deleted": false,
-                "data": "    }"
-            },
-            {
-                "line": 3503,
-                "deleted": true,
-                "data": "    if (!aNeedTight && extents.x_bearing >= 0 &&"
-            },
-            {
-                "line": 3504,
-                "deleted": true,
-                "data": "        extents.y_bearing >= -fontMetrics.maxAscent &&"
-            },
-            {
-                "line": 3505,
-                "deleted": true,
-                "data": "        extents.height + extents.y_bearing <= fontMetrics.maxDescent) {"
-            },
-            {
-                "line": 3506,
-                "deleted": false,
-                "data": "    if (!aNeedTight && metrics.mXBearing >= 0.0 &&"
-            },
-            {
-                "line": 3507,
-                "deleted": false,
-                "data": "        metrics.mYBearing >= -fontMetrics.maxAscent &&"
-            },
-            {
-                "line": 3508,
-                "deleted": false,
-                "data": "        metrics.mHeight + metrics.mYBearing <= fontMetrics.maxDescent) {"
-            },
-            {
-                "line": 3507,
-                "deleted": true,
-                "data": "            uint32_t(ceil((extents.x_bearing + extents.width)*appUnitsPerDevUnit));"
-            },
-            {
-                "line": 3510,
-                "deleted": false,
-                "data": "            uint32_t(ceil((metrics.mXBearing + metrics.mWidth)*appUnitsPerDevUnit));"
-            },
-            {
-                "line": 3520,
-                "deleted": true,
-                "data": "    gfxRect bounds(extents.x_bearing*d2a, extents.y_bearing*d2a,"
-            },
-            {
-                "line": 3521,
-                "deleted": true,
-                "data": "                   extents.width*d2a, extents.height*d2a);"
-            },
-            {
-                "line": 3523,
-                "deleted": false,
-                "data": "    gfxRect bounds(metrics.mXBearing * d2a, metrics.mYBearing * d2a,"
-            },
-            {
-                "line": 3524,
-                "deleted": false,
-                "data": "                   metrics.mWidth * d2a, metrics.mHeight * d2a);"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/thebes/gfxFontEntry.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 37,
-                "deleted": true,
-                "data": "#include \"cairo.h\""
-            },
-            {
-                "line": 38,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 322,
-                "deleted": true,
-                "data": "                                 gfxRect *aResult)"
-            },
-            {
-                "line": 320,
-                "deleted": false,
-                "data": "                                 gfxFloat aSize, gfxRect* aResult)"
-            },
-            {
-                "line": 329,
-                "deleted": true,
-                "data": "    cairo_matrix_t fontMatrix;"
-            },
-            {
-                "line": 330,
-                "deleted": true,
-                "data": "    cairo_get_font_matrix(gfxFont::RefCairo(aDrawTarget), &fontMatrix);"
-            },
-            {
-                "line": 331,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 332,
-                "deleted": true,
-                "data": "    gfxMatrix svgToAppSpace(fontMatrix.xx, fontMatrix.yx,"
-            },
-            {
-                "line": 333,
-                "deleted": true,
-                "data": "                            fontMatrix.xy, fontMatrix.yy,"
-            },
-            {
-                "line": 334,
-                "deleted": true,
-                "data": "                            fontMatrix.x0, fontMatrix.y0);"
-            },
-            {
-                "line": 335,
-                "deleted": true,
-                "data": "    svgToAppSpace.PreScale(1.0f / mUnitsPerEm, 1.0f / mUnitsPerEm);"
-            },
-            {
-                "line": 336,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 337,
-                "deleted": true,
-                "data": "    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToAppSpace, aResult);"
-            },
-            {
-                "line": 327,
-                "deleted": false,
-                "data": "    gfxMatrix svgToApp(aSize / mUnitsPerEm, 0, 0, aSize / mUnitsPerEm, 0, 0);"
-            },
-            {
-                "line": 328,
-                "deleted": false,
-                "data": "    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToApp, aResult);"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/thebes/gfxFontEntry.h",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 208,
-                "deleted": true,
-                "data": "                            gfxRect *aResult);"
-            },
-            {
-                "line": 208,
-                "deleted": false,
-                "data": "                            gfxFloat aSize, gfxRect* aResult);"
-            }
-        ]
-    },
-    {
-        "filename": "gfx/thebes/gfxTextRun.cpp",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 32,
-                "deleted": true,
-                "data": "#include \"cairo.h\""
-            },
-            {
-                "line": 33,
-                "deleted": true,
-                "data": ""
-            },
-            {
-                "line": 1691,
-                "deleted": true,
-                "data": "        bool fontIsSetup = false;"
-            },
-            {
-                "line": 1703,
-                "deleted": true,
-                "data": "                        if (!fontIsSetup) {"
-            },
-            {
-                "line": 1704,
-                "deleted": true,
-                "data": "                            if (!font->SetupCairoFont(aRefDrawTarget)) {"
-            },
-            {
-                "line": 1705,
-                "deleted": true,
-                "data": "                                NS_WARNING(\"failed to set up font for glyph extents\");"
-            },
-            {
-                "line": 1706,
-                "deleted": true,
-                "data": "                                break;"
-            },
-            {
-                "line": 1707,
-                "deleted": true,
-                "data": "                            }"
-            },
-            {
-                "line": 1708,
-                "deleted": true,
-                "data": "                            fontIsSetup = true;"
-            },
-            {
-                "line": 1709,
-                "deleted": true,
-                "data": "                        }"
-            },
-            {
-                "line": 1729,
-                "deleted": true,
-                "data": "                        if (!fontIsSetup) {"
-            },
-            {
-                "line": 1730,
-                "deleted": true,
-                "data": "                            if (!font->SetupCairoFont(aRefDrawTarget)) {"
-            },
-            {
-                "line": 1731,
-                "deleted": true,
-                "data": "                                NS_WARNING(\"failed to set up font for glyph extents\");"
-            },
-            {
-                "line": 1732,
-                "deleted": true,
-                "data": "                                break;"
-            },
-            {
-                "line": 1733,
-                "deleted": true,
-                "data": "                            }"
-            },
-            {
-                "line": 1734,
-                "deleted": true,
-                "data": "                            fontIsSetup = true;"
-            },
-            {
-                "line": 1735,
-                "deleted": true,
-                "data": "                        }"
-            }
-        ]
-    },
-    {
-        "filename": "layout/reftests/border-radius/reftest.list",
-        "new": false,
-        "deleted": false,
-        "binary": false,
-        "renamed_from": null,
-        "lines": [
-            {
-                "line": 54,
-                "deleted": true,
-                "data": "fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,137,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical"
-            },
-            {
-                "line": 54,
-                "deleted": false,
-                "data": "fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,144,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical"
-            }
-        ]
-    }
-]
+{
+    "diffs": [
+        {
+            "filename": "gfx/thebes/gfxFont.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 3484,
+                    "deleted": true,
+                    "data": "        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID, &svgBounds)) {"
+                },
+                {
+                    "line": 3484,
+                    "deleted": false,
+                    "data": "        mFontEntry->GetSVGGlyphExtents(aDrawTarget, aGlyphID,"
+                },
+                {
+                    "line": 3485,
+                    "deleted": false,
+                    "data": "                                       GetAdjustedSize(), &svgBounds)) {"
+                },
+                {
+                    "line": 3494,
+                    "deleted": true,
+                    "data": "    cairo_glyph_t glyph;"
+                },
+                {
+                    "line": 3495,
+                    "deleted": true,
+                    "data": "    glyph.index = aGlyphID;"
+                },
+                {
+                    "line": 3496,
+                    "deleted": true,
+                    "data": "    glyph.x = 0;"
+                },
+                {
+                    "line": 3497,
+                    "deleted": true,
+                    "data": "    glyph.y = 0;"
+                },
+                {
+                    "line": 3498,
+                    "deleted": true,
+                    "data": "    cairo_text_extents_t extents;"
+                },
+                {
+                    "line": 3499,
+                    "deleted": true,
+                    "data": "    cairo_glyph_extents(gfxFont::RefCairo(aDrawTarget), &glyph, 1, &extents);"
+                },
+                {
+                    "line": 3495,
+                    "deleted": false,
+                    "data": "    RefPtr<ScaledFont> sf = GetScaledFont(aDrawTarget);"
+                },
+                {
+                    "line": 3496,
+                    "deleted": false,
+                    "data": "    uint16_t glyphIndex = aGlyphID;"
+                },
+                {
+                    "line": 3497,
+                    "deleted": false,
+                    "data": "    GlyphMetrics metrics;"
+                },
+                {
+                    "line": 3498,
+                    "deleted": false,
+                    "data": "    if (mAntialiasOption == kAntialiasNone) {"
+                },
+                {
+                    "line": 3499,
+                    "deleted": false,
+                    "data": "        sf->GetGlyphDesignMetrics(&glyphIndex, 1, &metrics);"
+                },
+                {
+                    "line": 3500,
+                    "deleted": false,
+                    "data": "    } else {"
+                },
+                {
+                    "line": 3501,
+                    "deleted": false,
+                    "data": "        aDrawTarget->GetGlyphRasterizationMetrics(sf, &glyphIndex, 1, &metrics);"
+                },
+                {
+                    "line": 3502,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 3503,
+                    "deleted": true,
+                    "data": "    if (!aNeedTight && extents.x_bearing >= 0 &&"
+                },
+                {
+                    "line": 3504,
+                    "deleted": true,
+                    "data": "        extents.y_bearing >= -fontMetrics.maxAscent &&"
+                },
+                {
+                    "line": 3505,
+                    "deleted": true,
+                    "data": "        extents.height + extents.y_bearing <= fontMetrics.maxDescent) {"
+                },
+                {
+                    "line": 3506,
+                    "deleted": false,
+                    "data": "    if (!aNeedTight && metrics.mXBearing >= 0.0 &&"
+                },
+                {
+                    "line": 3507,
+                    "deleted": false,
+                    "data": "        metrics.mYBearing >= -fontMetrics.maxAscent &&"
+                },
+                {
+                    "line": 3508,
+                    "deleted": false,
+                    "data": "        metrics.mHeight + metrics.mYBearing <= fontMetrics.maxDescent) {"
+                },
+                {
+                    "line": 3507,
+                    "deleted": true,
+                    "data": "            uint32_t(ceil((extents.x_bearing + extents.width)*appUnitsPerDevUnit));"
+                },
+                {
+                    "line": 3510,
+                    "deleted": false,
+                    "data": "            uint32_t(ceil((metrics.mXBearing + metrics.mWidth)*appUnitsPerDevUnit));"
+                },
+                {
+                    "line": 3520,
+                    "deleted": true,
+                    "data": "    gfxRect bounds(extents.x_bearing*d2a, extents.y_bearing*d2a,"
+                },
+                {
+                    "line": 3521,
+                    "deleted": true,
+                    "data": "                   extents.width*d2a, extents.height*d2a);"
+                },
+                {
+                    "line": 3523,
+                    "deleted": false,
+                    "data": "    gfxRect bounds(metrics.mXBearing * d2a, metrics.mYBearing * d2a,"
+                },
+                {
+                    "line": 3524,
+                    "deleted": false,
+                    "data": "                   metrics.mWidth * d2a, metrics.mHeight * d2a);"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/thebes/gfxFontEntry.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 37,
+                    "deleted": true,
+                    "data": "#include \"cairo.h\""
+                },
+                {
+                    "line": 38,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 322,
+                    "deleted": true,
+                    "data": "                                 gfxRect *aResult)"
+                },
+                {
+                    "line": 320,
+                    "deleted": false,
+                    "data": "                                 gfxFloat aSize, gfxRect* aResult)"
+                },
+                {
+                    "line": 329,
+                    "deleted": true,
+                    "data": "    cairo_matrix_t fontMatrix;"
+                },
+                {
+                    "line": 330,
+                    "deleted": true,
+                    "data": "    cairo_get_font_matrix(gfxFont::RefCairo(aDrawTarget), &fontMatrix);"
+                },
+                {
+                    "line": 331,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 332,
+                    "deleted": true,
+                    "data": "    gfxMatrix svgToAppSpace(fontMatrix.xx, fontMatrix.yx,"
+                },
+                {
+                    "line": 333,
+                    "deleted": true,
+                    "data": "                            fontMatrix.xy, fontMatrix.yy,"
+                },
+                {
+                    "line": 334,
+                    "deleted": true,
+                    "data": "                            fontMatrix.x0, fontMatrix.y0);"
+                },
+                {
+                    "line": 335,
+                    "deleted": true,
+                    "data": "    svgToAppSpace.PreScale(1.0f / mUnitsPerEm, 1.0f / mUnitsPerEm);"
+                },
+                {
+                    "line": 336,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 337,
+                    "deleted": true,
+                    "data": "    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToAppSpace, aResult);"
+                },
+                {
+                    "line": 327,
+                    "deleted": false,
+                    "data": "    gfxMatrix svgToApp(aSize / mUnitsPerEm, 0, 0, aSize / mUnitsPerEm, 0, 0);"
+                },
+                {
+                    "line": 328,
+                    "deleted": false,
+                    "data": "    return mSVGGlyphs->GetGlyphExtents(aGlyphId, svgToApp, aResult);"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/thebes/gfxFontEntry.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 208,
+                    "deleted": true,
+                    "data": "                            gfxRect *aResult);"
+                },
+                {
+                    "line": 208,
+                    "deleted": false,
+                    "data": "                            gfxFloat aSize, gfxRect* aResult);"
+                }
+            ]
+        },
+        {
+            "filename": "gfx/thebes/gfxTextRun.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 32,
+                    "deleted": true,
+                    "data": "#include \"cairo.h\""
+                },
+                {
+                    "line": 33,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 1691,
+                    "deleted": true,
+                    "data": "        bool fontIsSetup = false;"
+                },
+                {
+                    "line": 1703,
+                    "deleted": true,
+                    "data": "                        if (!fontIsSetup) {"
+                },
+                {
+                    "line": 1704,
+                    "deleted": true,
+                    "data": "                            if (!font->SetupCairoFont(aRefDrawTarget)) {"
+                },
+                {
+                    "line": 1705,
+                    "deleted": true,
+                    "data": "                                NS_WARNING(\"failed to set up font for glyph extents\");"
+                },
+                {
+                    "line": 1706,
+                    "deleted": true,
+                    "data": "                                break;"
+                },
+                {
+                    "line": 1707,
+                    "deleted": true,
+                    "data": "                            }"
+                },
+                {
+                    "line": 1708,
+                    "deleted": true,
+                    "data": "                            fontIsSetup = true;"
+                },
+                {
+                    "line": 1709,
+                    "deleted": true,
+                    "data": "                        }"
+                },
+                {
+                    "line": 1729,
+                    "deleted": true,
+                    "data": "                        if (!fontIsSetup) {"
+                },
+                {
+                    "line": 1730,
+                    "deleted": true,
+                    "data": "                            if (!font->SetupCairoFont(aRefDrawTarget)) {"
+                },
+                {
+                    "line": 1731,
+                    "deleted": true,
+                    "data": "                                NS_WARNING(\"failed to set up font for glyph extents\");"
+                },
+                {
+                    "line": 1732,
+                    "deleted": true,
+                    "data": "                                break;"
+                },
+                {
+                    "line": 1733,
+                    "deleted": true,
+                    "data": "                            }"
+                },
+                {
+                    "line": 1734,
+                    "deleted": true,
+                    "data": "                            fontIsSetup = true;"
+                },
+                {
+                    "line": 1735,
+                    "deleted": true,
+                    "data": "                        }"
+                }
+            ]
+        },
+        {
+            "filename": "layout/reftests/border-radius/reftest.list",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 54,
+                    "deleted": true,
+                    "data": "fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,137,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical"
+                },
+                {
+                    "line": 54,
+                    "deleted": false,
+                    "data": "fuzzy-if(winWidget,105,71) fuzzy-if(Android,8,469) fuzzy-if(skiaContent,7,58) fuzzy-if(d3d11&&advancedLayers,120,319) fuzzy-if(winWidget&&stylo,144,319) == clipping-6.html clipping-6-ref.html # PaintedLayer and MaskLayer with transforms that aren't identical"
+                }
+            ]
+        }
+    ]
+}

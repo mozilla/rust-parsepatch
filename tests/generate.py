@@ -48,11 +48,6 @@ for f in os.listdir(directory):
         r['renamed_from'] = old if old != new else None
         r['lines'] = lines = []
 
-        if f == 'b184c87f7606.patch':
-            from pprint import pprint
-
-            # pprint(diff.changes)
-
         if diff.changes:
             for old, new, line in diff.changes:
                 if old is None:
@@ -65,6 +60,7 @@ for f in os.listdir(directory):
                     )
 
         res.append(r)
+    res = {'diffs': res}
 
     f = os.path.splitext(f)[0]
 
