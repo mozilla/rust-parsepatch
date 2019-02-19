@@ -85,7 +85,8 @@ impl<'a> LineReader<'a> {
     }
 
     fn parse_numbers(&self) -> (u64, u64) {
-        let buf = &self.buf[4..];
+        // we know that line is beginning with "@@ -"
+        let buf = unsafe { self.buf.get_unchecked(4..) };
         let mut x = 0;
         let mut y = 0;
         let mut iter = buf.iter();
@@ -111,28 +112,33 @@ impl<'a> LineReader<'a> {
         (x, y)
     }
 
+    fn get_file<'b>(slice: Option<&'b [u8]>, starter: &[u8]) -> &'b [u8] {
+        if let Some(path) = slice {
+            if let Some(start) = path.get(..2) {
+                if start == starter {
+                    unsafe { path.get_unchecked(2..) }
+                } else {
+                    path
+                }
+            } else {
+                path
+            }
+        } else {
+            &[]
+        }
+    }
+
     fn parse_files(&self) -> (&str, &str) {
         // We know we start with 'diff '
-        let buf = &self.buf[5..];
+        let buf = unsafe { self.buf.get_unchecked(5..) };
         let mut iter = buf.split(|c| *c == b' ');
 
         // skip --git or -r
         iter.next();
 
-        let mut old_path = iter.next().unwrap();
-        let mut new_path = iter.next().unwrap();
+        let old_path = LineReader::get_file(iter.next(), &[b'a', b'/']);
+        let new_path = LineReader::get_file(iter.next(), &[b'b', b'/']);
 
-        if let Some(x) = old_path.get(0..2) {
-            if x == [b'a', b'/'] {
-                old_path = &old_path[2..];
-            }
-        }
-
-        if let Some(x) = new_path.get(0..2) {
-            if x == [b'b', b'/'] {
-                new_path = &new_path[2..];
-            }
-        }
         (
             std::str::from_utf8(old_path).unwrap(),
             std::str::from_utf8(new_path).unwrap(),
@@ -232,30 +238,28 @@ impl<'a> PatchReader<'a> {
     where
         F: Fn(&LineReader) -> bool,
     {
-        if self.pos >= self.buf.len() {
-            return None;
-        }
-
         let mut pos = self.pos;
-        for (n, c) in self.buf[self.pos..].iter().enumerate() {
-            if *c == b'\n' {
-                let mut npos = self.pos + n;
-                if npos > 0 {
-                    let prev = unsafe { *self.buf.get_unchecked(npos - 1) };
-                    if prev == b'\r' {
-                        npos -= 1;
+        if let Some(buf) = self.buf.get(self.pos..) {
+            for (n, c) in buf.iter().enumerate() {
+                if *c == b'\n' {
+                    let mut npos = self.pos + n;
+                    if npos > 0 {
+                        let prev = unsafe { *self.buf.get_unchecked(npos - 1) };
+                        if prev == b'\r' {
+                            npos -= 1;
+                        }
                     }
+                    let line = LineReader {
+                        buf: unsafe { self.buf.get_unchecked(pos..npos) },
+                    };
+                    if filter(&line) {
+                        self.pos += n + 1;
+                        return Some(line);
+                    } else if return_on_false {
+                        return None;
+                    }
+                    pos = self.pos + n + 1;
                 }
-                let line = LineReader {
-                    buf: unsafe { self.buf.get_unchecked(pos..npos) },
-                };
-                if filter(&line) {
-                    self.pos += n + 1;
-                    return Some(line);
-                } else if return_on_false {
-                    return None;
-                }
-                pos = self.pos + n + 1;
             }
         }
         None
@@ -263,13 +267,15 @@ impl<'a> PatchReader<'a> {
 
     fn skip_until_empty_line(&mut self) {
         let mut spos = 0;
-        for (n, c) in self.buf[self.pos..].iter().enumerate() {
-            if *c == b'\n' {
-                if n == spos {
-                    self.pos += n + 1;
-                    return;
-                } else {
-                    spos = n + 1;
+        if let Some(buf) = self.buf.get(self.pos..) {
+            for (n, c) in buf.iter().enumerate() {
+                if *c == b'\n' {
+                    if n == spos {
+                        self.pos += n + 1;
+                        return;
+                    } else {
+                        spos = n + 1;
+                    }
                 }
             }
         }
@@ -294,7 +300,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn hunk_at(line: &LineReader) -> bool {
-        line.first_is(b'@')
+        line.starts_with(&[b'@', b'@', b' ', b'-'])
     }
 
     fn hunk_change(line: &LineReader) -> bool {
@@ -383,10 +389,27 @@ mod tests {
 
     #[test]
     fn test_parse_files() {
-        let s = "diff --git a/foo/bar.cpp b/Foo/Bar/bar.cpp";
-        let line = LineReader { buf: s.as_bytes() };
-        let (old, new) = line.parse_files();
-        assert!(old == "foo/bar.cpp");
-        assert!(new == "Foo/Bar/bar.cpp");
+        let diffs = vec![
+            (
+                "diff --git a/foo/bar.cpp b/Foo/Bar/bar.cpp",
+                ("foo/bar.cpp", "Foo/Bar/bar.cpp"),
+            ),
+            (
+                "diff -r a/foo/bar.cpp b/Foo/Bar/bar.cpp",
+                ("foo/bar.cpp", "Foo/Bar/bar.cpp"),
+            ),
+            (
+                "diff --git foo/bar.cpp Foo/Bar/bar.cpp",
+                ("foo/bar.cpp", "Foo/Bar/bar.cpp"),
+            ),
+        ];
+        for s in diffs {
+            let line = LineReader {
+                buf: s.0.as_bytes(),
+            };
+            let (old, new) = line.parse_files();
+            assert!(old == (s.1).0);
+            assert!(new == (s.1).1);
+        }
     }
 }
