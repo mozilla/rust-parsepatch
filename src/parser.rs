@@ -2,25 +2,47 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
+/// A type to handle lines in a diff
 pub trait Diff {
+    /// Set the file info
     fn set_info(&mut self, old_name: &str, new_name: &str, op: FileOp, binary: bool);
+
+    /// Add a line in the diff
+    ///
+    /// If a line is added (+) then old_line is 0 and new_line is the line in the destination file.
+    ///
+    /// If a line is added (-) then old_line is the line in the source file and new_line is 0.
+    ///
+    /// If a line is added ( ) then old_line is the line in the source file and new_line is the line in the destination file.
     fn add_line(&mut self, old_line: u64, new_line: u64, line: &[u8]);
+
+    /// Close the diff: no more lines will be added
     fn close(&mut self);
 }
 
+/// A type to handle patch
 pub trait Patch<D: Diff> {
+    /// Create a new diff where lines will be added
     fn new_diff(&mut self) -> &mut D;
+
+    /// Close the patch
     fn close(&mut self);
 }
 
+/// The different file operation
 #[derive(Debug, PartialEq)]
 pub enum FileOp {
+    /// The file is new
     New,
+    /// The file is deleted
     Deleted,
+    /// The file is renamed
     Renamed,
+    /// The file is touched
     None,
 }
 
+/// Type to read a patch
 pub struct PatchReader<'a> {
     buf: &'a [u8],
     pos: usize,
@@ -147,6 +169,7 @@ impl<'a> LineReader<'a> {
 }
 
 impl<'a> PatchReader<'a> {
+    /// Read a patch from the given path
     pub fn by_path<D: Diff, P: Patch<D>>(path: &PathBuf, patch: &mut P) {
         match File::open(path) {
             Ok(mut reader) => {
@@ -160,6 +183,7 @@ impl<'a> PatchReader<'a> {
         }
     }
 
+    /// Read a patch from the given buffer
     pub fn by_buf<D: Diff, P: Patch<D>>(buf: &[u8], patch: &mut P) {
         let mut p = PatchReader { buf, pos: 0 };
         p.parse(patch);
