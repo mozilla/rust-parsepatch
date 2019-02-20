@@ -54,10 +54,6 @@ struct LineReader<'a> {
 }
 
 impl<'a> LineReader<'a> {
-    fn to_string(&self) -> String {
-        std::str::from_utf8(self.buf).unwrap().to_string()
-    }
-
     fn is_binary(&self) -> bool {
         self.buf
             == [
@@ -341,6 +337,12 @@ impl<'a> PatchReader<'a> {
 mod tests {
 
     use super::*;
+
+    impl<'a> LineReader<'a> {
+        fn to_string(&self) -> String {
+            std::str::from_utf8(self.buf).unwrap().to_string()
+        }
+    }
 
     #[test]
     fn test_numbers() {
