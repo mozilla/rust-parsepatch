@@ -5,6 +5,7 @@ edition = "2018"
 authors = ["calixteman <cdenizet@mozilla.com>"]
 repository = "https://github.com/mozilla/rust-parsepatch"
 documentation = "https://docs.rs/parsepatch/"
+keywords = ["patch", "git"]
 description = "Parse git patch."
 license = "MPL-2.0"
 
