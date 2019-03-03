@@ -1,5 +1,6 @@
 extern crate chardet;
 extern crate encoding;
+extern crate env_logger;
 extern crate parsepatch;
 extern crate serde;
 
@@ -20,7 +21,7 @@ use crate::parsepatch::*;
 
 #[derive(Deserialize, Debug, PartialEq)]
 pub struct LineChange {
-    pub line: u64,
+    pub line: u32,
     pub deleted: bool,
     pub data: String,
 }
@@ -58,23 +59,27 @@ impl Patch<DiffImpl> for PatchImpl {
 
 impl Diff for DiffImpl {
     fn set_info(&mut self, old_name: &str, new_name: &str, op: FileOp, binary: bool) {
-        self.filename = new_name.to_string();
         match op {
             FileOp::New => {
                 self.new = true;
+                self.filename = new_name.to_string();
             }
             FileOp::Deleted => {
                 self.deleted = true;
+                self.filename = old_name.to_string();
             }
             FileOp::Renamed => {
+                self.filename = new_name.to_string();
                 self.renamed_from = Some(old_name.to_string());
             }
-            _ => {}
+            _ => {
+                self.filename = new_name.to_string();
+            }
         }
         self.binary = binary;
     }
 
-    fn add_line(&mut self, old_line: u64, new_line: u64, line: &[u8]) {
+    fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]) {
         if old_line == 0 {
             self.lines.push(LineChange {
                 line: new_line,
@@ -108,9 +113,13 @@ fn get_line(buf: &[u8]) -> String {
     }
 }
 
-fn compare(json: &PatchImpl, patch: &mut PatchImpl) {
+fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
     patch.diffs.retain(|c| !c.binary);
-    assert!(json.diffs.len() == patch.diffs.len(), "Not the same length");
+    assert!(
+        json.diffs.len() == patch.diffs.len(),
+        "Not the same length in patch: {:?}",
+        path
+    );
     for (cj, cp) in json.diffs.iter().zip(patch.diffs.iter()) {
         assert!(
             cj.filename == cp.filename,
@@ -145,6 +154,7 @@ fn compare(json: &PatchImpl, patch: &mut PatchImpl) {
 
 #[test]
 fn test_parse() {
+    env_logger::init();
     for entry in fs::read_dir(PathBuf::from("./tests/output")).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
@@ -159,7 +169,7 @@ fn test_parse() {
             let mut patch = PatchImpl { diffs: Vec::new() };
             PatchReader::by_path(&path, &mut patch);
 
-            compare(&json_patch, &mut patch);
+            compare(path, &json_patch, &mut patch);
         }
     }
 }

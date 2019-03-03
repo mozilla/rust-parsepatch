@@ -1,0 +1,194 @@
+{
+    "diffs": [
+        {
+            "filename": "foo",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 226,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 226,
+                    "deleted": false,
+                    "data": "c"
+                },
+                {
+                    "line": 227,
+                    "deleted": false,
+                    "data": "d"
+                },
+                {
+                    "line": 228,
+                    "deleted": true,
+                    "data": "f"
+                }
+            ]
+        },
+        {
+            "filename": "bar",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": []
+        },
+        {
+            "filename": "oof",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 1,
+                    "deleted": false,
+                    "data": "a"
+                },
+                {
+                    "line": 2,
+                    "deleted": false,
+                    "data": "b"
+                }
+            ]
+        },
+        {
+            "filename": "rab",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 226,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 226,
+                    "deleted": false,
+                    "data": "c"
+                }
+            ]
+        },
+        {
+            "filename": "tata",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "toto",
+            "lines": []
+        },
+        {
+            "filename": "tutu",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": "titi",
+            "lines": [
+                {
+                    "line": 2,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 2,
+                    "deleted": false,
+                    "data": "c"
+                },
+                {
+                    "line": 4,
+                    "deleted": true,
+                    "data": "e"
+                },
+                {
+                    "line": 5,
+                    "deleted": true,
+                    "data": "f"
+                }
+            ]
+        },
+        {
+            "filename": "ofo",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 1,
+                    "deleted": true,
+                    "data": "a"
+                },
+                {
+                    "line": 2,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 3,
+                    "deleted": true,
+                    "data": "c"
+                }
+            ]
+        },
+        {
+            "filename": "arb",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "renamed_from": null,
+            "lines": [
+                {
+                    "line": 226,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 226,
+                    "deleted": false,
+                    "data": "c"
+                },
+                {
+                    "line": 326,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 326,
+                    "deleted": false,
+                    "data": "c"
+                },
+                {
+                    "line": 328,
+                    "deleted": true,
+                    "data": "e"
+                },
+                {
+                    "line": 329,
+                    "deleted": true,
+                    "data": "f"
+                },
+                {
+                    "line": 329,
+                    "deleted": false,
+                    "data": "h"
+                },
+                {
+                    "line": 426,
+                    "deleted": true,
+                    "data": "b"
+                },
+                {
+                    "line": 460,
+                    "deleted": false,
+                    "data": "c"
+                }
+            ]
+        }
+    ]
+}

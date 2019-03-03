@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter, Result};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -14,7 +15,7 @@ pub trait Diff {
     /// If a line is added (-) then old_line is the line in the source file and new_line is 0.
     ///
     /// If a line is added ( ) then old_line is the line in the source file and new_line is the line in the destination file.
-    fn add_line(&mut self, old_line: u64, new_line: u64, line: &[u8]);
+    fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]);
 
     /// Close the diff: no more lines will be added
     fn close(&mut self);
@@ -48,9 +49,14 @@ pub struct PatchReader<'a> {
     pos: usize,
 }
 
-#[derive(Debug)]
 struct LineReader<'a> {
     buf: &'a [u8],
+}
+
+impl<'a> Debug for LineReader<'a> {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "buffer: {}", std::str::from_utf8(self.buf).unwrap())
+    }
 }
 
 impl<'a> LineReader<'a> {
@@ -70,6 +76,10 @@ impl<'a> LineReader<'a> {
 
     fn is_new_file(&self) -> bool {
         self.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e'])
+    }
+
+    fn is_triple_minus(&self) -> bool {
+        self.starts_with(&[b'-', b'-', b'-'])
     }
 
     fn is_deleted_file(&self) -> bool {
@@ -102,7 +112,7 @@ impl<'a> LineReader<'a> {
         }
     }
 
-    fn parse_numbers(&self) -> (u64, u64) {
+    fn parse_numbers(&self) -> (u32, u32) {
         // we know that line is beginning with "@@ -"
         let buf = unsafe { self.buf.get_unchecked(4..) };
         let mut x = 0;
@@ -110,7 +120,7 @@ impl<'a> LineReader<'a> {
         let mut iter = buf.iter();
         while let Some(c) = iter.next() {
             if *c >= b'0' && *c <= b'9' {
-                x = x * 10 + u64::from(*c - b'0');
+                x = x * 10 + u32::from(*c - b'0');
             } else {
                 break;
             }
@@ -122,12 +132,37 @@ impl<'a> LineReader<'a> {
         }
         for c in iter {
             if *c >= b'0' && *c <= b'9' {
-                y = y * 10 + u64::from(*c - b'0');
+                y = y * 10 + u32::from(*c - b'0');
             } else {
                 break;
             }
         }
         (x, y)
+    }
+
+    fn get_filename(buf: &[u8]) -> &str {
+        let mut iter = buf.iter();
+        let pos1 = iter.position(|c| *c != b' ' && *c != b'\t').unwrap();
+        let pos2 = iter.position(|c| *c == b' ' || *c == b'\t');
+        let buf = if let Some(pos2) = pos2 {
+            unsafe { buf.get_unchecked(pos1..=pos1 + pos2) }
+        } else {
+            unsafe { buf.get_unchecked(pos1..) }
+        };
+        let buf = if let Some(start) = buf.get(..2) {
+            if start == [b'a', b'/'] || start == [b'b', b'/'] {
+                unsafe { buf.get_unchecked(2..) }
+            } else {
+                buf
+            }
+        } else {
+            buf
+        };
+        if buf == [b'/', b'd', b'e', b'v', b'/', b'n', b'u', b'l', b'l'] {
+            ""
+        } else {
+            std::str::from_utf8(buf).unwrap()
+        }
     }
 
     fn get_file<'b>(slice: Option<&'b [u8]>, starter: &[u8]) -> &'b [u8] {
@@ -192,32 +227,86 @@ impl<'a> PatchReader<'a> {
         patch.close();
     }
 
-    fn parse_diff<D: Diff, P: Patch<D>>(&mut self, line: &mut LineReader, patch: &mut P) {
-        let (old, new) = line.parse_files();
+    fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
         let diff = patch.new_diff();
         let mut line = self.next(PatchReader::mv, false).unwrap();
         let op = line.get_file_op();
 
-        if op == FileOp::None && PatchReader::diff(&line) {
-            diff.set_info(old, new, op, false);
+        trace!("Diff (op = {:?}): {:?}", op, diff_line);
+
+        if PatchReader::diff(&line) {
+            let (old, new) = diff_line.parse_files();
+
+            trace!("Single diff line: old: {} -- new: {}", old, new);
+
+            diff.set_info(old, new, FileOp::None, false);
             diff.close();
             self.parse_diff(&mut line, patch);
-        } else if let Some(mut line) = self.next(PatchReader::useful, false) {
-            diff.set_info(old, new, op, line.is_binary());
-            if PatchReader::diff(&line) {
-                diff.close();
-                self.parse_diff(&mut line, patch);
-            } else if PatchReader::hunk_at(&line) {
-                self.parse_hunks(&mut line, diff);
-                diff.close();
-            } else if line.is_binary() {
-                diff.close();
-                self.skip_until_empty_line();
+            return;
+        }
+
+        if op == FileOp::Renamed {
+            // when no changes in the file there is no ---/+++ stuff
+            // so need to get info here
+            // 12 == len("rename from ")
+            let old = LineReader::get_filename(unsafe { line.buf.get_unchecked(12..) });
+            let _line = self.next(PatchReader::mv, false).unwrap();
+            // 10 == len("rename to ")
+            let new = LineReader::get_filename(&_line.buf[10..]);
+
+            trace!("Renamed from {} to {}", old, new);
+
+            diff.set_info(old, new, FileOp::Renamed, false);
+
+            if let Some(mut _line) = self.next(PatchReader::mv, false) {
+                if _line.is_triple_minus() {
+                    // skip +++ line
+                    self.next(PatchReader::mv, false);
+                    line = self.next(PatchReader::mv, false).unwrap();
+                } else {
+                    // we just have a rename but no changes in the file
+                    diff.close();
+                    if PatchReader::diff(&_line) {
+                        self.parse_diff(&mut _line, patch);
+                    }
+                    return;
+                }
+            } else {
+                return;
             }
         } else {
+            if op == FileOp::New || op == FileOp::Deleted {
+                line = self.next(PatchReader::useful, false).unwrap();
+                if line.is_binary() {
+                    // We've file info only in the diff line
+                    // TODO: old is probably useless here
+                    let (old, new) = diff_line.parse_files();
+
+                    trace!("Binary file (op == {:?}): {}", op, new);
+
+                    diff.set_info(old, new, op, true);
+                    diff.close();
+                    self.skip_binary();
+                    return;
+                }
+            }
+
+            trace!("DEBUG (---): {:?}", line);
+
+            // here we've a ---
+            let old = LineReader::get_filename(&line.buf[3..]);
+            let _line = self.next(PatchReader::mv, false).unwrap();
+            // 3 == len("+++")
+            let new = LineReader::get_filename(&_line.buf[3..]);
+
+            trace!("Files: old: {} -- new: {}", old, new);
+
             diff.set_info(old, new, op, false);
-            diff.close();
+            line = self.next(PatchReader::mv, false).unwrap();
         }
+
+        self.parse_hunks(&mut line, diff);
+        diff.close();
     }
 
     fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
@@ -229,7 +318,7 @@ impl<'a> PatchReader<'a> {
         }
     }
 
-    fn parse_hunk<D: Diff>(&mut self, o: u64, n: u64, diff: &mut D) {
+    fn parse_hunk<D: Diff>(&mut self, o: u32, n: u32, diff: &mut D) {
         let mut old_count = o;
         let mut new_count = n;
         while let Some(line) = self.next(PatchReader::hunk_change, true) {
@@ -237,15 +326,15 @@ impl<'a> PatchReader<'a> {
             let first = unsafe { *line.buf.get_unchecked(0) };
             match first {
                 b'-' => {
-                    diff.add_line(old_count, 0, &line.buf[1..]);
+                    diff.add_line(old_count, 0, unsafe { line.buf.get_unchecked(1..) });
                     old_count += 1;
                 }
                 b'+' => {
-                    diff.add_line(0, new_count, &line.buf[1..]);
+                    diff.add_line(0, new_count, unsafe { line.buf.get_unchecked(1..) });
                     new_count += 1;
                 }
                 b' ' => {
-                    diff.add_line(old_count, new_count, &line.buf[1..]);
+                    diff.add_line(old_count, new_count, unsafe { line.buf.get_unchecked(1..) });
                     old_count += 1;
                     new_count += 1;
                 }
@@ -302,13 +391,29 @@ impl<'a> PatchReader<'a> {
         self.pos = self.buf.len();
     }
 
+    fn skip_binary(&mut self) {
+        loop {
+            self.skip_until_empty_line();
+            if let Some(buf) = self.buf.get(self.pos..) {
+                // 8 == len(literal )
+                if let Some(buf) = buf.get(..8) {
+                    if buf == [b'l', b'i', b't', b'e', b'r', b'a', b'l', b' '] {
+                        continue;
+                    }
+                }
+                // 6 == len(delta )
+                if let Some(buf) = buf.get(..6) {
+                    if buf == [b'd', b'e', b'l', b't', b'a', b' '] {
+                        continue;
+                    }
+                }
+            }
+            break;
+        }
+    }
+
     fn useful(line: &LineReader) -> bool {
-        !line.starts_with(&[b'-', b'-', b'-'])
-            && !line.starts_with(&[b'+', b'+', b'+'])
-            && !line.starts_with(&[b'i', b'n', b'd', b'e', b'x', b' '])
-            && !line.starts_with(&[b'o', b'l', b'd', b' ', b'm', b'o', b'd', b'e'])
-            && !line.starts_with(&[b'n', b'e', b'w', b' ', b'm', b'o', b'd', b'e'])
-            && !line.starts_with(&[b'r', b'e', b'n', b'a', b'm', b'e', b' '])
+        line.is_binary() || line.is_triple_minus()
     }
 
     fn diff(line: &LineReader) -> bool {
@@ -338,12 +443,6 @@ mod tests {
 
     use super::*;
 
-    impl<'a> LineReader<'a> {
-        fn to_string(&self) -> String {
-            std::str::from_utf8(self.buf).unwrap().to_string()
-        }
-    }
-
     #[test]
     fn test_numbers() {
         let cases = [
@@ -356,6 +455,22 @@ mod tests {
             let buf = c.0.as_bytes();
             let line = LineReader { buf: &buf };
             assert!(line.parse_numbers() == c.1);
+        }
+    }
+
+    #[test]
+    fn test_get_filename() {
+        let cases = [
+            (" a/hello/world", "hello/world"),
+            (" b/world/hello", "world/hello"),
+            (" \ta/hello/world   \t  ", "hello/world"),
+            (" \t  b/world/hello  ", "world/hello"),
+            (" /dev/null  ", ""),
+        ];
+        for c in cases.into_iter() {
+            let buf = c.0.as_bytes();
+            let p = LineReader::get_filename(buf);
+            assert!(p == c.1);
         }
     }
 
@@ -384,33 +499,29 @@ mod tests {
     }
 
     #[test]
-    fn test_filter_useless() {
-        let seps = vec!["\n", "\r\n"];
-        let v = vec![
-            "a. string1",
-            "+++ abcde",
-            "index abcde",
-            "old mode abcde",
-            "new mode abcde",
-            "b. string2",
-            "C. string3",
+    fn test_skip_binary() {
+        let s = vec![
+            "abcdef",
+            "ghijkl",
+            "",
+            "literal 1",
+            "abcdef",
+            "ghijkl",
+            "",
+            "delta 1",
+            "abcdef",
+            "ghijkl",
+            "",
+            "Hello",
         ];
-        for sep in seps {
-            let s = v.join(sep);
-            let cpos = s.find('C').unwrap();
-            let ppos = s.find('+').unwrap();
-            let mut p = PatchReader {
-                buf: s.as_bytes(),
-                pos: 0,
-            };
-            let line = p.next(PatchReader::mv, false).unwrap();
-            assert!(line.to_string() == "a. string1".to_string());
-            assert!(p.pos == ppos);
-
-            let line = p.next(PatchReader::useful, false).unwrap();
-            assert!(line.to_string() == "b. string2".to_string());
-            assert!(p.pos == cpos);
-        }
+        let s = s.join("\n");
+        let hpos = s.find('H').unwrap();
+        let mut p = PatchReader {
+            buf: s.as_bytes(),
+            pos: 0,
+        };
+        p.skip_binary();
+        assert!(p.pos == hpos);
     }
 
     #[test]
