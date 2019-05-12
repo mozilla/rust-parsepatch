@@ -69,21 +69,21 @@ impl<'a> LineReader<'a> {
     }
 
     fn is_rename_from(&self) -> bool {
-        self.starts_with(&[
+        self.buf.starts_with(&[
             b'r', b'e', b'n', b'a', b'm', b'e', b' ', b'f', b'r', b'o', b'm',
         ])
     }
 
     fn is_new_file(&self) -> bool {
-        self.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e'])
+        self.buf.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e'])
     }
 
     fn is_triple_minus(&self) -> bool {
-        self.starts_with(&[b'-', b'-', b'-'])
+        self.buf.starts_with(&[b'-', b'-', b'-'])
     }
 
     fn is_deleted_file(&self) -> bool {
-        self.starts_with(&[
+        self.buf.starts_with(&[
             b'd', b'e', b'l', b'e', b't', b'e', b'd', b' ', b'f', b'i', b'l', b'e',
         ])
     }
@@ -97,18 +97,6 @@ impl<'a> LineReader<'a> {
             FileOp::Renamed
         } else {
             FileOp::None
-        }
-    }
-
-    fn starts_with(&self, v: &[u8]) -> bool {
-        v.len() <= self.buf.len() && self.buf.iter().zip(v.iter()).all(|(x, y)| *x == *y)
-    }
-
-    fn first_is(&self, c: u8) -> bool {
-        if let Some(cc) = self.buf.get(0) {
-            *cc == c
-        } else {
-            false
         }
     }
 
@@ -417,7 +405,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn diff(line: &LineReader) -> bool {
-        line.starts_with(&[b'd', b'i', b'f', b'f', b' '])
+        line.buf.starts_with(&[b'd', b'i', b'f', b'f', b' '])
     }
 
     fn mv(_: &LineReader) -> bool {
@@ -425,16 +413,18 @@ impl<'a> PatchReader<'a> {
     }
 
     fn hunk_at(line: &LineReader) -> bool {
-        line.starts_with(&[b'@', b'@', b' ', b'-'])
+        line.buf.starts_with(&[b'@', b'@', b' ', b'-'])
     }
 
     fn hunk_change(line: &LineReader) -> bool {
-        line.first_is(b'-')
-            || line.first_is(b'+')
-            || line.first_is(b' ')
-            || line.starts_with(&[
-                b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e',
+        if let Some(c) = line.buf.get(0) {
+            let c = *c;
+            c == b'-' || c == b'+' || c == b' ' || line.buf.starts_with(&[
+                b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e'
             ])
+        } else {
+            false
+        }
     }
 }
 
@@ -481,7 +471,7 @@ mod tests {
             let buf = c.0.as_bytes();
             let line = LineReader { buf: &buf };
             let pat = c.1.as_bytes();
-            assert!(line.starts_with(pat) == c.0.starts_with(c.1));
+            assert!(line.buf.starts_with(pat) == c.0.starts_with(c.1));
         }
     }
 
