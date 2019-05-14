@@ -1,6 +1,6 @@
 [package]
 name = "parsepatch"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2018"
 authors = ["calixteman <cdenizet@mozilla.com>"]
 repository = "https://github.com/mozilla/rust-parsepatch"
