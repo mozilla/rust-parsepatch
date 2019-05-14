@@ -230,8 +230,20 @@ impl<'a> PatchReader<'a> {
     }
 
     fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
+        trace!("Diff {:?}", diff_line);
         let diff = patch.new_diff();
-        let mut line = self.next(PatchReader::mv, false).unwrap();
+        let mut line = if let Some(line) = self.next(PatchReader::old_new_mode, false) {
+            line
+        } else {
+            // Nothing more... so close it
+            let (old, new) = diff_line.parse_files();
+
+            trace!("Single diff line: new: {}", new);
+
+            diff.set_info(old, new, FileOp::None, false);
+            diff.close();
+            return;
+        };
         let op = line.get_file_op();
 
         trace!("Diff (op = {:?}): {:?}, next_line: {:?}", op, diff_line, line);
@@ -457,6 +469,10 @@ impl<'a> PatchReader<'a> {
 
     fn hunk_at(line: &LineReader) -> bool {
         line.buf.starts_with(&[b'@', b'@', b' ', b'-'])
+    }
+
+    fn old_new_mode(line: &LineReader) -> bool {
+        !line.buf.starts_with(&[b'o', b'l', b'd', b' ']) && !line.buf.starts_with(&[b'n', b'e', b'w', b' ', b'm', b'o', b'd', b'e'])
     }
 
     fn hunk_change(line: &LineReader) -> bool {

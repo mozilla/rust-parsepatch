@@ -1,0 +1,12 @@
+{
+    "diffs": [
+        {
+            "filename": "taskcluster/scripts/tester/test-linux.sh",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": []
+        }
+    ]
+}

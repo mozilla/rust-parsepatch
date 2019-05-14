@@ -1,0 +1,16 @@
+# HG changeset patch
+# User Mike Shal <mshal@mozilla.com>
+# Date 1552953181 0
+#      lun. mars 18 23:53:01 2019 +0000
+# Node ID 6f5fc0d644dd1eb83294ce41b2b47be44c2d9783
+# Parent  53d3443e55d95af494d6c8bdc3d2d7a52c5eff1e
+Bug 632954 - Add execute bit to test-linux.sh; r=tomprince
+
+In order to call test-linux.sh with the job-script parameter, it needs
+to have executable permissions.
+
+Differential Revision: https://phabricator.services.mozilla.com/D22821
+
+diff --git a/taskcluster/scripts/tester/test-linux.sh b/taskcluster/scripts/tester/test-linux.sh
+old mode 100644
+new mode 100755
