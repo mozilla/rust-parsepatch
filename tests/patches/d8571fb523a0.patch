@@ -1,0 +1,29 @@
+# HG changeset patch
+# User Bryce Van Dyk <bvandyk@mozilla.com>
+# Date 1556637169 0
+#      mar. avril 30 15:12:49 2019 +0000
+# Node ID d8571fb523a061813ecd4e92526f60024dbb87d3
+# Parent  1a102b35a05d4c5d93782755383f13044f433bb2
+Bug 1540580 - Add crashtest for WebM with 0 sized samples. r=jya
+
+Depends on D25846
+
+Differential Revision: https://phabricator.services.mozilla.com/D25847
+
+diff --git a/dom/media/test/crashtests/crashtests.list b/dom/media/test/crashtests/crashtests.list
+--- a/dom/media/test/crashtests/crashtests.list
++++ b/dom/media/test/crashtests/crashtests.list
+@@ -113,10 +113,11 @@ load oscillator-ended-2.html
+ skip-if(Android&&AndroidVersion=='22') load video-replay-after-audio-end.html # bug 1315125, bug 1358876
+ # This needs to run at the end to avoid leaking busted state into other tests.
+ skip-if(Android) load 691096-1.html # Bug 1365451
+ load 1236639.html
+ test-pref(media.navigator.permission.disabled,true) load 1388372.html
+ load 1494073.html
+ skip-if(Android) load 1526044.html # Bug 1528391
+ load 1533909.html
++load empty-samples.webm # Bug 1540580
+ test-pref(media.autoplay.block-webaudio,false) load 1545133.html
+ load track-with-zero-dimensions.mp4
+diff --git a/dom/media/test/crashtests/empty-samples.webm b/dom/media/test/crashtests/empty-samples.webm
+new file mode 100644

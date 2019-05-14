@@ -286,7 +286,18 @@ impl<'a> PatchReader<'a> {
         } else {
             if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
                 trace!("New/Delete file: {:?}", line);
-                line = self.next(PatchReader::useful, false).unwrap();
+                line = if let Some(line) = self.next(PatchReader::useful, false) {
+                    line
+                } else {
+                    // Nothing more... so close it
+                    let (old, new) = diff_line.parse_files();
+
+                    trace!("Single new/delete diff line: new: {}", new);
+
+                    diff.set_info(old, new, op, false);
+                    diff.close();
+                    return;
+                };
                 trace!("New/Delete file: next useful line {:?}", line);
                 if line.is_binary() {
                     // We've file info only in the diff line

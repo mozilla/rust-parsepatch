@@ -1,0 +1,26 @@
+{
+    "diffs": [
+        {
+            "filename": "dom/media/test/crashtests/crashtests.list",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 121,
+                    "deleted": false,
+                    "data": "load empty-samples.webm # Bug 1540580"
+                }
+            ]
+        },
+        {
+            "filename": "dom/media/test/crashtests/empty-samples.webm",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": []
+        }
+    ]
+}
