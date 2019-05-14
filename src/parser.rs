@@ -144,8 +144,8 @@ impl<'a> LineReader<'a> {
 
     fn get_filename(buf: &[u8]) -> &str {
         let mut iter = buf.iter();
-        let pos1 = iter.position(|c| *c != b' ' && *c != b'\t').unwrap();
-        let pos2 = iter.position(|c| *c == b' ' || *c == b'\t');
+        let pos1 = iter.position(|c| *c != b' ').unwrap();
+        let pos2 = iter.position(|c| *c == b'\t');
         let buf = if let Some(pos2) = pos2 {
             unsafe { buf.get_unchecked(pos1..=pos1 + pos2) }
         } else {
@@ -234,7 +234,7 @@ impl<'a> PatchReader<'a> {
         let mut line = self.next(PatchReader::mv, false).unwrap();
         let op = line.get_file_op();
 
-        trace!("Diff (op = {:?}): {:?}", op, diff_line);
+        trace!("Diff (op = {:?}): {:?}, next_line: {:?}", op, diff_line, line);
 
         if PatchReader::diff(&line) {
             let (old, new) = diff_line.parse_files();
@@ -285,7 +285,9 @@ impl<'a> PatchReader<'a> {
             }
         } else {
             if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
+                trace!("New file: {:?}", line);
                 line = self.next(PatchReader::useful, false).unwrap();
+                trace!("New file: next useful line {:?}", line);
                 if line.is_binary() {
                     // We've file info only in the diff line
                     // TODO: old is probably useless here
@@ -296,6 +298,15 @@ impl<'a> PatchReader<'a> {
                     diff.set_info(old, new, op, true);
                     diff.close();
                     self.skip_binary();
+                    return;
+                } else if PatchReader::diff(&line) {
+                    let (_, new) = diff_line.parse_files();
+
+                    trace!("Single new diff line: new: {}", new);
+
+                    diff.set_info("", new, FileOp::New, false);
+                    diff.close();
+                    self.parse_diff(&mut line, patch);
                     return;
                 }
             }
@@ -422,7 +433,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn useful(line: &LineReader) -> bool {
-        line.is_binary() || line.is_triple_minus()
+        line.is_binary() || line.is_triple_minus() || Self::diff(&line)
     }
 
     fn diff(line: &LineReader) -> bool {
@@ -474,9 +485,9 @@ mod tests {
         let cases = [
             (" a/hello/world", "hello/world"),
             (" b/world/hello", "world/hello"),
-            (" \ta/hello/world   \t  ", "hello/world"),
-            (" \t  b/world/hello  ", "world/hello"),
-            (" /dev/null  ", ""),
+            ("  a/hello/world", "hello/world"),
+            ("   b/world/hello\t", "world/hello"),
+            (" /dev/null\t", ""),
         ];
         for c in cases.into_iter() {
             let buf = c.0.as_bytes();

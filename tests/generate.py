@@ -2,6 +2,7 @@ import codecs
 from collections import OrderedDict
 import json
 import os
+import re
 import whatthepatch
 
 
@@ -24,13 +25,18 @@ def myreplacement(ex):
 codecs.register_error('myreplacement', myreplacement)
 
 
+pat = re.compile(r"\t+$", re.MULTILINE)
 directory = './patches'
 for f in os.listdir(directory):
     with open(os.path.join(directory, f), 'rb') as In:
         patch = In.read()
 
     patch = patch.decode('utf-8', errors='myreplacement')
-
+    bp = 'third_party/rust/bitvec/doc/Bit Patterns.md'
+    rep = 'third_party/rust/bitvec/doc/BitPatterns.md'
+    if bp in patch:
+        patch = patch.replace(bp, rep)
+        patch = pat.sub('', patch)
     res = []
     for diff in whatthepatch.parse_patch(patch):
         r = OrderedDict()
@@ -40,6 +46,12 @@ for f in os.listdir(directory):
 
         old = old[2:] if old.startswith('a/') else old
         new = new[2:] if new.startswith('b/') else new
+
+        if old == rep:
+            old = bp
+
+        if new == rep:
+            new = bp
 
         r['filename'] = new
         r['new'] = False
