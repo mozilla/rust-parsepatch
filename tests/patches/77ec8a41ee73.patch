@@ -1,0 +1,4156 @@
+# HG changeset patch
+# User Gijs Kruitbosch <gijskruitbosch@gmail.com>
+# Date 1557190532 0
+#      mar. mai 07 00:55:32 2019 +0000
+# Node ID 77ec8a41ee7361d9f02511b6992747857931485c
+# Parent  f960290161ab3be6793e7eabc27d34573dea9a6e
+Bug 1257565 - switch gfx blocklist over to kinto-based storage, r=leplatrem,aswan
+
+Differential Revision: https://phabricator.services.mozilla.com/D29833
+
+diff --git a/browser/components/BrowserGlue.jsm b/browser/components/BrowserGlue.jsm
+--- a/browser/components/BrowserGlue.jsm
++++ b/browser/components/BrowserGlue.jsm
+@@ -1727,17 +1727,17 @@ BrowserGlue.prototype = {
+         JawsScreenReaderVersionCheck.onWindowsRestored();
+       });
+     }
+ 
+     Services.tm.idleDispatchToMainThread(() => {
+       RFPHelper.init();
+     });
+ 
+-    Services.tm.idleDispatchToMainThread(() => {
++    ChromeUtils.idleDispatch(() => {
+       Blocklist.loadBlocklistAsync();
+     });
+ 
+     if (Services.prefs.getIntPref("browser.livebookmarks.migrationAttemptsLeft", 0) > 0) {
+       Services.tm.idleDispatchToMainThread(() => {
+         LiveBookmarkMigrator.migrate().catch(Cu.reportError);
+       });
+     }
+diff --git a/security/manager/ssl/tests/unit/test_cert_storage.js b/security/manager/ssl/tests/unit/test_cert_storage.js
+--- a/security/manager/ssl/tests/unit/test_cert_storage.js
++++ b/security/manager/ssl/tests/unit/test_cert_storage.js
+@@ -9,17 +9,17 @@
+ // * it ensures that data served from OneCRL are persisted correctly
+ // * it ensures that items in the CertBlocklist are seen as revoked by the
+ //   cert verifier
+ // * it does a sanity check to ensure other cert verifier behavior is
+ //   unmodified
+ 
+ const { setTimeout } = ChromeUtils.import("resource://gre/modules/Timer.jsm", {});
+ const { RemoteSettings } = ChromeUtils.import("resource://services-settings/remote-settings.js", {});
+-const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", {});
++const {BlocklistClients} = ChromeUtils.import("resource://services-common/blocklist-clients.js", {});
+ 
+ // First, we need to setup appInfo for the blocklist service to work
+ var id = "xpcshell@tests.mozilla.org";
+ var appName = "XPCShell";
+ var version = "1";
+ var platformVersion = "1.9.2";
+ ChromeUtils.import("resource://testing-common/AppInfo.jsm", this);
+ /* global updateAppInfo:false */ // Imported via AppInfo.jsm.
+diff --git a/services/common/blocklist-clients.js b/services/common/blocklist-clients.js
+--- a/services/common/blocklist-clients.js
++++ b/services/common/blocklist-clients.js
+@@ -1,16 +1,16 @@
+ /* This Source Code Form is subject to the terms of the Mozilla Public
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ "use strict";
+ 
+ var EXPORTED_SYMBOLS = [
+-  "initialize",
++  "BlocklistClients",
+ ];
+ 
+ const { AppConstants } = ChromeUtils.import("resource://gre/modules/AppConstants.jsm");
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ const { OS } = ChromeUtils.import("resource://gre/modules/osfile.jsm");
+ 
+ ChromeUtils.defineModuleGetter(this, "RemoteSettings", "resource://services-settings/remote-settings.js");
+ ChromeUtils.defineModuleGetter(this, "jexlFilterFunc", "resource://services-settings/remote-settings.js");
+@@ -27,19 +27,16 @@ const PREF_BLOCKLIST_ADDONS_SIGNER      
+ const PREF_BLOCKLIST_PLUGINS_COLLECTION      = "services.blocklist.plugins.collection";
+ const PREF_BLOCKLIST_PLUGINS_CHECKED_SECONDS = "services.blocklist.plugins.checked";
+ const PREF_BLOCKLIST_PLUGINS_SIGNER          = "services.blocklist.plugins.signer";
+ const PREF_BLOCKLIST_PINNING_ENABLED         = "services.blocklist.pinning.enabled";
+ const PREF_BLOCKLIST_PINNING_BUCKET          = "services.blocklist.pinning.bucket";
+ const PREF_BLOCKLIST_PINNING_COLLECTION      = "services.blocklist.pinning.collection";
+ const PREF_BLOCKLIST_PINNING_CHECKED_SECONDS = "services.blocklist.pinning.checked";
+ const PREF_BLOCKLIST_PINNING_SIGNER          = "services.blocklist.pinning.signer";
+-const PREF_BLOCKLIST_GFX_COLLECTION          = "services.blocklist.gfx.collection";
+-const PREF_BLOCKLIST_GFX_CHECKED_SECONDS     = "services.blocklist.gfx.checked";
+-const PREF_BLOCKLIST_GFX_SIGNER              = "services.blocklist.gfx.signer";
+ 
+ class RevocationState {
+   constructor(state) {
+     this.state = state;
+   }
+ }
+ 
+ class IssuerAndSerialRevocationState extends RevocationState {
+@@ -251,17 +248,16 @@ async function targetAppFilter(entry, en
+       }
+     }
+   }
+   // Skip this entry.
+   return null;
+ }
+ 
+ var AddonBlocklistClient;
+-var GfxBlocklistClient;
+ var OneCRLBlocklistClient;
+ var PinningBlocklistClient;
+ var PluginBlocklistClient;
+ var RemoteSecuritySettingsClient;
+ 
+ function initialize() {
+   OneCRLBlocklistClient = RemoteSettings(Services.prefs.getCharPref(PREF_SECURITY_SETTINGS_ONECRL_COLLECTION), {
+     bucketNamePref: PREF_SECURITY_SETTINGS_ONECRL_BUCKET,
+@@ -279,23 +275,16 @@ function initialize() {
+ 
+   PluginBlocklistClient = RemoteSettings(Services.prefs.getCharPref(PREF_BLOCKLIST_PLUGINS_COLLECTION), {
+     bucketNamePref: PREF_BLOCKLIST_BUCKET,
+     lastCheckTimePref: PREF_BLOCKLIST_PLUGINS_CHECKED_SECONDS,
+     signerName: Services.prefs.getCharPref(PREF_BLOCKLIST_PLUGINS_SIGNER),
+     filterFunc: targetAppFilter,
+   });
+ 
+-  GfxBlocklistClient = RemoteSettings(Services.prefs.getCharPref(PREF_BLOCKLIST_GFX_COLLECTION), {
+-    bucketNamePref: PREF_BLOCKLIST_BUCKET,
+-    lastCheckTimePref: PREF_BLOCKLIST_GFX_CHECKED_SECONDS,
+-    signerName: Services.prefs.getCharPref(PREF_BLOCKLIST_GFX_SIGNER),
+-    filterFunc: targetAppFilter,
+-  });
+-
+   PinningBlocklistClient = RemoteSettings(Services.prefs.getCharPref(PREF_BLOCKLIST_PINNING_COLLECTION), {
+     bucketNamePref: PREF_BLOCKLIST_PINNING_BUCKET,
+     lastCheckTimePref: PREF_BLOCKLIST_PINNING_CHECKED_SECONDS,
+     signerName: Services.prefs.getCharPref(PREF_BLOCKLIST_PINNING_SIGNER),
+   });
+   PinningBlocklistClient.on("sync", updatePinningList);
+ 
+   if (AppConstants.MOZ_NEW_CERT_STORAGE) {
+@@ -304,22 +293,23 @@ function initialize() {
+     // In Bug 1526018 this will move into its own service, as it's not quite like
+     // the others.
+     RemoteSecuritySettingsClient = new RemoteSecuritySettings();
+ 
+     return {
+       OneCRLBlocklistClient,
+       AddonBlocklistClient,
+       PluginBlocklistClient,
+-      GfxBlocklistClient,
+       PinningBlocklistClient,
+       RemoteSecuritySettingsClient,
+     };
+   }
+ 
+   return {
+     OneCRLBlocklistClient,
+     AddonBlocklistClient,
+     PluginBlocklistClient,
+-    GfxBlocklistClient,
+     PinningBlocklistClient,
+   };
+ }
++
++let BlocklistClients = {initialize, targetAppFilter};
++
+diff --git a/services/common/docs/RemoteSettings.rst b/services/common/docs/RemoteSettings.rst
+--- a/services/common/docs/RemoteSettings.rst
++++ b/services/common/docs/RemoteSettings.rst
+@@ -317,17 +317,17 @@ About blocklists
+ ----------------
+ 
+ Addons, certificates, plugins, and GFX blocklists were the first use-cases of remote settings, and thus have some specificities.
+ 
+ For example, they leverage advanced customization options (bucket, content-signature certificate, target filtering etc.), and in order to be able to inspect and manipulate their data, the client instances must first be explicitly initialized.
+ 
+ .. code-block:: js
+ 
+-    const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", {});
++    const {BlocklistClients} = ChromeUtils.import("resource://services-common/blocklist-clients.js", {});
+ 
+     BlocklistClients.initialize();
+ 
+ Then, in order to access a specific client instance, the bucket must be specified:
+ 
+ .. code-block:: js
+ 
+     const collection = await RemoteSettings("addons", { bucketName: "blocklists" }).openCollection();
+diff --git a/services/common/tests/unit/test_blocklist_clients.js b/services/common/tests/unit/test_blocklist_clients.js
+--- a/services/common/tests/unit/test_blocklist_clients.js
++++ b/services/common/tests/unit/test_blocklist_clients.js
+@@ -44,16 +44,18 @@ function run_test() {
+   // this will be fixed in Bug 1526018
+   // We disable intermediate preloading because it runs when polling ends, and
+   // interferes with `clear_state()` from this test suite.
+   Services.prefs.setBoolPref("security.remote_settings.intermediates.enabled", false);
+ 
+   // This will initialize the remote settings clients for blocklists.
+   BlocklistClients.initialize();
+ 
++  // FIXME: once all the clients are migrated to Blocklist.jsm, we should move
++  // the test there, too. This note is here so I don't forget.
+   gBlocklistClients = [
+     {client: BlocklistClients.AddonBlocklistClient, testData: ["i808", "i720", "i539"]},
+     {client: BlocklistClients.PluginBlocklistClient, testData: ["p1044", "p32", "p28"]},
+     {client: BlocklistClients.GfxBlocklistClient, testData: ["g204", "g200", "g36"]},
+   ];
+ 
+   // Setup server fake responses.
+   function handleResponse(request, response) {
+diff --git a/services/common/tests/unit/test_blocklist_onecrl.js b/services/common/tests/unit/test_blocklist_onecrl.js
+--- a/services/common/tests/unit/test_blocklist_onecrl.js
++++ b/services/common/tests/unit/test_blocklist_onecrl.js
+@@ -1,12 +1,12 @@
+ const { Constructor: CC } = Components;
+ 
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+-const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", null);
++const {BlocklistClients} = ChromeUtils.import("resource://services-common/blocklist-clients.js");
+ 
+ const BinaryInputStream = CC("@mozilla.org/binaryinputstream;1",
+   "nsIBinaryInputStream", "setInputStream");
+ 
+ let server;
+ 
+ // Some simple tests to demonstrate that the logic inside maybeSync works
+ // correctly and that simple kinto operations are working as expected. There
+@@ -14,19 +14,17 @@ let server;
+ // xpcshell tests under /services/common
+ add_task(async function test_something() {
+   const configPath = "/v1/";
+   const recordsPath = "/v1/buckets/security-state/collections/onecrl/records";
+ 
+   const dummyServerURL = `http://localhost:${server.identity.primaryPort}/v1`;
+   Services.prefs.setCharPref("services.settings.server", dummyServerURL);
+ 
+-  BlocklistClients.initialize();
+-
+-  const OneCRLBlocklistClient = BlocklistClients.OneCRLBlocklistClient;
++  const {OneCRLBlocklistClient} = BlocklistClients.initialize();
+ 
+   // register a handler
+   function handleResponse(request, response) {
+     try {
+       const sample = getSampleResponse(request, server.identity.primaryPort);
+       if (!sample) {
+         do_throw(`unexpected ${request.method} request for ${request.path}?${request.queryString}`);
+       }
+diff --git a/services/common/tests/unit/test_blocklist_pinning.js b/services/common/tests/unit/test_blocklist_pinning.js
+--- a/services/common/tests/unit/test_blocklist_pinning.js
++++ b/services/common/tests/unit/test_blocklist_pinning.js
+@@ -1,14 +1,14 @@
+ "use strict";
+ 
+ const { Constructor: CC } = Components;
+ 
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+-const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", null);
++const {BlocklistClients} = ChromeUtils.import("resource://services-common/blocklist-clients.js");
+ 
+ const BinaryInputStream = CC("@mozilla.org/binaryinputstream;1",
+   "nsIBinaryInputStream", "setInputStream");
+ 
+ // First, we need to setup Services.appinfo or we can't do version checks
+ var id = "xpcshell@tests.mozilla.org";
+ var appName = "XPCShell";
+ var version = "1";
+@@ -22,19 +22,17 @@ updateAppInfo({
+   crashReporter: true,
+ });
+ 
+ let server;
+ 
+ // Some simple tests to demonstrate that the core preload sync operations work
+ // correctly and that simple kinto operations are working as expected.
+ add_task(async function test_something() {
+-  BlocklistClients.initialize();
+-
+-  const PinningPreloadClient = BlocklistClients.PinningBlocklistClient;
++  const PinningPreloadClient = BlocklistClients.initialize().PinningBlocklistClient;
+ 
+   const configPath = "/v1/";
+   const recordsPath = "/v1/buckets/pinning/collections/pins/records";
+ 
+   Services.prefs.setCharPref("services.settings.server",
+                              `http://localhost:${server.identity.primaryPort}/v1`);
+ 
+   // register a handler
+diff --git a/services/common/tests/unit/test_blocklist_signatures.js b/services/common/tests/unit/test_blocklist_signatures.js
+--- a/services/common/tests/unit/test_blocklist_signatures.js
++++ b/services/common/tests/unit/test_blocklist_signatures.js
+@@ -1,14 +1,14 @@
+ "use strict";
+ 
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ 
+ const { NetUtil } = ChromeUtils.import("resource://gre/modules/NetUtil.jsm");
+-const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", null);
++const { BlocklistClients } = ChromeUtils.import("resource://services-common/blocklist-clients.js");
+ const { UptakeTelemetry } = ChromeUtils.import("resource://services-common/uptake-telemetry.js");
+ 
+ let server;
+ 
+ const PREF_SETTINGS_VERIFY_SIGNATURE   = "services.settings.verify_signature";
+ const PREF_SETTINGS_SERVER             = "services.settings.server";
+ const PREF_SIGNATURE_ROOT              = "security.content.signature.root_hash";
+ 
+@@ -50,23 +50,23 @@ function getCertChain() {
+ }
+ 
+ async function checkRecordCount(client, count) {
+   // Check we have the expected number of records
+   const records = await client.get();
+   Assert.equal(count, records.length);
+ }
+ 
++let OneCRLBlocklistClient;
++
+ // Check to ensure maybeSync is called with correct values when a changes
+ // document contains information on when a collection was last modified
+ add_task(async function test_check_signatures() {
+   const port = server.identity.primaryPort;
+ 
+-  const OneCRLBlocklistClient = BlocklistClients.OneCRLBlocklistClient;
+-
+   // Telemetry reports.
+   const TELEMETRY_HISTOGRAM_KEY = OneCRLBlocklistClient.identifier;
+ 
+   // a response to give the client when the cert chain is expected
+   function makeMetaResponseBody(lastModified, signature) {
+     return {
+       data: {
+         id: "certificates",
+@@ -586,17 +586,17 @@ add_task(async function test_check_signa
+   expectedIncrements = {
+     [UptakeTelemetry.STATUS.SIGNATURE_ERROR]: 1,
+     [UptakeTelemetry.STATUS.SIGNATURE_RETRY_ERROR]: 0,  // Not retried since missing.
+   };
+   checkUptakeTelemetry(startHistogram, endHistogram, expectedIncrements);
+ });
+ 
+ function run_test() {
+-  BlocklistClients.initialize();
++  OneCRLBlocklistClient = BlocklistClients.initialize().OneCRLBlocklistClient;
+ 
+   // ensure signatures are enforced
+   Services.prefs.setBoolPref(PREF_SETTINGS_VERIFY_SIGNATURE, true);
+ 
+   // get a signature verifier to ensure nsNSSComponent is initialized
+   Cc["@mozilla.org/security/contentsignatureverifier;1"]
+     .createInstance(Ci.nsIContentSignatureVerifier);
+ 
+diff --git a/services/common/tests/unit/test_blocklist_targetapp_filter.js b/services/common/tests/unit/test_blocklist_targetapp_filter.js
+--- a/services/common/tests/unit/test_blocklist_targetapp_filter.js
++++ b/services/common/tests/unit/test_blocklist_targetapp_filter.js
+@@ -1,9 +1,9 @@
+-const BlocklistClients = ChromeUtils.import("resource://services-common/blocklist-clients.js", null);
++const { BlocklistClients } = ChromeUtils.import("resource://services-common/blocklist-clients.js");
+ const { RemoteSettings } = ChromeUtils.import("resource://services-settings/remote-settings.js");
+ 
+ const APP_ID = "xpcshell@tests.mozilla.org";
+ const TOOLKIT_ID = "toolkit@mozilla.org";
+ 
+ let client;
+ 
+ async function clear_state() {
+diff --git a/toolkit/mozapps/extensions/Blocklist.jsm b/toolkit/mozapps/extensions/Blocklist.jsm
+--- a/toolkit/mozapps/extensions/Blocklist.jsm
++++ b/toolkit/mozapps/extensions/Blocklist.jsm
+@@ -14,26 +14,33 @@ const {XPCOMUtils} = ChromeUtils.import(
+ const {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+ const {AppConstants} = ChromeUtils.import("resource://gre/modules/AppConstants.jsm");
+ XPCOMUtils.defineLazyGlobalGetters(this, ["XMLHttpRequest"]);
+ 
+ ChromeUtils.defineModuleGetter(this, "AddonManager",
+                                "resource://gre/modules/AddonManager.jsm");
+ ChromeUtils.defineModuleGetter(this, "AddonManagerPrivate",
+                                "resource://gre/modules/AddonManager.jsm");
++// The remote settings updater is the new system in charge of fetching remote data
++// securely and efficiently. It will replace the current XML-based system.
++// See Bug 1257565 and Bug 1252456.
++ChromeUtils.defineModuleGetter(this, "BlocklistClients",
++                               "resource://services-common/blocklist-clients.js");
+ ChromeUtils.defineModuleGetter(this, "CertUtils",
+                                "resource://gre/modules/CertUtils.jsm");
+ ChromeUtils.defineModuleGetter(this, "FileUtils",
+                                "resource://gre/modules/FileUtils.jsm");
++ChromeUtils.defineModuleGetter(this, "OS",
++                               "resource://gre/modules/osfile.jsm");
++ChromeUtils.defineModuleGetter(this, "RemoteSettings",
++                               "resource://services-settings/remote-settings.js");
++ChromeUtils.defineModuleGetter(this, "ServiceRequest",
++                               "resource://gre/modules/ServiceRequest.jsm");
+ ChromeUtils.defineModuleGetter(this, "UpdateUtils",
+                                "resource://gre/modules/UpdateUtils.jsm");
+-ChromeUtils.defineModuleGetter(this, "OS",
+-                               "resource://gre/modules/osfile.jsm");
+-ChromeUtils.defineModuleGetter(this, "ServiceRequest",
+-                               "resource://gre/modules/ServiceRequest.jsm");
+ 
+   /**
+ #    The blocklist XML file looks something like this:
+ #
+ #    <blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+ #      <emItems>
+ #        <emItem id="item_1@domain" blockID="i1">
+ #          <prefs>
+@@ -84,23 +91,16 @@ ChromeUtils.defineModuleGetter(this, "Se
+ #        </pluginItem>
+ #      </pluginItems>
+ #      <gfxItems>
+ #        <gfxItem ... />
+ #      </gfxItems>
+ #    </blocklist>
+    */
+ 
+-// The remote settings updater is the new system in charge of fetching remote data
+-// securely and efficiently. It will replace the current XML-based system.
+-// See Bug 1257565 and Bug 1252456.
+-const BlocklistClients = {};
+-ChromeUtils.defineModuleGetter(BlocklistClients, "initialize",
+-                               "resource://services-common/blocklist-clients.js");
+-
+ const TOOLKIT_ID                      = "toolkit@mozilla.org";
+ const KEY_PROFILEDIR                  = "ProfD";
+ const KEY_APPDIR                      = "XCurProcD";
+ const FILE_BLOCKLIST                  = "blocklist.xml";
+ const PREF_BLOCKLIST_LASTUPDATETIME   = "app.update.lastUpdateTime.blocklist-background-update-timer";
+ const PREF_BLOCKLIST_URL              = "extensions.blocklist.url";
+ const PREF_BLOCKLIST_ITEM_URL         = "extensions.blocklist.itemURL";
+ const PREF_BLOCKLIST_ENABLED          = "extensions.blocklist.enabled";
+@@ -118,16 +118,149 @@ const URI_BLOCKLIST_DIALOG            = 
+ const DEFAULT_SEVERITY                = 3;
+ const DEFAULT_LEVEL                   = 2;
+ const MAX_BLOCK_LEVEL                 = 3;
+ const SEVERITY_OUTDATED               = 0;
+ const VULNERABILITYSTATUS_NONE             = 0;
+ const VULNERABILITYSTATUS_UPDATE_AVAILABLE = 1;
+ const VULNERABILITYSTATUS_NO_UPDATE        = 2;
+ 
++// Kinto blocklist constants
++const PREF_BLOCKLIST_BUCKET                  = "services.blocklist.bucket";
++const PREF_BLOCKLIST_GFX_COLLECTION          = "services.blocklist.gfx.collection";
++const PREF_BLOCKLIST_GFX_CHECKED_SECONDS     = "services.blocklist.gfx.checked";
++const PREF_BLOCKLIST_GFX_SIGNER              = "services.blocklist.gfx.signer";
++
++/**
++ * The Graphics blocklist implementation. The JSON objects for graphics blocks look
++ * something like:
++ *
++ * {
++ *  "blockID": "g35",
++ *  "os": "WINNT 6.1",
++ *  "vendor": "0xabcd",
++ *  "devices": [
++ *    "0x2783",
++ *    "0x1234",
++ *  ],
++ *  "feature": " DIRECT2D ",
++ *  "featureStatus": " BLOCKED_DRIVER_VERSION ",
++ *  "driverVersion": " 8.52.322.2202 ",
++ *  "driverVersionComparator": " LESS_THAN ",
++ *  "versionRange": {"minVersion": "5.0", "maxVersion: "25.0"},
++ * }
++ *
++ * The RemoteSetttings client takes care of filtering out versions that don't apply.
++ * The code here stores entries in memory and sends them to the gfx component in
++ * serialized text form, using ',', '\t' and '\n' as separators.
++ *
++ * Note: we assign to the global to allow tests to reach the object directly.
++ */
++this.GfxBlocklistRS = {
++  _ensureInitialized() {
++    if (this._initialized || !gBlocklistEnabled) {
++      return;
++    }
++    this._initialized = true;
++    this._client = RemoteSettings(Services.prefs.getCharPref(PREF_BLOCKLIST_GFX_COLLECTION), {
++      bucketNamePref: PREF_BLOCKLIST_BUCKET,
++      lastCheckTimePref: PREF_BLOCKLIST_GFX_CHECKED_SECONDS,
++      signerName: Services.prefs.getCharPref(PREF_BLOCKLIST_GFX_SIGNER),
++      filterFunc: BlocklistClients.targetAppFilter,
++    });
++    this.checkForEntries = this.checkForEntries.bind(this);
++    this._client.on("sync", this.checkForEntries);
++  },
++
++  shutdown() {
++    if (this._client) {
++      this._client.off("sync", this.checkForEntries);
++    }
++  },
++
++  async checkForEntries() {
++    this._ensureInitialized();
++    if (!gBlocklistEnabled) {
++      return []; // return value expected by tests.
++    }
++    let entries = await this._client.get();
++    // Trim helper (spaces, tabs, no-break spaces..)
++    const trim = (s) => (s || "").replace(/(^[\s\uFEFF\xA0]+)|([\s\uFEFF\xA0]+$)/g, "");
++
++    entries = entries.map(entry => {
++      let props = [
++        "blockID", "driverVersion", "driverVersionMax", "driverVersionComparator",
++        "feature", "featureStatus", "os", "vendor", "devices",
++      ];
++      let rv = {};
++      for (let p of props) {
++        let val = entry[p];
++        // Ignore falsy values or empty arrays.
++        if (!val || (Array.isArray(val) && !val.length)) {
++          continue;
++        }
++        if (typeof val == "string") {
++          val = trim(val);
++        } else if (p == "devices") {
++          let invalidDevices = [];
++          let validDevices = [];
++          // We serialize the array of devices as a comma-separated string, so
++          // we need to ensure that none of the entries contain commas, also in
++          // the future.
++          val.forEach(v => v.includes(",") ? invalidDevices.push(v) : validDevices.push(v));
++          for (let dev of invalidDevices) {
++            const e = new Error(`Block ${entry.blockID} contains unsupported device: ${dev}`);
++            Cu.reportError(e);
++          }
++          if (!validDevices) {
++            continue;
++          }
++          val = validDevices;
++        }
++        rv[p] = val;
++      }
++      if (entry.versionRange) {
++        rv.versionRange = {
++          minVersion: trim(entry.versionRange.minVersion) || "0",
++          maxVersion: trim(entry.versionRange.maxVersion) || "*",
++        };
++      }
++      return rv;
++    });
++    if (entries.length) {
++      let sortedProps = [
++        "blockID", "devices", "driverVersion", "driverVersionComparator", "driverVersionMax",
++        "feature", "featureStatus", "hardware", "manufacturer", "model", "os", "osversion",
++        "product", "vendor", "versionRange",
++      ];
++      // Notify `GfxInfoBase`, by passing a string serialization.
++      let payload = [];
++      for (let gfxEntry of entries) {
++        let entryLines = [];
++        for (let key of sortedProps) {
++          if (gfxEntry[key]) {
++            let value = gfxEntry[key];
++            if (Array.isArray(value)) {
++              value = value.join(",");
++            } else if (value.maxVersion) {
++              // Both minVersion and maxVersion are always set on each entry.
++              value = value.minVersion + "," + value.maxVersion;
++            }
++            entryLines.push(key + ":" + value);
++          }
++        }
++        payload.push(entryLines.join("\t"));
++      }
++      Services.obs.notifyObservers(null, "blocklist-data-gfxItems", payload.join("\n"));
++    }
++    // The return value is only used by tests.
++    return entries;
++  },
++};
++
+ const EXTENSION_BLOCK_FILTERS = ["id", "name", "creator", "homepageURL", "updateURL"];
+ 
+ var gLoggingEnabled = null;
+ var gBlocklistEnabled = true;
+ var gBlocklistLevel = DEFAULT_LEVEL;
+ 
+ class BlocklistError extends Error {}
+ 
+@@ -1566,27 +1699,31 @@ BlocklistItemData.prototype = {
+     let maxVersion = versionRangeElement.getAttribute("maxVersion");
+ 
+     return { minVersion, maxVersion };
+   },
+ };
+ 
+ let BlocklistRS = {
+   _init() {
+-    // ignore.
++  },
++  shutdown() {
++    GfxBlocklistRS.shutdown();
+   },
+   isLoaded: true,
+ 
+   notify() {
+     // ignore. We might miss a timer notification once if the XML impl. is disabled
+     // when the timer fires and subsequently gets enabled. That seems OK.
+   },
+ 
+   loadBlocklistAsync() {
+-    // Ignore, but ensure that if we start the other service after this, we
++    // Need to ensure we notify gfx of new stuff.
++    GfxBlocklistRS.checkForEntries();
++    // Also ensure that if we start the other service after this, we
+     // initialize it straight away.
+     gLoadingWasTriggered = true;
+   },
+ 
+   getPluginBlocklistState() {
+   },
+ 
+   getPluginBlockURL() {
+diff --git a/toolkit/mozapps/extensions/test/moz.build b/toolkit/mozapps/extensions/test/moz.build
+--- a/toolkit/mozapps/extensions/test/moz.build
++++ b/toolkit/mozapps/extensions/test/moz.build
+@@ -5,12 +5,13 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ DIRS += ['browser']
+ 
+ BROWSER_CHROME_MANIFESTS += ['xpinstall/browser.ini']
+ MOCHITEST_MANIFESTS += ['mochitest/mochitest.ini']
+ 
+ XPCSHELL_TESTS_MANIFESTS += [
++    'xpcshell/rs-blocklist/xpcshell.ini',
+     'xpcshell/xml-blocklist/xpcshell.ini',
+     'xpcshell/xpcshell-unpack.ini',
+     'xpcshell/xpcshell.ini',
+ ]
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.json
+copy from toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.xml
+copy to toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.json
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist.json
+@@ -1,319 +1,316 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-
+-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+-  <gfxItems>
+-    <gfxBlacklistEntry blockID="g35">
+-      <os>WINNT 6.1</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.0</os>
+-      <vendor>0xdcba</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry blockID="g36">
+-      <os>WINNT 6.1</os>
+-      <vendor>0xabab</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> GREATER_THAN_OR_EQUAL </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.1</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1111 </driverVersion>
+-      <driverVersionComparator> EQUAL </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>abcd</vendor>
+-      <devices>
+-        <device>wxyz</device>
+-        <device>asdf</device>
+-        <device>erty</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 5 </driverVersion>
+-      <driverVersionComparator> LESS_THAN_OR_EQUAL </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>dcdc</vendor>
+-      <devices>
+-        <device>uiop</device>
+-        <device>vbnm</device>
+-        <device>hjkl</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 5 </driverVersion>
+-      <driverVersionComparator> EQUAL </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>abab</vendor>
+-      <devices>
+-        <device>ghjk</device>
+-        <device>cvbn</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 7 </driverVersion>
+-      <driverVersionComparator> GREATER_THAN_OR_EQUAL </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.1</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x6666</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DEVICE </featureStatus>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x6666</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DEVICE </featureStatus>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x6666</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DEVICE </featureStatus>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x6666</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DEVICE </featureStatus>
+-    </gfxBlacklistEntry>
++[
++  {
++    "blockID": "g35",
++    "os": "WINNT 6.1",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  },
++  {
++    "os": "WINNT 6.0",
++    "vendor": "0xdcba",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  },
++  {
++    "blockID": "g36",
++    "os": "WINNT 6.1",
++    "vendor": "0xabab",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " GREATER_THAN_OR_EQUAL "
++  },
++  {
++    "os": "WINNT 6.1",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1111 ",
++    "driverVersionComparator": " EQUAL "
++  },
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
++  {
++    "os": "Android",
++    "vendor": "abcd",
++    "devices": [
++      "wxyz",
++      "asdf",
++      "erty"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 5 ",
++    "driverVersionComparator": " LESS_THAN_OR_EQUAL "
++  },
++  {
++    "os": "Android",
++    "vendor": "dcdc",
++    "devices": [
++      "uiop",
++      "vbnm",
++      "hjkl"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 5 ",
++    "driverVersionComparator": " EQUAL "
++  },
++  {
++    "os": "Android",
++    "vendor": "abab",
++    "devices": [
++      "ghjk",
++      "cvbn"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 7 ",
++    "driverVersionComparator": " GREATER_THAN_OR_EQUAL "
++  },
++  {
++    "os": "WINNT 6.1",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x6666"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DEVICE "
++  },
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x6666"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DEVICE "
++  },
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x6666"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DEVICE "
++  },
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x6666"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DEVICE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1112 </driverVersion>
+-      <driverVersionMax> 8.52.323.1000 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_EXCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1112 ",
++    "driverVersionMax": " 8.52.323.1000 ",
++    "driverVersionComparator": " BETWEEN_EXCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.50.322.1000 </driverVersion>
+-      <driverVersionMax> 8.52.322.1112 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_EXCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.50.322.1000 ",
++    "driverVersionMax": " 8.52.322.1112 ",
++    "driverVersionComparator": " BETWEEN_EXCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 9.52.322.1000 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_EXCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 9.52.322.1000 ",
++    "driverVersionComparator": " BETWEEN_EXCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> HARDWARE_VIDEO_DECODING </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 7.82.322.1000 </driverVersion>
+-      <driverVersionMax> 9.25.322.1001 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " HARDWARE_VIDEO_DECODING ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 7.82.322.1000 ",
++    "driverVersionMax": " 9.25.322.1001 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1112 </driverVersion>
+-      <driverVersionMax> 9.52.322.1300 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1112 ",
++    "driverVersionMax": " 9.52.322.1300 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_DECODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 8.52.322.1112 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_DECODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 8.52.322.1112 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_ENCODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1112 </driverVersion>
+-      <driverVersionMax> 8.52.322.1200 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE_START </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_MSAA </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 8.52.322.1200 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE_START </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_ENCODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1112 ",
++    "driverVersionMax": " 8.52.322.1200 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE_START "
++  },
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_MSAA ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 8.52.322.1200 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE_START "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 8.52.322.1112 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE_START </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 8.52.322.1112 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE_START "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL2 </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 8.52.322.1112 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_INCLUSIVE_START </driverVersionComparator>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL2 ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 8.52.322.1112 ",
++    "driverVersionComparator": " BETWEEN_INCLUSIVE_START "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xdcdc</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> CANVAS2D_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.1000 </driverVersion>
+-      <driverVersionMax> 9.52.322.1000 </driverVersionMax>
+-      <driverVersionComparator> BETWEEN_EXCLUSIVE </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-
+-  </gfxItems>
+-</blocklist>
++  {
++    "os": "All",
++    "vendor": "0xdcdc",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " CANVAS2D_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.1000 ",
++    "driverVersionMax": " 9.52.322.1000 ",
++    "driverVersionComparator": " BETWEEN_EXCLUSIVE "
++  }
++]
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.json
+copy from toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.xml
+copy to toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.json
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist2.json
+@@ -1,31 +1,27 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-
+-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+-  <gfxItems>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.1</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.0</os>
+-      <vendor>0xdcba</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-  </gfxItems>
+-</blocklist>
++[
++  {
++    "os": "WINNT 6.1",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  },
++  {
++    "os": "WINNT 6.0",
++    "vendor": "0xdcba",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  }
++]
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.json
+copy from toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.xml
+copy to toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.json
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_AllOS.json
+@@ -1,831 +1,837 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-
+-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+-  <gfxItems>
+-
+-    <gfxBlacklistEntry blockID="g1">
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++[
++  {
++    "blockID": "g1",
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g2">
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="22.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g2",
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "22.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_LAYERS</feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_LAYERS",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1" maxVersion="22.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_1_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1", "maxVersion": "22.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_1_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
++
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g11",
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "14.0b2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_OPENGL ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g11">
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="14.0b2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_OPENGL </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL2 </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL2 ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_MSAA </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_MSAA ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> STAGEFRIGHT </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " STAGEFRIGHT ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_ENCODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_ENCODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_DECODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_DECODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="17.2a2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "17.2a2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="13.2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> HARDWARE_VIDEO_DECODING </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "13.2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " HARDWARE_VIDEO_DECODING ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>All</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="10.5" maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "All",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "10.5", "maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g1">
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g1",
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g2">
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="22.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g2",
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "22.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_LAYERS</feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_LAYERS",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1" maxVersion="22.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_1_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1", "maxVersion": "22.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_1_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g11">
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="14.0b2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_OPENGL </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g11",
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "14.0b2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_OPENGL ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL2 </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL2 ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_MSAA </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_MSAA ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> STAGEFRIGHT </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " STAGEFRIGHT ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_ENCODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_ENCODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_DECODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_DECODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="17.2a2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "17.2a2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="13.2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> HARDWARE_VIDEO_DECODING </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "13.2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " HARDWARE_VIDEO_DECODING ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
++
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "10.5", "maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="10.5" maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g1",
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g1">
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g2",
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "22.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g2">
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="22.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_LAYERS",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_LAYERS</feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1", "maxVersion": "22.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_1_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1" maxVersion="22.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_1_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g11",
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "14.0b2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_OPENGL ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g11">
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="14.0b2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_OPENGL </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL2 </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL2 ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_MSAA </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_MSAA ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> STAGEFRIGHT </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " STAGEFRIGHT ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_ENCODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_ENCODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_DECODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_DECODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="17.2a2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "17.2a2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="13.2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> HARDWARE_VIDEO_DECODING </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "13.2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " HARDWARE_VIDEO_DECODING ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
++
++  {
++    "os": "Linux",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "10.5", "maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Linux</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="10.5" maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g1",
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g1">
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g2",
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "22.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_9_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g2">
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="22.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_9_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_LAYERS",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_LAYERS</feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "16.0a1", "maxVersion": "22.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_10_1_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="16.0a1" maxVersion="22.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_10_1_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "blockID": "g11",
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "14.0b2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_OPENGL ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry blockID="g11">
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="14.0b2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_OPENGL </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL2 ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL2 </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "12.0", "maxVersion": "16.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBGL_MSAA ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="12.0" maxVersion="16.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBGL_MSAA </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " STAGEFRIGHT ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> STAGEFRIGHT </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_ENCODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_ENCODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "42.0", "maxVersion": "13.0b2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " WEBRTC_HW_ACCELERATION_DECODE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="42.0" maxVersion="13.0b2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> WEBRTC_HW_ACCELERATION_DECODE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "17.2a2", "maxVersion": "15.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="17.2a2" maxVersion="15.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "15.0", "maxVersion": "13.2"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " HARDWARE_VIDEO_DECODING ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  },
+ 
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="15.0" maxVersion="13.2"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> HARDWARE_VIDEO_DECODING </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-
+-    <gfxBlacklistEntry>
+-      <os>Android</os>
+-      <vendor>0xabcd</vendor>
+-      <versionRange minVersion="10.5" maxVersion="13.0"/>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT3D_11_ANGLE </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-    </gfxBlacklistEntry>
+-
+-  </gfxItems>
+-</blocklist>
++  {
++    "os": "Android",
++    "vendor": "0xabcd",
++    "versionRange": {"minVersion": "10.5", "maxVersion": "13.0"},
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT3D_11_ANGLE ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION "
++  }
++]
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.json
+copy from toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.xml
+copy to toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.json
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_gfxBlacklist_OSVersion.json
+@@ -1,32 +1,28 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-
+-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist">
+-  <gfxItems>
+-    <gfxBlacklistEntry>
+-      <os>WINNT 6.2</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> DIRECT2D </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-    <gfxBlacklistEntry>
+-      <os>Darwin 13</os>
+-      <vendor>0xabcd</vendor>
+-      <devices>
+-        <device>0x2783</device>
+-        <device>0x1234</device>
+-        <device>0x2782</device>
+-      </devices>
+-      <feature> OPENGL_LAYERS </feature>
+-      <featureStatus> BLOCKED_DRIVER_VERSION </featureStatus>
+-      <driverVersion> 8.52.322.2202 </driverVersion>
+-      <driverVersionComparator> LESS_THAN </driverVersionComparator>
+-    </gfxBlacklistEntry>
+-  </gfxItems>
+-</blocklist>
++[
++  {
++    "os": "WINNT 6.2",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " DIRECT2D ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  },
++  {
++    "os": "Darwin 13",
++    "vendor": "0xabcd",
++    "devices": [
++      "0x2783",
++      "0x1234",
++      "0x2782"
++    ],
++    "feature": " OPENGL_LAYERS ",
++    "featureStatus": " BLOCKED_DRIVER_VERSION ",
++    "driverVersion": " 8.52.322.2202 ",
++    "driverVersionComparator": " LESS_THAN "
++  }
++]
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/head_addons.js b/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
+@@ -48,16 +48,18 @@ ChromeUtils.defineModuleGetter(this, "Ex
+ ChromeUtils.defineModuleGetter(this, "HttpServer",
+                                "resource://testing-common/httpd.js");
+ ChromeUtils.defineModuleGetter(this, "MockRegistrar",
+                                "resource://testing-common/MockRegistrar.jsm");
+ ChromeUtils.defineModuleGetter(this, "MockRegistry",
+                                "resource://testing-common/MockRegistry.jsm");
+ ChromeUtils.defineModuleGetter(this, "PromiseTestUtils",
+                                "resource://testing-common/PromiseTestUtils.jsm");
++ChromeUtils.defineModuleGetter(this, "RemoteSettings",
++                               "resource://services-settings/remote-settings.js");
+ ChromeUtils.defineModuleGetter(this, "TestUtils",
+                                "resource://testing-common/TestUtils.jsm");
+ 
+ XPCOMUtils.defineLazyServiceGetter(this, "aomStartup",
+                                    "@mozilla.org/addons/addon-manager-startup;1",
+                                    "amIAddonManagerStartup");
+ 
+ const {
+@@ -966,16 +968,42 @@ function copyBlocklistToProfile(blocklis
+   var dest = gProfD.clone();
+   dest.append("blocklist.xml");
+   if (dest.exists())
+     dest.remove(false);
+   blocklistFile.copyTo(gProfD, "blocklist.xml");
+   dest.lastModifiedTime = Date.now();
+ }
+ 
++async function mockGfxBlocklistItemsFromDisk(path) {
++  Cu.importGlobalProperties(["fetch"]);
++  let response = await fetch(Services.io.newFileURI(do_get_file(path)).spec);
++  let json = await response.json();
++  return mockGfxBlocklistItems(json);
++}
++
++async function mockGfxBlocklistItems(items) {
++  const { generateUUID } = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
++  let bsPass = ChromeUtils.import("resource://gre/modules/Blocklist.jsm", null);
++  const client = RemoteSettings(Services.prefs.getCharPref("services.blocklist.gfx.collection"), { bucketNamePref: "services.blocklist.bucket" });
++  const collection = await client.openCollection();
++  await collection.clear();
++  await collection.loadDump(items.map(item => {
++    if (item.id && item.last_modified) {
++      return item;
++    }
++    return Object.assign({
++      id: generateUUID().toString().replace(/[{}]/g, ""),
++      last_modified: Date.now(),
++    }, item);
++  }));
++  let rv = await bsPass.GfxBlocklistRS.checkForEntries();
++  return rv;
++}
++
+ /**
+  * Change the schema version of the JSON extensions database
+  */
+ async function changeXPIDBVersion(aNewVersion) {
+   let json = await loadJSON(gExtensionsJSON.path);
+   json.schemaVersion = aNewVersion;
+   await saveJSON(json, gExtensionsJSON.path);
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/head.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/head.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/head.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/head.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/head.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/head.js
+@@ -1,6 +1,6 @@
+ // Appease eslint.
+ /* import-globals-from ../head_addons.js */
+ {
+   let {Services} = ChromeUtils.import("resource://gre/modules/Services.jsm");
+-  Services.prefs.setBoolPref("extensions.blocklist.useXML", true);
++  Services.prefs.setBoolPref("extensions.blocklist.useXML", false);
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_blocklist_gfx.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_gfx.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_blocklist_gfx.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_gfx.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_blocklist_gfx.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_gfx.js
+@@ -1,141 +1,106 @@
+-XPCOMUtils.defineLazyGlobalGetters(this, ["DOMParser"]);
+-
+-const gParser = new DOMParser();
+-
+ const EVENT_NAME = "blocklist-data-gfxItems";
+ 
+ const SAMPLE_GFX_RECORD = {
+   "driverVersionComparator": "LESS_THAN_OR_EQUAL",
+   "driverVersion": "8.17.12.5896",
+   "vendor": "0x10de",
+   "blockID": "g36",
+   "feature": "DIRECT3D_9_LAYERS",
+   "devices": ["0x0a6c", "geforce"],
+   "featureStatus": "BLOCKED_DRIVER_VERSION",
+   "last_modified": 1458035931837,
+   "os": "WINNT 6.1",
+   "id": "3f947f16-37c2-4e96-d356-78b26363729b",
+   "versionRange": {"minVersion": 0, "maxVersion": "*"},
+ };
+ 
+-let jsmInternalObj = ChromeUtils.import("resource://gre/modules/Blocklist.jsm", null);
+-
+-function getBlocklist() {
+-  jsmInternalObj.BlocklistXML._clear();
+-  return jsmInternalObj.BlocklistXML;
+-}
+-
+-async function updateBlocklistWithInput(input) {
+-  let blocklist = getBlocklist();
+-  let promiseObserved = TestUtils.topicObserved(EVENT_NAME);
+-  blocklist._loadBlocklistFromXML(gParser.parseFromString(input, "text/xml"));
+-  let [, received] = await promiseObserved;
+-  return [blocklist, received];
+-}
+-
+-
+ add_task(async function test_sends_serialized_data() {
+-  const blocklist = getBlocklist();
+-  blocklist._gfxEntries = [SAMPLE_GFX_RECORD];
+-
+   const expected = "blockID:g36\tdevices:0x0a6c,geforce\tdriverVersion:8.17.12.5896\t" +
+                    "driverVersionComparator:LESS_THAN_OR_EQUAL\tfeature:DIRECT3D_9_LAYERS\t" +
+                    "featureStatus:BLOCKED_DRIVER_VERSION\tos:WINNT 6.1\tvendor:0x10de\t" +
+                    "versionRange:0,*";
+-  let promiseObserved = TestUtils.topicObserved(EVENT_NAME);
+-  blocklist._notifyObserversBlocklistGFX();
+-  let [, received] = await promiseObserved;
++  let received;
++  const observe = (subject, topic, data) => { received = data; };
++  Services.obs.addObserver(observe, EVENT_NAME);
++  await mockGfxBlocklistItems([SAMPLE_GFX_RECORD]);
++  Services.obs.removeObserver(observe, EVENT_NAME);
++
+   equal(received, expected);
+ });
+ 
+ 
+-add_task(async function test_parsing_fails_if_devices_contains_comma() {
+-  const input = "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">" +
+-  "<gfxItems>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <devices>" +
+-  "     <device>0x2,582</device>" +
+-  "     <device>0x2782</device>" +
+-  "   </devices>" +
+-  " </gfxBlacklistEntry>" +
+-  "</gfxItems>" +
+-  "</blocklist>";
+-  let [blocklist] = await updateBlocklistWithInput(input);
+-
+-  equal(blocklist._gfxEntries[0].devices.length, 1);
+-  equal(blocklist._gfxEntries[0].devices[0], "0x2782");
++add_task(async function test_parsing_skips_devices_with_comma() {
++  let clonedItem = Cu.cloneInto(SAMPLE_GFX_RECORD, this);
++  clonedItem.devices[0] = "0x2,582";
++  let rv = await mockGfxBlocklistItems([clonedItem]);
++  equal(rv[0].devices.length, 1);
++  equal(rv[0].devices[0], "geforce");
+ });
+ 
+ 
+ add_task(async function test_empty_values_are_ignored() {
+-  const input = "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">" +
+-  "<gfxItems>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <os></os>" +
+-  " </gfxBlacklistEntry>" +
+-  "</gfxItems>" +
+-  "</blocklist>";
+-  let [, received] = await updateBlocklistWithInput(input);
+-  ok(received.indexOf("os" < 0));
++  let received;
++  const observe = (subject, topic, data) => { received = data; };
++  Services.obs.addObserver(observe, EVENT_NAME);
++  let clonedItem = Cu.cloneInto(SAMPLE_GFX_RECORD, this);
++  clonedItem.os = "";
++  await mockGfxBlocklistItems([clonedItem]);
++  ok(!received.includes("os"), "Shouldn't send empty values");
++  Services.obs.removeObserver(observe, EVENT_NAME);
+ });
+ 
+ add_task(async function test_empty_devices_are_ignored() {
+-  const input = "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">" +
+-  "<gfxItems>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <devices></devices>" +
+-  " </gfxBlacklistEntry>" +
+-  "</gfxItems>" +
+-  "</blocklist>";
+-  let [, received] = await updateBlocklistWithInput(input);
+-  ok(received.indexOf("devices" < 0));
++  let received;
++  const observe = (subject, topic, data) => { received = data; };
++  Services.obs.addObserver(observe, EVENT_NAME);
++  let clonedItem = Cu.cloneInto(SAMPLE_GFX_RECORD, this);
++  clonedItem.devices = [];
++  await mockGfxBlocklistItems([clonedItem]);
++  ok(!received.includes("devices"), "Shouldn't send empty values");
++  Services.obs.removeObserver(observe, EVENT_NAME);
+ });
+ 
+ add_task(async function test_version_range_default_values() {
+-  const input = "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">" +
+-  "<gfxItems>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <versionRange minVersion=\"13.0b2\" maxVersion=\"42.0\"/>" +
+-  " </gfxBlacklistEntry>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <versionRange maxVersion=\"2.0\"/>" +
+-  " </gfxBlacklistEntry>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <versionRange minVersion=\"1.0\"/>" +
+-  " </gfxBlacklistEntry>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <versionRange minVersion=\"  \"/>" +
+-  " </gfxBlacklistEntry>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <versionRange/>" +
+-  " </gfxBlacklistEntry>" +
+-  "</gfxItems>" +
+-  "</blocklist>";
+-  let [blocklist] = await updateBlocklistWithInput(input);
+-  equal(blocklist._gfxEntries[0].versionRange.minVersion, "13.0b2");
+-  equal(blocklist._gfxEntries[0].versionRange.maxVersion, "42.0");
+-  equal(blocklist._gfxEntries[1].versionRange.minVersion, "0");
+-  equal(blocklist._gfxEntries[1].versionRange.maxVersion, "2.0");
+-  equal(blocklist._gfxEntries[2].versionRange.minVersion, "1.0");
+-  equal(blocklist._gfxEntries[2].versionRange.maxVersion, "*");
+-  equal(blocklist._gfxEntries[3].versionRange.minVersion, "0");
+-  equal(blocklist._gfxEntries[3].versionRange.maxVersion, "*");
+-  equal(blocklist._gfxEntries[4].versionRange.minVersion, "0");
+-  equal(blocklist._gfxEntries[4].versionRange.maxVersion, "*");
++  const kTests = [
++    {
++      input: {minVersion: "13.0b2", maxVersion: "42.0"},
++      output: {minVersion: "13.0b2", maxVersion: "42.0"},
++    },
++    {
++      input: {maxVersion: "2.0"},
++      output: {minVersion: "0", maxVersion: "2.0"},
++    },
++    {
++      input: {minVersion: "1.0"},
++      output: {minVersion: "1.0", maxVersion: "*"},
++    },
++    {
++      input: {minVersion: "  "},
++      output: {minVersion: "0", maxVersion: "*"},
++    },
++    {
++      input: {},
++      output: {minVersion: "0", maxVersion: "*"},
++    },
++  ];
++  for (let test of kTests) {
++    let parsedEntries = await mockGfxBlocklistItems([{versionRange: test.input}]);
++    equal(parsedEntries[0].versionRange.minVersion, test.output.minVersion);
++    equal(parsedEntries[0].versionRange.maxVersion, test.output.maxVersion);
++  }
+ });
+ 
+ add_task(async function test_blockid_attribute() {
+-  const input = "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">" +
+-  "<gfxItems>" +
+-  " <gfxBlacklistEntry blockID=\"g60\">" +
+-  "   <vendor> 0x10de </vendor>" +
+-  " </gfxBlacklistEntry>" +
+-  " <gfxBlacklistEntry>" +
+-  "   <feature> DIRECT3D_9_LAYERS </feature>" +
+-  " </gfxBlacklistEntry>" +
+-  "</gfxItems>" +
+-  "</blocklist>";
+-  let [blocklist] = await updateBlocklistWithInput(input);
+-  equal(blocklist._gfxEntries[0].blockID, "g60");
+-  ok(!blocklist._gfxEntries[1].hasOwnProperty("blockID"));
++  const kTests = [
++    {blockID: "g60", vendor: " 0x10de "},
++    {feature: " DIRECT3D_9_LAYERS "},
++  ];
++  for (let test of kTests) {
++    let [rv] = await mockGfxBlocklistItems([test]);
++    if (test.blockID) {
++      equal(rv.blockID, test.blockID);
++    } else {
++      ok(!rv.hasOwnProperty("blockID"), "not expecting a blockID");
++    }
++  }
+ });
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Device.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Device.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Device.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Device.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Device.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Device.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which differs only on device ID, but otherwise
+ // exactly matches the blacklist entry, is not blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -76,10 +63,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_DriverNew.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_DriverNew.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_DriverNew.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_DriverNew.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_DriverNew.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_DriverNew.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a new-enough driver bypasses the blacklist, even if the rest of
+ // the attributes match the blacklist entry.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -72,10 +59,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverNew.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverNew.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverNew.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverNew.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverNew.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverNew.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which is newer than the equal
+ // blacklist entry is allowed.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -103,10 +90,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverOld.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverOld.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverOld.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverOld.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_DriverOld.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_DriverOld.js
+@@ -1,29 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which is older than the equal
+ // blacklist entry is correctly allowed.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -74,10 +60,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_OK.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_OK.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_OK.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_OK.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Equal_OK.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Equal_OK.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which exactly matches the equal
+ // blacklist entry is successfully blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -73,10 +60,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_DriverOld.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_DriverOld.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_DriverOld.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_DriverOld.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_DriverOld.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_DriverOld.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which is lower than the greater-than-or-equal
+ // blacklist entry is allowed.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -73,10 +60,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_OK.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_OK.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_OK.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_OK.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_GTE_OK.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_GTE_OK.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which exactly matches the greater-than-or-equal
+ // blacklist entry is successfully blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -73,10 +60,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_No_Comparison.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_No_Comparison.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_No_Comparison.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_No_Comparison.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_No_Comparison.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_No_Comparison.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which exactly matches the blacklist entry is
+ // successfully blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -69,10 +56,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OK.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OK.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OK.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OK.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OK.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OK.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which exactly matches the blacklist entry is
+ // successfully blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -74,10 +61,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OS.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OS.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OS.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OS.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OS.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OS.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which differs only on OS version, but otherwise
+ // exactly matches the blacklist entry, is not blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -72,10 +59,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_match.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_match.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_match.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_match.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_match.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_match.js
+@@ -1,27 +1,14 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether new OS versions are matched properly.
+-// Uses test_gfxBlacklist_OS.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist_OSVersion.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -75,10 +62,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist_OSVersion.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist_OSVersion.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+-// Test whether blocklists specifying new OSeswcorrectly don't block if driver
++// Test whether blocklists specifying new OSes correctly don't block if driver
+ // versions are appropriately up-to-date.
+-// Uses test_gfxBlacklist_OS.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist_OSVersion.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -75,10 +62,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist_OSVersion.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist_OSVersion.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_OSVersion_mismatch_OSVersion.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether old OS versions are not matched when the blacklist contains
+ // only new OS versions.
+-// Uses test_gfxBlacklist_OS.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist_OSVersion.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -76,10 +63,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist_OSVersion.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist_OSVersion.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Vendor.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Vendor.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Vendor.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Vendor.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Vendor.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Vendor.js
+@@ -1,28 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+-// This should eventually be moved to head_addons.js
+ // Test whether a machine which differs only on vendor, but otherwise
+ // exactly matches the blacklist entry, is not blocked.
+-// Uses test_gfxBlacklist.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -73,10 +60,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Version.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Version.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Version.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Version.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_Version.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_Version.js
+@@ -1,27 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+ // Test whether a machine which exactly matches the blacklist entry is
+ // successfully blocked.
+-// Uses test_gfxBlacklist_AllOS.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist_AllOS.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+ 
+   // We can't do anything if we can't spoof the stuff we need.
+   if (!(gfxInfo instanceof Ci.nsIGfxInfoDebug)) {
+     do_test_finished();
+@@ -129,10 +117,10 @@ async function run_test() {
+   }
+ 
+   Services.obs.addObserver(function(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(checkBlacklist);
+   }, "blocklist-data-gfxItems");
+ 
+-  load_blocklist("test_gfxBlacklist_AllOS.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist_AllOS.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_prefs.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_prefs.js
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_prefs.js
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_prefs.js
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/test_gfxBlacklist_prefs.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_gfxBlacklist_prefs.js
+@@ -1,27 +1,15 @@
+ /* Any copyright is dedicated to the Public Domain.
+  * http://creativecommons.org/publicdomain/zero/1.0/
+  */
+ 
+ // Test whether the blacklist successfully adds and removes the prefs that store
+ // its decisions when the remote blacklist is changed.
+-// Uses test_gfxBlacklist.xml and test_gfxBlacklist2.xml
+-
+-var gTestserver = AddonTestUtils.createHttpServer({hosts: ["example.com"]});
+-gPort = gTestserver.identity.primaryPort;
+-gTestserver.registerDirectory("/data/", do_get_file("../data"));
+-
+-function load_blocklist(file) {
+-  Services.prefs.setCharPref("extensions.blocklist.url", "http://localhost:" +
+-                             gPort + "/data/" + file);
+-  var blocklist = Cc["@mozilla.org/extensions/blocklist;1"].
+-                  getService(Ci.nsITimerCallback);
+-  blocklist.notify(null);
+-}
++// Uses test_gfxBlacklist.json and test_gfxBlacklist2.json
+ 
+ // Performs the initial setup
+ async function run_test() {
+   try {
+     var gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(Ci.nsIGfxInfo);
+   } catch (e) {
+     do_test_finished();
+     return;
+@@ -79,17 +67,17 @@ async function run_test() {
+     status = gfxInfo.getFeatureStatus(Ci.nsIGfxInfo.FEATURE_DIRECT3D_9_LAYERS);
+     Assert.equal(status, Ci.nsIGfxInfo.FEATURE_STATUS_OK);
+ 
+     Assert.equal(Services.prefs.getIntPref("gfx.blacklist.direct2d"),
+                  Ci.nsIGfxInfo.FEATURE_BLOCKED_DRIVER_VERSION);
+ 
+     Services.obs.removeObserver(blacklistAdded, "blocklist-data-gfxItems");
+     Services.obs.addObserver(blacklistRemoved, "blocklist-data-gfxItems");
+-    load_blocklist("test_gfxBlacklist2.xml");
++    mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist2.json");
+   }
+ 
+   function blacklistRemoved(aSubject, aTopic, aData) {
+     // If we wait until after we go through the event loop, gfxInfo is sure to
+     // have processed the gfxItems event.
+     executeSoon(ensureBlacklistUnset);
+   }
+   function ensureBlacklistUnset() {
+@@ -107,10 +95,10 @@ async function run_test() {
+     } catch (e) {}
+ 
+     Assert.ok(!exists);
+ 
+     do_test_finished();
+   }
+ 
+   Services.obs.addObserver(blacklistAdded, "blocklist-data-gfxItems");
+-  load_blocklist("test_gfxBlacklist.xml");
++  mockGfxBlocklistItemsFromDisk("../data/test_gfxBlacklist.json");
+ }
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/xpcshell.ini b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/xpcshell.ini
+copy from toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/xpcshell.ini
+copy to toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/xpcshell.ini
+--- a/toolkit/mozapps/extensions/test/xpcshell/xml-blocklist/xpcshell.ini
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/xpcshell.ini
+@@ -1,46 +1,17 @@
+ [DEFAULT]
+ skip-if = toolkit == 'android'
+ tags = addons blocklist
+ head = head.js ../head_addons.js
+ firefox-appdir = browser
+ support-files =
+   ../data/**
+ 
+-[test_blocklist_appversion.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+ [test_blocklist_gfx.js]
+-[test_blocklist_metadata_filters.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_osabi.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_plugin_flashonly.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_plugin_outdated.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_plugin_severities.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_prefs.js]
+-[test_blocklist_severities.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_url_parameters.js]
+-# Bug 676992: test consistently hangs on Android
+-skip-if = os == "android"
+-[test_blocklist_url_ping_count.js]
+-[test_blocklistchange.js]
+-# Times out during parallel runs on desktop
+-requesttimeoutfactor = 2
+ [test_gfxBlacklist_Device.js]
+ [test_gfxBlacklist_DriverNew.js]
+ [test_gfxBlacklist_Equal_DriverNew.js]
+ [test_gfxBlacklist_Equal_DriverOld.js]
+ [test_gfxBlacklist_Equal_OK.js]
+ [test_gfxBlacklist_GTE_DriverOld.js]
+ [test_gfxBlacklist_GTE_OK.js]
+ [test_gfxBlacklist_No_Comparison.js]
+@@ -49,15 +20,8 @@ requesttimeoutfactor = 2
+ [test_gfxBlacklist_OSVersion_match.js]
+ [test_gfxBlacklist_OSVersion_mismatch_DriverVersion.js]
+ [test_gfxBlacklist_OSVersion_mismatch_OSVersion.js]
+ [test_gfxBlacklist_Vendor.js]
+ [test_gfxBlacklist_Version.js]
+ [test_gfxBlacklist_prefs.js]
+ # Bug 1248787 - consistently fails
+ skip-if = true
+-[test_overrideblocklist.js]
+-run-sequentially = Uses global XCurProcD dir.
+-[test_pluginBlocklistCtp.js]
+-# Bug 676992: test consistently fails on Android
+-fail-if = os == "android"
+-[test_pluginInfoURL.js]
+-[test_softblocked.js]
+diff --git a/tools/lint/eslint/modules.json b/tools/lint/eslint/modules.json
+--- a/tools/lint/eslint/modules.json
++++ b/tools/lint/eslint/modules.json
+@@ -13,17 +13,17 @@
+   "ajv-4.1.1.js": ["Ajv"],
+   "AlertsHelper.jsm": [],
+   "AppData.jsm": ["makeFakeAppDir"],
+   "AppInfo.jsm": ["newAppInfo", "getAppInfo", "updateAppInfo"],
+   "ASRouterTargeting.jsm": ["ASRouterTargeting", "QueryCache", "CachedTargetingGetter"],
+   "async.js": ["Async"],
+   "AsyncSpellCheckTestHelper.jsm": ["onSpellCheck"],
+   "base-loader.js": ["Loader", "resolveURI", "Module", "Require", "unload"],
+-  "blocklist-clients.js": ["AddonBlocklistClient", "GfxBlocklistClient", "OneCRLBlocklistClient", "PluginBlocklistClient"],
++  "blocklist-clients.js": ["BlocklistClients"],
+   "blocklist-updater.js": ["checkVersions", "addTestBlocklistClient"],
+   "bogus_element_type.jsm": [],
+   "bookmarks.js": ["BookmarksEngine", "PlacesItem", "Bookmark", "BookmarkFolder", "BookmarkQuery", "Livemark", "BookmarkSeparator", "BufferedBookmarksEngine"],
+   "bookmarks.jsm": ["PlacesItem", "Bookmark", "Separator", "Livemark", "BookmarkFolder", "DumpBookmarks"],
+   "bookmark_repair.js": ["BookmarkRepairRequestor", "BookmarkRepairResponder"],
+   "bookmark_validator.js": ["BookmarkValidator", "BookmarkProblemData"],
+   "browser-loader.js": ["BrowserLoader"],
+   "browser.js": ["browser", "Context", "WindowState"],

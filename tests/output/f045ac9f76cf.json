@@ -5,7 +5,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 156,
@@ -34,7 +34,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 134,
@@ -128,7 +128,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 25,
@@ -152,7 +152,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 105,
@@ -291,7 +291,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 14,
@@ -365,7 +365,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -373,7 +373,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -381,7 +381,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -389,7 +389,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -397,7 +397,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -405,7 +405,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 11,
@@ -504,7 +504,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -512,7 +512,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 71,
@@ -541,7 +541,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -549,7 +549,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -557,7 +557,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 1,
@@ -1096,7 +1096,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 1,
@@ -1255,7 +1255,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -1263,7 +1263,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 63,
@@ -1302,7 +1302,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 54,
@@ -1321,7 +1321,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 109,
@@ -1350,7 +1350,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 28,
@@ -1369,7 +1369,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 68,
@@ -1388,7 +1388,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 17,
@@ -1407,7 +1407,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 28,
@@ -1436,7 +1436,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 11,
@@ -1465,7 +1465,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 22,
@@ -1484,7 +1484,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 21,
@@ -1503,7 +1503,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 17,
@@ -1522,7 +1522,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 53,
@@ -1541,7 +1541,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 31,
@@ -1560,7 +1560,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 19,
@@ -1604,7 +1604,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 27,
@@ -1623,7 +1623,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 430,
@@ -1642,7 +1642,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 33,
@@ -1661,7 +1661,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 19,
@@ -1680,7 +1680,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 50,
@@ -2314,7 +2314,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 9,

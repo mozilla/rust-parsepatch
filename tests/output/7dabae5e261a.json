@@ -5,7 +5,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 11,
@@ -44,7 +44,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/aurora/mozicon128.png",
+            "copied_from": "browser/branding/aurora/mozicon128.png",
             "lines": []
         },
         {
@@ -52,7 +52,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/aurora/content/icon64.png",
+            "copied_from": "browser/branding/aurora/content/icon64.png",
             "lines": []
         },
         {
@@ -60,7 +60,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 45,
@@ -99,7 +99,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 11,
@@ -138,7 +138,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/nightly/mozicon128.png",
+            "copied_from": "browser/branding/nightly/mozicon128.png",
             "lines": []
         },
         {
@@ -146,7 +146,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/nightly/content/icon64.png",
+            "copied_from": "browser/branding/nightly/content/icon64.png",
             "lines": []
         },
         {
@@ -154,7 +154,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 11,
@@ -183,7 +183,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/official/mozicon128.png",
+            "copied_from": "browser/branding/official/mozicon128.png",
             "lines": []
         },
         {
@@ -191,7 +191,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/official/content/icon64.png",
+            "copied_from": "browser/branding/official/content/icon64.png",
             "lines": []
         },
         {
@@ -199,7 +199,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 12,
@@ -238,7 +238,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/unofficial/mozicon128.png",
+            "copied_from": "browser/branding/unofficial/mozicon128.png",
             "lines": []
         },
         {
@@ -246,7 +246,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "browser/branding/unofficial/content/icon64.png",
+            "copied_from": "browser/branding/unofficial/content/icon64.png",
             "lines": []
         },
         {
@@ -254,7 +254,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 79,
@@ -278,7 +278,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 618,

@@ -45,7 +45,7 @@ for f in os.listdir(directory):
         r['new'] = False
         r['deleted'] = False
         r['binary'] = False
-        r['renamed_from'] = old if old != new else None
+        r['copied_from'] = old if old != new else None
         r['lines'] = lines = []
 
         if diff.changes:

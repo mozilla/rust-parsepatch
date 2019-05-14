@@ -39,6 +39,8 @@ pub enum FileOp {
     Deleted,
     /// The file is renamed
     Renamed,
+    /// The file is copied
+    Copied,
     /// The file is touched
     None,
 }
@@ -49,8 +51,8 @@ pub struct PatchReader<'a> {
     pos: usize,
 }
 
-struct LineReader<'a> {
-    buf: &'a [u8],
+pub struct LineReader<'a> {
+    pub buf: &'a [u8],
 }
 
 impl<'a> Debug for LineReader<'a> {
@@ -71,6 +73,12 @@ impl<'a> LineReader<'a> {
     fn is_rename_from(&self) -> bool {
         self.buf.starts_with(&[
             b'r', b'e', b'n', b'a', b'm', b'e', b' ', b'f', b'r', b'o', b'm',
+        ])
+    }
+
+    fn is_copy_from(&self) -> bool {
+        self.buf.starts_with(&[
+            b'c', b'o', b'p', b'y', b' ', b'f', b'r', b'o', b'm',
         ])
     }
 
@@ -95,12 +103,14 @@ impl<'a> LineReader<'a> {
             FileOp::Deleted
         } else if self.is_rename_from() {
             FileOp::Renamed
+        } else if self.is_copy_from() {
+            FileOp::Copied
         } else {
             FileOp::None
         }
     }
 
-    fn parse_numbers(&self) -> (u32, u32) {
+    pub fn parse_numbers(&self) -> (u32, u32) {
         // we know that line is beginning with "@@ -"
         let buf = unsafe { self.buf.get_unchecked(4..) };
         let mut x = 0;
@@ -233,16 +243,23 @@ impl<'a> PatchReader<'a> {
             return;
         }
 
-        if op == FileOp::Renamed {
+        if op == FileOp::Renamed || op == FileOp::Copied {
             // when no changes in the file there is no ---/+++ stuff
             // so need to get info here
-            // 12 == len("rename from ")
-            let old = LineReader::get_filename(unsafe { line.buf.get_unchecked(12..) });
+            let (shift_1, shift_2) = if op == FileOp::Renamed {
+                // 12 == len("rename from ")
+                // 10 == len("rename to ")
+                (12, 10)
+            } else {
+                // 10 == len("copy from ")
+                // 8 == len("copy to ")
+                (10, 8)
+            };
+            let old = LineReader::get_filename(unsafe { line.buf.get_unchecked(shift_1..) });
             let _line = self.next(PatchReader::mv, false).unwrap();
-            // 10 == len("rename to ")
-            let new = LineReader::get_filename(&_line.buf[10..]);
+            let new = LineReader::get_filename(&_line.buf[shift_2..]);
 
-            trace!("Renamed from {} to {}", old, new);
+            trace!("Copy/Renamed from {} to {}", old, new);
 
             diff.set_info(old, new, FileOp::Renamed, false);
 
@@ -252,7 +269,7 @@ impl<'a> PatchReader<'a> {
                     self.next(PatchReader::mv, false);
                     line = self.next(PatchReader::mv, false).unwrap();
                 } else {
-                    // we just have a rename but no changes in the file
+                    // we just have a rename/copy but no changes in the file
                     diff.close();
                     if PatchReader::diff(&_line) {
                         self.parse_diff(&mut _line, patch);

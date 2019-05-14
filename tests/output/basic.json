@@ -5,7 +5,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 226,
@@ -34,7 +34,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": []
         },
         {
@@ -42,7 +42,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 1,
@@ -61,7 +61,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 226,
@@ -80,7 +80,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "toto",
+            "copied_from": "toto",
             "lines": []
         },
         {
@@ -88,7 +88,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": "titi",
+            "copied_from": "titi",
             "lines": [
                 {
                     "line": 2,
@@ -117,7 +117,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 1,
@@ -141,7 +141,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 226,

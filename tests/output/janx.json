@@ -5,7 +5,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 685,
@@ -29,7 +29,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 54,
@@ -73,7 +73,7 @@
             "new": false,
             "deleted": false,
             "binary": false,
-            "renamed_from": null,
+            "copied_from": null,
             "lines": [
                 {
                     "line": 125,

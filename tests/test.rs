@@ -32,6 +32,7 @@ pub struct DiffImpl {
     pub new: bool,
     pub deleted: bool,
     pub binary: bool,
+    pub copied_from: Option<String>,
     pub renamed_from: Option<String>,
     pub lines: Vec<LineChange>,
 }
@@ -48,6 +49,7 @@ impl Patch<DiffImpl> for PatchImpl {
             new: false,
             deleted: false,
             binary: false,
+            copied_from: None,
             renamed_from: None,
             lines: Vec::new(),
         });
@@ -115,6 +117,7 @@ fn get_line(buf: &[u8]) -> String {
 
 fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
     patch.diffs.retain(|c| !c.binary);
+    println!("Parse patch {:?}", path);
     assert!(
         json.diffs.len() == patch.diffs.len(),
         "Not the same length in patch: {:?}",
@@ -129,7 +132,7 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
             )
         );
         assert!(
-            cj.renamed_from == cp.renamed_from,
+            cj.copied_from == cp.renamed_from || cj.copied_from == cp.copied_from,
             format!(
                 "Not the same filename: {:?} ({:?} expected)",
                 cj.filename, cp.filename
