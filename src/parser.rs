@@ -90,6 +90,10 @@ impl<'a> LineReader<'a> {
         self.buf.starts_with(&[b'-', b'-', b'-'])
     }
 
+    fn is_index(&self) -> bool {
+        self.buf.starts_with(&[b'i', b'n', b'd', b'e', b'x', b' '])
+    }
+
     fn is_deleted_file(&self) -> bool {
         self.buf.starts_with(&[
             b'd', b'e', b'l', b'e', b't', b'e', b'd', b' ', b'f', b'i', b'l', b'e',
@@ -280,7 +284,7 @@ impl<'a> PatchReader<'a> {
                 return;
             }
         } else {
-            if op == FileOp::New || op == FileOp::Deleted {
+            if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
                 line = self.next(PatchReader::useful, false).unwrap();
                 if line.is_binary() {
                     // We've file info only in the diff line

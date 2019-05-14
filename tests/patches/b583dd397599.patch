@@ -1,0 +1,778 @@
+# HG changeset patch
+# User Brian Hackett <bhackett1024@gmail.com>
+# Date 1555451353 36000
+#      mar. avril 16 11:49:13 2019 -1000
+# Node ID b583dd39759908c9cb42ed6508f1b9349ba30dc0
+# Parent  2bcdd7ab7d95f0b24a920803df72b7e4525a96e9
+Bug 1230194 Part 1 - Supply stack trace in completion value when throwing, r=jorendorff.
+
+Differential Revision: https://phabricator.services.mozilla.com/D27826
+
+diff --git a/js/src/doc/Debugger/Conventions.md b/js/src/doc/Debugger/Conventions.md
+--- a/js/src/doc/Debugger/Conventions.md
++++ b/js/src/doc/Debugger/Conventions.md
+@@ -71,19 +71,20 @@ of debuggee call initiated by the debugg
+ interface provides a value describing how the code completed; these are
+ called *completion values*. A completion value has one of the
+ following forms:
+ 
+ <code>{ return: <i>value</i> }</code>
+ :   The code completed normally, returning <i>value</i>. <i>Value</i> is a
+     debuggee value.
+ 
+-<code>{ throw: <i>value</i> }</code>
++<code>{ throw: <i>value</i>, stack: <i>stack</i> }</code>
+ :   The code threw <i>value</i> as an exception. <i>Value</i> is a debuggee
+-    value.
++    value.  <i>stack</i> is a `SavedFrame` representing the location from which
++    the value was thrown, and may be missing.
+ 
+ `null`
+ :   The code was terminated, as if by the "slow script" dialog box.
+ 
+ If control reaches the end of a generator frame, the completion value is
+ <code>{ throw: <i>stop</i> }</code> where <i>stop</i> is a
+ `Debugger.Object` object representing the `StopIteration` object being
+ thrown.
+@@ -103,17 +104,21 @@ resumption value has one of the followin
+ <code>{ return: <i>value</i> }</code>
+ :   Force the top frame of the debuggee to return <i>value</i> immediately,
+     as if by executing a `return` statement. <i>Value</i> must be a debuggee
+     value. (Most handler functions support this, except those whose
+     descriptions say otherwise.) See the list of special cases below.
+ 
+ <code>{ throw: <i>value</i> }</code>
+ :   Throw <i>value</i> as an exception from the current bytecode
+-    instruction. <i>Value</i> must be a debuggee value.
++    instruction. <i>Value</i> must be a debuggee value. Note that unlike
++    completion values, resumption values do not specify a stack.  When
++    initiating an exceptional return from a handler, the current debuggee stack
++    will be used. If a handler wants to avoid modifying the stack of an
++    already-thrown exception, it should return `undefined`.
+ 
+ `null`
+ :   Terminate the debuggee, as if it had been cancelled by the "slow script"
+     dialog box.
+ 
+ In some places, the JS language treats `return` statements specially or
+ doesn't allow them at all. So there are a few special cases.
+ 
+diff --git a/js/src/jit-test/tests/binast/lazy/debug/Object-apply-01.binjs b/js/src/jit-test/tests/binast/lazy/debug/Object-apply-01.binjs
+index 301fd6874f682bda79f6d78a980c44f3162f184e..e37e2bc3bd4726f5f83cedd9f56fefbdfa412c45
+GIT binary patch
+literal 2126
+zc$|Gx?QY^m6up^RmW8YcA%swbkQGIUB?zG?TBVy+N=QgHQ9`0XSKDU$W3UHs*4T7B
+zgwm?d&|iI-_HFtEeSu27Gq$mlGzA&Y+>bM7&bf3i`j-Q8e|~p-eSLiQgX=I~xMFqq
+zd+w}$p*CZe@!n5!&ce_Q{K^USymZ?f2r69rn$1Sps#>~~1#E^utt(eBPQ8KPu0Kf&
+z+Ht(Um@)3!X`-=CWKZ1gy1s(|DLH7I1Q-&Sq?y9%G3RuZ?(4^4$hct6DYHGwnbW5;
+zR{Kb~OGh4yf>eU+JdXvune^V`e#Vg2zz*ijO2XI?1<nFKqu#nI+&^3RwggRiAX$Ob
+z!{!zJdG#`F-HaZXEz-cz`s^T#FS*8-SCIE|C%%+8ZQ4(RL&_&iq;j=Sg4uk5c+X8s
+zjOYe|$7qJqLDuBwz}B~O2OUnU_Y%GXo4a#y?gb+>U8#fCQJ%4+d`bnq<(T4P)lRgy
+z;nz$|11Axxl@%)EQ!VD307x;m`fQovn-PWk!SL>)e?Ca3`#1fwHum*L%JWpQ?ft0P
+zkGZjwwYUgzypHE{Z<V9+*RXNqP0qxE`($EFT@jj*NxCzd6i|hQlp{3QBlQd~2$>;R
+zC`i+I2wdOz!d78T5+5xl6C9l6|Df&e>V4WT3|Dj3;~a-9qB5NFU>RQcp`gCaZpP-6
+zd0t@YfzNcY406kWdrm%qD@ILW>mf8HPsTot>*H7~tNzCN#fq3)Yo0BS`4cfcw0?ba
+zc$qDxO>2~Guy(DHs_JB_<oy(^kUXuiD%fAA$13N<>@Zou89|3cAn=|y<5F}RbqUjR
+zM~=%;GU`-(wv>ZOxsW6axQ!;KFi)Cu>co=zZK68%7qWXlyzBK+U;i;r-x{Sd*(eq8
+zDdJ-h04V4L`sCnyxH8_C3EA2#5V#{X@~(5+-q48#g$gmwRHod8cLWM*UCcrJIRe;3
+zq_52PP$6~5ZNP>_HgowZfT=h3pj_Vp$P@Te-v(7-fT}R^Rjq`Fmw;?QMS(&~17mBA
+ztYUfra>xQq%`9qhYP%CJ+8vqN)XkR(MAkHdUntcG=sU#NHu7;0N*^$Uub~QPpy%Vh
+zuRD69`Q%7r&p3z=k;~U%C5mwwEi(XmjQsaE@uHY;{4OGInEz9e@G5s+0E6l#W*(YP
+zb5R1Kcw3X|1ALI;OW{EpL((hOAVI1Dv@#u6uXUJ3ELAO<se1OI(JUsT(#?AQ#|z5=
+zv<%y)en)!m8*iT{r1lt2#DLDzBRkn6|9WN0syOU9HBr^qr>vR?TSa02%j!>w)gKY#
+V=qZg;%vnVKY2*u3B^1{N{tI#y{t*BG
+
+diff --git a/js/src/jit-test/tests/binast/nonlazy/debug/Object-apply-01.binjs b/js/src/jit-test/tests/binast/nonlazy/debug/Object-apply-01.binjs
+index 5906df8924bae15fc2979baf38563fd7db350ed6..f5e5b671c4484b3f62059cbe43cd697dc6fb9d04
+GIT binary patch
+literal 2120
+zc$|$>ZENCK6h2-;2oj2jh!l}fia1t8N*TJ-p=)1kw`FRJy2I>t_ro>0YC17-Z?1J^
+z+263A_eU=5PuO#B5)<2<VU(DA&&zY3^PJ=PP5*XC9<K*ycXwxlUtNd!!WHY2zw=j(
+z8+DnujQ4(Da2AGc;8!oG=cU)yP*CC8cWge+M%B}!3}ABvYJYGA<J21p?)uX-pcC8s
+z%Q@q&ojRHuN4DbLx$8R!kdlMuMSv!OPMQg<opDar>Ai6lhKvj5Tr%6EoH>0uXZ4Si
+zyL9Za$Ver~{!3fHTS@K%-scQy4eemTti+5Nk>M)fbLwrP!gh~N8NXWkwnR?J9KAMS
+z69QWbt^4s4vqkDS-4qYPxXVoe*@JA%o%&MaOo7xmqI}9ks#oVCm@k%y_i}2<B+i4t
+zV>CnUI6LK+z}Alo2S=PnA0~W<Hg^}|+6%@wbtMnZj`GY*DwkBy2aYZ-)}1Y_G6U%(
+zwtIfZ#4K<Usp>J|1VO5?+h?n^fEjUk9F7Jz{p(@6-+$@9XcJ$5ro2EE-QI7S{hXgj
+zT}#Ul7wl}Y@YZ=Me+?U#-sDUyxlg9X%oU*-O-Xmg(;~{SlzM~)d#0Y@1tBv83k7Kz
+zPl4+jpV>OB%Z|p&DR#K|M`#BJdY|@-qxFLIIL9@MsElSjScNx!D5!6<`-wSYo)=hp
+z;4@vUg8VAro>NHRN>NhSehN*=ld(^e#w1qEYP_-jup;KxhG*Mj{#49PtUuqJ+-8Gm
+z%Nl1BtOIMTqPm$V*`I<HlBYFM0Y@A6MERVU9XhMHBsd`v2<-EIQjWS&O_-iLc3h5<
+zQK#y&mE26qg(O+TYqUDWMUtFX70c?kh3eR!$-(1j(Cejh{l~m~Ym_S_S1#gH!p9;2
+zP}B+Z$??zd!FXRGWOt`XU_k2RUH74r(}@PfDlx8<r*aPO2o%-1l!y599$*KNPN7N~
+zkk3KRB0Kp)4Zzf!hfrzk0Tc-AgYp}o{6?Xsm9cOcNDitB5ZW3TyBkzx(~FQt24HGt
+zNsC>3-T2VyO4p8VzIGt8rV;!?xlTaeC&r#ph>cMG0ZsTCDT4-jA<p}*t2bL)C5=Pl
+zI4&ZOUxt+^#%*-W0O&FDzu(7)Qo`}4h`eEbB_iQf>AnI6l}*e7w6=Yb10s7zliGvQ
+zUg{2VDkSZ&4hc{lp#2RAW(gxzhGwdiBWSit$&#FZb>0A4hU)gPBe9Q+w=W%1cr+(U
+zKzF-h_Zv2>hD)AT+f@7VhSd^LYbfgfjrmhD=8uSRy3OJeeHM{_7Wo1d38l^O{sXj6
+B`;h<u
+
+diff --git a/js/src/jit-test/tests/debug/Frame-live-07.js b/js/src/jit-test/tests/debug/Frame-live-07.js
+--- a/js/src/jit-test/tests/debug/Frame-live-07.js
++++ b/js/src/jit-test/tests/debug/Frame-live-07.js
+@@ -29,25 +29,28 @@ function test(when, what) {
+     dbg.onDebuggerStatement = frame => {
+         dbg.onEnterFrame = frame => {
+             frame.onPop = function() {
+                 return tick(this);
+             };
+             return tick(frame);
+         };
+         let result = frame.eval("for (let _ of f(0)) {}");
++        if (result && "stack" in result) {
++          result.stack = true;
++        }
+         assertDeepEq(result, what);
+     };
+     g.eval("debugger;");
+ 
+     assertEq(t, when);
+     assertEq(poppedFrame.live, false);
+     assertErrorMessage(() => poppedFrame.older,
+                        Error,
+                        "Debugger.Frame is not live");
+ }
+ 
+ for (let when = 0; when < 6; when++) {
+-    for (let what of [null, {throw: "fit"}]) {
++    for (let what of [null, {throw: "fit", stack: true}]) {
+         test(when, what);
+     }
+ }
+ 
+diff --git a/js/src/jit-test/tests/debug/Object-apply-01.js b/js/src/jit-test/tests/debug/Object-apply-01.js
+--- a/js/src/jit-test/tests/debug/Object-apply-01.js
++++ b/js/src/jit-test/tests/debug/Object-apply-01.js
+@@ -38,21 +38,21 @@ function test(usingApply) {
+     dbg.onDebuggerStatement = function (frame) {
+         assertEq((usingApply ? frame.arguments[0].apply(null, ['one', 'two'])
+                              : frame.arguments[0].call(null, 'one', 'two')).return,
+                  2);
+         hits++;
+     };
+     g.eval("f(function () { return arguments.length; });");
+ 
+-    // Exceptions are reported as {throw:} completion values.
++    // Exceptions are reported as {throw,stack} completion values.
+     dbg.onDebuggerStatement = function (frame) {
+         var lose = frame.arguments[0];
+         var cv = usingApply ? lose.apply(null, []) : lose.call(null);
+-        assertEq(Object.keys(cv).join(","), "throw");
++        assertEq(Object.keys(cv).join(","), "throw,stack");
+         assertEq(cv.throw, frame.callee);
+         hits++;
+     };
+     g.eval("f(function lose() { throw f; });");
+ }
+ 
+ test(true);
+ test(false);
+diff --git a/js/src/jit-test/tests/debug/onExceptionUnwind-resumption-05.js b/js/src/jit-test/tests/debug/onExceptionUnwind-resumption-05.js
+new file mode 100644
+--- /dev/null
++++ b/js/src/jit-test/tests/debug/onExceptionUnwind-resumption-05.js
+@@ -0,0 +1,32 @@
++// Make sure that stacks in completion values are not lost when an exception
++// unwind hook returns undefined.
++
++let g = newGlobal({ newCompartment: true });
++g.eval(`
++  function foo() {
++    bar();
++  }
++  function bar() {
++    throw new Error();
++  }
++`);
++
++let dbg = Debugger(g);
++let unwindHits = 0, popHits = 0;
++dbg.onExceptionUnwind = frame => {
++  unwindHits++;
++  return undefined;
++}
++dbg.onEnterFrame = frame => {
++  frame.onPop = completion => {
++    assertEq(completion.stack.functionDisplayName, "bar");
++    popHits++;
++  };
++};
++
++try {
++  g.eval("foo()");
++} catch (e) {}
++assertEq(unwindHits, 3);
++assertEq(popHits, 3);
++dbg.removeDebuggee(g);
+diff --git a/js/src/jit-test/tests/debug/resumption-09.js b/js/src/jit-test/tests/debug/resumption-09.js
+new file mode 100644
+--- /dev/null
++++ b/js/src/jit-test/tests/debug/resumption-09.js
+@@ -0,0 +1,41 @@
++// Test exception stack behavior when reusing completion values as resumption
++// values.
++
++load(libdir + "asserts.js");
++
++var g = newGlobal({newCompartment: true});
++g.eval(`
++  function foo() {
++    bar();
++  }
++  function bar() {
++    debugger;
++  }
++  function baz() {
++    throw new Error();
++  }
++`);
++
++var dbg = Debugger(g);
++dbg.onDebuggerStatement = frame => {
++  return frame.eval("baz()");
++};
++
++let popHits = 0;
++dbg.onEnterFrame = frame => {
++  frame.onPop = completion => {
++    popHits++;
++    // Resumption values ignore any 'stack' property, and the script location of
++    // the place where the hook was called will be used when throwing.
++    if (popHits <= 2) {
++      assertEq(completion.stack.functionDisplayName, "baz");
++    } else {
++      assertEq(completion.stack.functionDisplayName, "bar");
++    }
++  };
++};
++
++try {
++  g.eval("foo()");
++} catch (e) {}
++assertEq(popHits, 5);
+diff --git a/js/src/vm/Debugger.cpp b/js/src/vm/Debugger.cpp
+--- a/js/src/vm/Debugger.cpp
++++ b/js/src/vm/Debugger.cpp
+@@ -1037,18 +1037,19 @@ bool Debugger::slowPathOnLeaveFrame(JSCo
+   }
+   if (frames.empty()) {
+     return frameOk;
+   }
+ 
+   // Save the frame's completion value.
+   ResumeMode resumeMode;
+   RootedValue value(cx);
++  RootedSavedFrame exnStack(cx);
+   Debugger::resultToCompletion(cx, frameOk, frame.returnValue(), &resumeMode,
+-                               &value);
++                               &value, &exnStack);
+ 
+   // Preserve the debuggee's microtask event queue while we run the hooks, so
+   // the debugger's microtask checkpoints don't run from the debuggee's
+   // microtasks, and vice versa.
+   JS::AutoDebuggerJobQueueInterruption adjqi;
+   if (!adjqi.init(cx)) {
+     return false;
+   }
+@@ -1078,17 +1079,18 @@ bool Debugger::slowPathOnLeaveFrame(JSCo
+         }
+ 
+         // Call the onPop handler.
+         ResumeMode nextResumeMode = resumeMode;
+         RootedValue nextValue(cx, wrappedValue);
+         bool success;
+         {
+           AutoSetGeneratorRunning asgr(cx, genObj);
+-          success = handler->onPop(cx, frameobj, nextResumeMode, &nextValue);
++          success = handler->onPop(cx, frameobj, nextResumeMode, &nextValue,
++                                   exnStack);
+         }
+         nextResumeMode = dbg->processParsedHandlerResult(
+             ar, frame, pc, success, nextResumeMode, &nextValue);
+         adjqi.runJobs();
+ 
+         // At this point, we are back in the debuggee compartment, and
+         // any error has been wrapped up as a completion value.
+         MOZ_ASSERT(cx->compartment() == debuggeeGlobal->compartment());
+@@ -1106,17 +1108,23 @@ bool Debugger::slowPathOnLeaveFrame(JSCo
+   // Establish (resumeMode, value) as our resumption value.
+   switch (resumeMode) {
+     case ResumeMode::Return:
+       frame.setReturnValue(value);
+       success = true;
+       return true;
+ 
+     case ResumeMode::Throw:
+-      cx->setPendingExceptionAndCaptureStack(value);
++      // If we have a stack from the original throw, use it instead of
++      // associating the throw with the current execution point.
++      if (exnStack) {
++        cx->setPendingException(value, exnStack);
++      } else {
++        cx->setPendingExceptionAndCaptureStack(value);
++      }
+       return false;
+ 
+     case ResumeMode::Terminate:
+       MOZ_ASSERT(!cx->isExceptionPending());
+       return false;
+ 
+     default:
+       MOZ_CRASH("bad final onLeaveFrame resume mode");
+@@ -1884,44 +1892,47 @@ ResumeMode Debugger::processHandlerResul
+                        resumeMode, vp);
+ }
+ 
+ /*** Debuggee completion values *********************************************/
+ 
+ /* static */
+ void Debugger::resultToCompletion(JSContext* cx, bool ok, const Value& rv,
+                                   ResumeMode* resumeMode,
+-                                  MutableHandleValue value) {
++                                  MutableHandleValue value,
++                                  MutableHandleSavedFrame exnStack) {
+   MOZ_ASSERT_IF(ok, !cx->isExceptionPending());
+ 
+   if (ok) {
+     *resumeMode = ResumeMode::Return;
+     value.set(rv);
+   } else if (cx->isExceptionPending()) {
+     *resumeMode = ResumeMode::Throw;
+     if (!cx->getPendingException(value)) {
+       *resumeMode = ResumeMode::Terminate;
+     }
++    exnStack.set(cx->getPendingExceptionStack());
+     cx->clearPendingException();
+   } else {
+     *resumeMode = ResumeMode::Terminate;
+     value.setUndefined();
+   }
+ }
+ 
+ bool Debugger::newCompletionValue(JSContext* cx, ResumeMode resumeMode,
+-                                  const Value& value_,
++                                  const Value& value_, SavedFrame* exnStack_,
+                                   MutableHandleValue result) {
+   // We must be in the debugger's compartment, since that's where we want
+   // to construct the completion value.
+   cx->check(object.get());
+   cx->check(value_);
+ 
+   RootedId key(cx);
+   RootedValue value(cx, value_);
++  RootedSavedFrame exnStack(cx, exnStack_);
+ 
+   switch (resumeMode) {
+     case ResumeMode::Return:
+       key = NameToId(cx->names().return_);
+       break;
+ 
+     case ResumeMode::Throw:
+       key = NameToId(cx->names().throw_);
+@@ -1937,30 +1948,40 @@ bool Debugger::newCompletionValue(JSCont
+ 
+   // Common tail for ResumeMode::Return and ResumeMode::Throw.
+   RootedPlainObject obj(cx, NewBuiltinClassInstance<PlainObject>(cx));
+   if (!obj ||
+       !NativeDefineDataProperty(cx, obj, key, value, JSPROP_ENUMERATE)) {
+     return false;
+   }
+ 
++  if (exnStack) {
++    RootedId nkey(cx, NameToId(cx->names().stack));
++    RootedValue nvalue(cx, ObjectValue(*exnStack));
++    if (!cx->compartment()->wrap(cx, &nvalue) ||
++        !NativeDefineDataProperty(cx, obj, nkey, nvalue, JSPROP_ENUMERATE)) {
++      return false;
++    }
++  }
++
+   result.setObject(*obj);
+   return true;
+ }
+ 
+ bool Debugger::receiveCompletionValue(Maybe<AutoRealm>& ar, bool ok,
+                                       HandleValue val, MutableHandleValue vp) {
+   JSContext* cx = ar->context();
+ 
+   ResumeMode resumeMode;
+   RootedValue value(cx);
+-  resultToCompletion(cx, ok, val, &resumeMode, &value);
++  RootedSavedFrame exnStack(cx);
++  resultToCompletion(cx, ok, val, &resumeMode, &value, &exnStack);
+   ar.reset();
+   return wrapDebuggeeValue(cx, &value) &&
+-         newCompletionValue(cx, resumeMode, value, vp);
++         newCompletionValue(cx, resumeMode, value, exnStack, vp);
+ }
+ 
+ /*** Firing debugger hooks **************************************************/
+ 
+ static bool CallMethodIfPresent(JSContext* cx, HandleObject obj,
+                                 const char* name, size_t argc, Value* argv,
+                                 MutableHandleValue rval) {
+   rval.setUndefined();
+@@ -8861,34 +8882,35 @@ void ScriptedOnPopHandler::drop() {
+ }
+ 
+ void ScriptedOnPopHandler::trace(JSTracer* tracer) {
+   TraceEdge(tracer, &object_, "OnStepHandlerFunction.object");
+ }
+ 
+ bool ScriptedOnPopHandler::onPop(JSContext* cx, HandleDebuggerFrame frame,
+                                  ResumeMode& resumeMode,
+-                                 MutableHandleValue vp) {
++                                 MutableHandleValue vp,
++                                 HandleSavedFrame exnStack) {
+   Debugger* dbg = frame->owner();
+ 
+   // Make it possible to distinguish 'return' from 'await' completions.
+   // Bug 1470558 will investigate a more robust solution.
+   bool isAfterAwait = false;
+   AbstractFramePtr referent = DebuggerFrame::getReferent(frame);
+   if (resumeMode == ResumeMode::Return && referent &&
+       referent.isFunctionFrame() && referent.callee()->isAsync() &&
+       !referent.callee()->isGenerator()) {
+     AutoRealm ar(cx, referent.callee());
+     if (auto* genObj = GetGeneratorObjectForFrame(cx, referent)) {
+       isAfterAwait = !genObj->isClosed() && genObj->isRunning();
+     }
+   }
+ 
+   RootedValue completion(cx);
+-  if (!dbg->newCompletionValue(cx, resumeMode, vp, &completion)) {
++  if (!dbg->newCompletionValue(cx, resumeMode, vp, exnStack, &completion)) {
+     return false;
+   }
+ 
+   if (isAfterAwait) {
+     RootedObject obj(cx, &completion.toObject());
+     if (!DefineDataProperty(cx, obj, cx->names().await, TrueHandleValue)) {
+       return false;
+     }
+@@ -9337,17 +9359,18 @@ static bool EvaluateInEnv(JSContext* cx,
+   return ExecuteKernel(cx, script, *env, NullValue(), frame, rval.address());
+ }
+ 
+ static bool DebuggerGenericEval(JSContext* cx,
+                                 const mozilla::Range<const char16_t> chars,
+                                 HandleObject bindings,
+                                 const EvalOptions& options,
+                                 ResumeMode& resumeMode,
+-                                MutableHandleValue value, Debugger* dbg,
++                                MutableHandleValue value,
++                                MutableHandleSavedFrame exnStack, Debugger* dbg,
+                                 HandleObject envArg, FrameIter* iter) {
+   // Either we're specifying the frame, or a global.
+   MOZ_ASSERT_IF(iter, !envArg);
+   MOZ_ASSERT_IF(!iter, envArg && IsGlobalLexicalEnvironment(envArg));
+ 
+   // Gather keys and values of bindings, if any. This must be done in the
+   // debugger compartment, since that is where any exceptions must be thrown.
+   RootedIdVector keys(cx);
+@@ -9418,40 +9441,41 @@ static bool DebuggerGenericEval(JSContex
+   LeaveDebuggeeNoExecute nnx(cx);
+   RootedValue rval(cx);
+   AbstractFramePtr frame = iter ? iter->abstractFramePtr() : NullFramePtr();
+ 
+   bool ok = EvaluateInEnv(
+       cx, env, frame, chars,
+       options.filename() ? options.filename() : "debugger eval code",
+       options.lineno(), &rval);
+-  Debugger::resultToCompletion(cx, ok, rval, &resumeMode, value);
++  Debugger::resultToCompletion(cx, ok, rval, &resumeMode, value, exnStack);
+   ar.reset();
+   return dbg->wrapDebuggeeValue(cx, value);
+ }
+ 
+ /* static */
+ bool DebuggerFrame::eval(JSContext* cx, HandleDebuggerFrame frame,
+                          mozilla::Range<const char16_t> chars,
+                          HandleObject bindings, const EvalOptions& options,
+-                         ResumeMode& resumeMode, MutableHandleValue value) {
++                         ResumeMode& resumeMode, MutableHandleValue value,
++                         MutableHandleSavedFrame exnStack) {
+   MOZ_ASSERT(frame->isLive());
+ 
+   Debugger* dbg = frame->owner();
+ 
+   Maybe<FrameIter> maybeIter;
+   if (!DebuggerFrame::getFrameIter(cx, frame, maybeIter)) {
+     return false;
+   }
+   FrameIter& iter = *maybeIter;
+ 
+   UpdateFrameIterPc(iter);
+ 
+   return DebuggerGenericEval(cx, chars, bindings, options, resumeMode, value,
+-                             dbg, nullptr, &iter);
++                             exnStack, dbg, nullptr, &iter);
+ }
+ 
+ /* static */
+ bool DebuggerFrame::isLive() const { return !!getPrivate(); }
+ 
+ OnStepHandler* DebuggerFrame::onStepHandler() const {
+   Value value = getReservedSlot(JSSLOT_DEBUGFRAME_ONSTEP_HANDLER);
+   return value.isUndefined() ? nullptr
+@@ -10025,22 +10049,24 @@ bool DebuggerFrame::evalMethod(JSContext
+ 
+   EvalOptions options;
+   if (!ParseEvalOptions(cx, args.get(1), options)) {
+     return false;
+   }
+ 
+   ResumeMode resumeMode;
+   RootedValue value(cx);
++  RootedSavedFrame exnStack(cx);
+   if (!DebuggerFrame::eval(cx, frame, chars, nullptr, options, resumeMode,
+-                           &value)) {
+-    return false;
+-  }
+-
+-  return frame->owner()->newCompletionValue(cx, resumeMode, value, args.rval());
++                           &value, &exnStack)) {
++    return false;
++  }
++
++  return frame->owner()->newCompletionValue(cx, resumeMode, value, exnStack,
++                                            args.rval());
+ }
+ 
+ /* static */
+ bool DebuggerFrame::evalWithBindingsMethod(JSContext* cx, unsigned argc,
+                                            Value* vp) {
+   THIS_DEBUGGER_FRAME(cx, argc, vp, "evalWithBindings", args, frame);
+   if (!args.requireAtLeast(cx, "Debugger.Frame.prototype.evalWithBindings",
+                            2)) {
+@@ -10061,22 +10087,24 @@ bool DebuggerFrame::evalWithBindingsMeth
+ 
+   EvalOptions options;
+   if (!ParseEvalOptions(cx, args.get(2), options)) {
+     return false;
+   }
+ 
+   ResumeMode resumeMode;
+   RootedValue value(cx);
++  RootedSavedFrame exnStack(cx);
+   if (!DebuggerFrame::eval(cx, frame, chars, bindings, options, resumeMode,
+-                           &value)) {
+-    return false;
+-  }
+-
+-  return frame->owner()->newCompletionValue(cx, resumeMode, value, args.rval());
++                           &value, &exnStack)) {
++    return false;
++  }
++
++  return frame->owner()->newCompletionValue(cx, resumeMode, value, exnStack,
++                                            args.rval());
+ }
+ 
+ /* static */
+ bool DebuggerFrame::construct(JSContext* cx, unsigned argc, Value* vp) {
+   JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_NO_CONSTRUCTOR,
+                             "Debugger.Frame");
+   return false;
+ }
+@@ -11200,22 +11228,23 @@ bool DebuggerObject::executeInGlobalMeth
+ 
+   EvalOptions options;
+   if (!ParseEvalOptions(cx, args.get(1), options)) {
+     return false;
+   }
+ 
+   ResumeMode resumeMode;
+   RootedValue value(cx);
++  RootedSavedFrame exnStack(cx);
+   if (!DebuggerObject::executeInGlobal(cx, object, chars, nullptr, options,
+-                                       resumeMode, &value)) {
+-    return false;
+-  }
+-
+-  return object->owner()->newCompletionValue(cx, resumeMode, value,
++                                       resumeMode, &value, &exnStack)) {
++    return false;
++  }
++
++  return object->owner()->newCompletionValue(cx, resumeMode, value, exnStack,
+                                              args.rval());
+ }
+ 
+ /* static */
+ bool DebuggerObject::executeInGlobalWithBindingsMethod(JSContext* cx,
+                                                        unsigned argc,
+                                                        Value* vp) {
+   THIS_DEBUGOBJECT(cx, argc, vp, "executeInGlobalWithBindings", args, object);
+@@ -11243,22 +11272,23 @@ bool DebuggerObject::executeInGlobalWith
+ 
+   EvalOptions options;
+   if (!ParseEvalOptions(cx, args.get(2), options)) {
+     return false;
+   }
+ 
+   ResumeMode resumeMode;
+   RootedValue value(cx);
++  RootedSavedFrame exnStack(cx);
+   if (!DebuggerObject::executeInGlobal(cx, object, chars, bindings, options,
+-                                       resumeMode, &value)) {
+-    return false;
+-  }
+-
+-  return object->owner()->newCompletionValue(cx, resumeMode, value,
++                                       resumeMode, &value, &exnStack)) {
++    return false;
++  }
++
++  return object->owner()->newCompletionValue(cx, resumeMode, value, exnStack,
+                                              args.rval());
+ }
+ 
+ /* static */
+ bool DebuggerObject::makeDebuggeeValueMethod(JSContext* cx, unsigned argc,
+                                              Value* vp) {
+   THIS_DEBUGOBJECT(cx, argc, vp, "makeDebuggeeValue", args, object);
+   if (!args.requireAtLeast(cx, "Debugger.Object.prototype.makeDebuggeeValue",
+@@ -12213,25 +12243,26 @@ bool DebuggerObject::forceLexicalInitial
+ }
+ 
+ /* static */
+ bool DebuggerObject::executeInGlobal(JSContext* cx, HandleDebuggerObject object,
+                                      mozilla::Range<const char16_t> chars,
+                                      HandleObject bindings,
+                                      const EvalOptions& options,
+                                      ResumeMode& resumeMode,
+-                                     MutableHandleValue value) {
++                                     MutableHandleValue value,
++                                     MutableHandleSavedFrame exnStack) {
+   MOZ_ASSERT(object->isGlobal());
+ 
+   Rooted<GlobalObject*> referent(cx, &object->referent()->as<GlobalObject>());
+   Debugger* dbg = object->owner();
+ 
+   RootedObject globalLexical(cx, &referent->lexicalEnvironment());
+   return DebuggerGenericEval(cx, chars, bindings, options, resumeMode, value,
+-                             dbg, globalLexical, nullptr);
++                             exnStack, dbg, globalLexical, nullptr);
+ }
+ 
+ /* static */
+ bool DebuggerObject::makeDebuggeeValue(JSContext* cx,
+                                        HandleDebuggerObject object,
+                                        HandleValue value_,
+                                        MutableHandleValue result) {
+   RootedObject referent(cx, object->referent());
+diff --git a/js/src/vm/Debugger.h b/js/src/vm/Debugger.h
+--- a/js/src/vm/Debugger.h
++++ b/js/src/vm/Debugger.h
+@@ -1145,30 +1145,33 @@ class Debugger : private mozilla::Linked
+   MOZ_MUST_USE bool getFrame(JSContext* cx, const FrameIter& iter,
+                              MutableHandleDebuggerFrame result);
+ 
+   /*
+    * Set |*resumeMode| and |*value| to a (ResumeMode, Value) pair reflecting a
+    * standard SpiderMonkey call state: a boolean success value |ok|, a return
+    * value |rv|, and a context |cx| that may or may not have an exception set.
+    * If an exception was pending on |cx|, it is cleared (and |ok| is asserted
+-   * to be false).
++   * to be false). On exceptional returns, exnStack will be set to any stack
++   * associated with the original throw, if available.
+    */
+   static void resultToCompletion(JSContext* cx, bool ok, const Value& rv,
+                                  ResumeMode* resumeMode,
+-                                 MutableHandleValue value);
++                                 MutableHandleValue value,
++                                 MutableHandleSavedFrame exnStack);
+ 
+   /*
+    * Set |*result| to a JavaScript completion value corresponding to
+    * |resumeMode| and |value|. |value| should be the return value or exception
+-   * value, not wrapped as a debuggee value. |cx| must be in the debugger
+-   * compartment.
++   * value, not wrapped as a debuggee value. When throwing an exception,
++   * |exnStack| may be set to the stack when the value was thrown. |cx| must be
++   * in the debugger compartment.
+    */
+   MOZ_MUST_USE bool newCompletionValue(JSContext* cx, ResumeMode resumeMode,
+-                                       const Value& value,
++                                       const Value& value, SavedFrame* exnStack,
+                                        MutableHandleValue result);
+ 
+   /*
+    * Precondition: we are in the debuggee realm (ar is entered) and ok is true
+    * if the operation in the debuggee realm succeeded, false on error or
+    * exception.
+    *
+    * Postcondition: we are in the debugger realm, having called `ar.reset()`
+@@ -1406,27 +1409,29 @@ struct OnPopHandler : Handler {
+   /*
+    * If a frame is about the be popped, this method is called with the frame
+    * as argument, and `resumeMode` and `vp` set to a completion value specifying
+    * how this frame's execution completed. If successful, this method should
+    * return true, with `resumeMode` and `vp` set to a resumption value
+    * specifying how execution should continue.
+    */
+   virtual bool onPop(JSContext* cx, HandleDebuggerFrame frame,
+-                     ResumeMode& resumeMode, MutableHandleValue vp) = 0;
++                     ResumeMode& resumeMode, MutableHandleValue vp,
++                     HandleSavedFrame exnStack) = 0;
+ };
+ 
+ class ScriptedOnPopHandler final : public OnPopHandler {
+  public:
+   explicit ScriptedOnPopHandler(JSObject* object);
+   virtual JSObject* object() const override;
+   virtual void drop() override;
+   virtual void trace(JSTracer* tracer) override;
+   virtual bool onPop(JSContext* cx, HandleDebuggerFrame frame,
+-                     ResumeMode& resumeMode, MutableHandleValue vp) override;
++                     ResumeMode& resumeMode, MutableHandleValue vp,
++                     HandleSavedFrame exnStack) override;
+ 
+  private:
+   HeapPtr<JSObject*> object_;
+ };
+ 
+ class DebuggerFrame : public NativeObject {
+   friend class DebuggerArguments;
+   friend class ScriptedOnStepHandler;
+@@ -1467,17 +1472,18 @@ class DebuggerFrame : public NativeObjec
+                                             HandleDebuggerFrame frame,
+                                             OnStepHandler* handler);
+ 
+   static MOZ_MUST_USE bool eval(JSContext* cx, HandleDebuggerFrame frame,
+                                 mozilla::Range<const char16_t> chars,
+                                 HandleObject bindings,
+                                 const EvalOptions& options,
+                                 ResumeMode& resumeMode,
+-                                MutableHandleValue value);
++                                MutableHandleValue value,
++                                MutableHandleSavedFrame exnStack);
+ 
+   bool isLive() const;
+   OnStepHandler* onStepHandler() const;
+   OnPopHandler* onPopHandler() const;
+   void setOnPopHandler(OnPopHandler* handler);
+ 
+   /*
+    * Called after a generator/async frame is resumed, before exposing this
+@@ -1638,17 +1644,18 @@ class DebuggerObject : public NativeObje
+   static MOZ_MUST_USE bool forceLexicalInitializationByName(
+       JSContext* cx, HandleDebuggerObject object, HandleId id, bool& result);
+   static MOZ_MUST_USE bool executeInGlobal(JSContext* cx,
+                                            HandleDebuggerObject object,
+                                            mozilla::Range<const char16_t> chars,
+                                            HandleObject bindings,
+                                            const EvalOptions& options,
+                                            ResumeMode& resumeMode,
+-                                           MutableHandleValue value);
++                                           MutableHandleValue value,
++                                           MutableHandleSavedFrame exnStack);
+   static MOZ_MUST_USE bool makeDebuggeeValue(JSContext* cx,
+                                              HandleDebuggerObject object,
+                                              HandleValue value,
+                                              MutableHandleValue result);
+   static MOZ_MUST_USE bool unsafeDereference(JSContext* cx,
+                                              HandleDebuggerObject object,
+                                              MutableHandleObject result);
+   static MOZ_MUST_USE bool unwrap(JSContext* cx, HandleDebuggerObject object,

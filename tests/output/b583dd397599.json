@@ -1,0 +1,1162 @@
+{
+    "diffs": [
+        {
+            "filename": "js/src/doc/Debugger/Conventions.md",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 79,
+                    "deleted": true,
+                    "data": "<code>{ throw: <i>value</i> }</code>"
+                },
+                {
+                    "line": 79,
+                    "deleted": false,
+                    "data": "<code>{ throw: <i>value</i>, stack: <i>stack</i> }</code>"
+                },
+                {
+                    "line": 81,
+                    "deleted": true,
+                    "data": "    value."
+                },
+                {
+                    "line": 81,
+                    "deleted": false,
+                    "data": "    value.  <i>stack</i> is a `SavedFrame` representing the location from which"
+                },
+                {
+                    "line": 82,
+                    "deleted": false,
+                    "data": "    the value was thrown, and may be missing."
+                },
+                {
+                    "line": 111,
+                    "deleted": true,
+                    "data": "    instruction. <i>Value</i> must be a debuggee value."
+                },
+                {
+                    "line": 112,
+                    "deleted": false,
+                    "data": "    instruction. <i>Value</i> must be a debuggee value. Note that unlike"
+                },
+                {
+                    "line": 113,
+                    "deleted": false,
+                    "data": "    completion values, resumption values do not specify a stack.  When"
+                },
+                {
+                    "line": 114,
+                    "deleted": false,
+                    "data": "    initiating an exceptional return from a handler, the current debuggee stack"
+                },
+                {
+                    "line": 115,
+                    "deleted": false,
+                    "data": "    will be used. If a handler wants to avoid modifying the stack of an"
+                },
+                {
+                    "line": 116,
+                    "deleted": false,
+                    "data": "    already-thrown exception, it should return `undefined`."
+                }
+            ]
+        },
+        {
+            "filename": "js/src/jit-test/tests/debug/Frame-live-07.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 37,
+                    "deleted": false,
+                    "data": "        if (result && \"stack\" in result) {"
+                },
+                {
+                    "line": 38,
+                    "deleted": false,
+                    "data": "          result.stack = true;"
+                },
+                {
+                    "line": 39,
+                    "deleted": false,
+                    "data": "        }"
+                },
+                {
+                    "line": 49,
+                    "deleted": true,
+                    "data": "    for (let what of [null, {throw: \"fit\"}]) {"
+                },
+                {
+                    "line": 52,
+                    "deleted": false,
+                    "data": "    for (let what of [null, {throw: \"fit\", stack: true}]) {"
+                }
+            ]
+        },
+        {
+            "filename": "js/src/jit-test/tests/debug/Object-apply-01.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 46,
+                    "deleted": true,
+                    "data": "    // Exceptions are reported as {throw:} completion values."
+                },
+                {
+                    "line": 46,
+                    "deleted": false,
+                    "data": "    // Exceptions are reported as {throw,stack} completion values."
+                },
+                {
+                    "line": 50,
+                    "deleted": true,
+                    "data": "        assertEq(Object.keys(cv).join(\",\"), \"throw\");"
+                },
+                {
+                    "line": 50,
+                    "deleted": false,
+                    "data": "        assertEq(Object.keys(cv).join(\",\"), \"throw,stack\");"
+                }
+            ]
+        },
+        {
+            "filename": "js/src/jit-test/tests/debug/onExceptionUnwind-resumption-05.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 1,
+                    "deleted": false,
+                    "data": "// Make sure that stacks in completion values are not lost when an exception"
+                },
+                {
+                    "line": 2,
+                    "deleted": false,
+                    "data": "// unwind hook returns undefined."
+                },
+                {
+                    "line": 3,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 4,
+                    "deleted": false,
+                    "data": "let g = newGlobal({ newCompartment: true });"
+                },
+                {
+                    "line": 5,
+                    "deleted": false,
+                    "data": "g.eval(`"
+                },
+                {
+                    "line": 6,
+                    "deleted": false,
+                    "data": "  function foo() {"
+                },
+                {
+                    "line": 7,
+                    "deleted": false,
+                    "data": "    bar();"
+                },
+                {
+                    "line": 8,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 9,
+                    "deleted": false,
+                    "data": "  function bar() {"
+                },
+                {
+                    "line": 10,
+                    "deleted": false,
+                    "data": "    throw new Error();"
+                },
+                {
+                    "line": 11,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 12,
+                    "deleted": false,
+                    "data": "`);"
+                },
+                {
+                    "line": 13,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "let dbg = Debugger(g);"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "let unwindHits = 0, popHits = 0;"
+                },
+                {
+                    "line": 16,
+                    "deleted": false,
+                    "data": "dbg.onExceptionUnwind = frame => {"
+                },
+                {
+                    "line": 17,
+                    "deleted": false,
+                    "data": "  unwindHits++;"
+                },
+                {
+                    "line": 18,
+                    "deleted": false,
+                    "data": "  return undefined;"
+                },
+                {
+                    "line": 19,
+                    "deleted": false,
+                    "data": "}"
+                },
+                {
+                    "line": 20,
+                    "deleted": false,
+                    "data": "dbg.onEnterFrame = frame => {"
+                },
+                {
+                    "line": 21,
+                    "deleted": false,
+                    "data": "  frame.onPop = completion => {"
+                },
+                {
+                    "line": 22,
+                    "deleted": false,
+                    "data": "    assertEq(completion.stack.functionDisplayName, \"bar\");"
+                },
+                {
+                    "line": 23,
+                    "deleted": false,
+                    "data": "    popHits++;"
+                },
+                {
+                    "line": 24,
+                    "deleted": false,
+                    "data": "  };"
+                },
+                {
+                    "line": 25,
+                    "deleted": false,
+                    "data": "};"
+                },
+                {
+                    "line": 26,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 27,
+                    "deleted": false,
+                    "data": "try {"
+                },
+                {
+                    "line": 28,
+                    "deleted": false,
+                    "data": "  g.eval(\"foo()\");"
+                },
+                {
+                    "line": 29,
+                    "deleted": false,
+                    "data": "} catch (e) {}"
+                },
+                {
+                    "line": 30,
+                    "deleted": false,
+                    "data": "assertEq(unwindHits, 3);"
+                },
+                {
+                    "line": 31,
+                    "deleted": false,
+                    "data": "assertEq(popHits, 3);"
+                },
+                {
+                    "line": 32,
+                    "deleted": false,
+                    "data": "dbg.removeDebuggee(g);"
+                }
+            ]
+        },
+        {
+            "filename": "js/src/jit-test/tests/debug/resumption-09.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 1,
+                    "deleted": false,
+                    "data": "// Test exception stack behavior when reusing completion values as resumption"
+                },
+                {
+                    "line": 2,
+                    "deleted": false,
+                    "data": "// values."
+                },
+                {
+                    "line": 3,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 4,
+                    "deleted": false,
+                    "data": "load(libdir + \"asserts.js\");"
+                },
+                {
+                    "line": 5,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 6,
+                    "deleted": false,
+                    "data": "var g = newGlobal({newCompartment: true});"
+                },
+                {
+                    "line": 7,
+                    "deleted": false,
+                    "data": "g.eval(`"
+                },
+                {
+                    "line": 8,
+                    "deleted": false,
+                    "data": "  function foo() {"
+                },
+                {
+                    "line": 9,
+                    "deleted": false,
+                    "data": "    bar();"
+                },
+                {
+                    "line": 10,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 11,
+                    "deleted": false,
+                    "data": "  function bar() {"
+                },
+                {
+                    "line": 12,
+                    "deleted": false,
+                    "data": "    debugger;"
+                },
+                {
+                    "line": 13,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 14,
+                    "deleted": false,
+                    "data": "  function baz() {"
+                },
+                {
+                    "line": 15,
+                    "deleted": false,
+                    "data": "    throw new Error();"
+                },
+                {
+                    "line": 16,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 17,
+                    "deleted": false,
+                    "data": "`);"
+                },
+                {
+                    "line": 18,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 19,
+                    "deleted": false,
+                    "data": "var dbg = Debugger(g);"
+                },
+                {
+                    "line": 20,
+                    "deleted": false,
+                    "data": "dbg.onDebuggerStatement = frame => {"
+                },
+                {
+                    "line": 21,
+                    "deleted": false,
+                    "data": "  return frame.eval(\"baz()\");"
+                },
+                {
+                    "line": 22,
+                    "deleted": false,
+                    "data": "};"
+                },
+                {
+                    "line": 23,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 24,
+                    "deleted": false,
+                    "data": "let popHits = 0;"
+                },
+                {
+                    "line": 25,
+                    "deleted": false,
+                    "data": "dbg.onEnterFrame = frame => {"
+                },
+                {
+                    "line": 26,
+                    "deleted": false,
+                    "data": "  frame.onPop = completion => {"
+                },
+                {
+                    "line": 27,
+                    "deleted": false,
+                    "data": "    popHits++;"
+                },
+                {
+                    "line": 28,
+                    "deleted": false,
+                    "data": "    // Resumption values ignore any 'stack' property, and the script location of"
+                },
+                {
+                    "line": 29,
+                    "deleted": false,
+                    "data": "    // the place where the hook was called will be used when throwing."
+                },
+                {
+                    "line": 30,
+                    "deleted": false,
+                    "data": "    if (popHits <= 2) {"
+                },
+                {
+                    "line": 31,
+                    "deleted": false,
+                    "data": "      assertEq(completion.stack.functionDisplayName, \"baz\");"
+                },
+                {
+                    "line": 32,
+                    "deleted": false,
+                    "data": "    } else {"
+                },
+                {
+                    "line": 33,
+                    "deleted": false,
+                    "data": "      assertEq(completion.stack.functionDisplayName, \"bar\");"
+                },
+                {
+                    "line": 34,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 35,
+                    "deleted": false,
+                    "data": "  };"
+                },
+                {
+                    "line": 36,
+                    "deleted": false,
+                    "data": "};"
+                },
+                {
+                    "line": 37,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 38,
+                    "deleted": false,
+                    "data": "try {"
+                },
+                {
+                    "line": 39,
+                    "deleted": false,
+                    "data": "  g.eval(\"foo()\");"
+                },
+                {
+                    "line": 40,
+                    "deleted": false,
+                    "data": "} catch (e) {}"
+                },
+                {
+                    "line": 41,
+                    "deleted": false,
+                    "data": "assertEq(popHits, 5);"
+                }
+            ]
+        },
+        {
+            "filename": "js/src/vm/Debugger.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 1045,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 1046,
+                    "deleted": true,
+                    "data": "                               &value);"
+                },
+                {
+                    "line": 1047,
+                    "deleted": false,
+                    "data": "                               &value, &exnStack);"
+                },
+                {
+                    "line": 1086,
+                    "deleted": true,
+                    "data": "          success = handler->onPop(cx, frameobj, nextResumeMode, &nextValue);"
+                },
+                {
+                    "line": 1087,
+                    "deleted": false,
+                    "data": "          success = handler->onPop(cx, frameobj, nextResumeMode, &nextValue,"
+                },
+                {
+                    "line": 1088,
+                    "deleted": false,
+                    "data": "                                   exnStack);"
+                },
+                {
+                    "line": 1114,
+                    "deleted": true,
+                    "data": "      cx->setPendingExceptionAndCaptureStack(value);"
+                },
+                {
+                    "line": 1116,
+                    "deleted": false,
+                    "data": "      // If we have a stack from the original throw, use it instead of"
+                },
+                {
+                    "line": 1117,
+                    "deleted": false,
+                    "data": "      // associating the throw with the current execution point."
+                },
+                {
+                    "line": 1118,
+                    "deleted": false,
+                    "data": "      if (exnStack) {"
+                },
+                {
+                    "line": 1119,
+                    "deleted": false,
+                    "data": "        cx->setPendingException(value, exnStack);"
+                },
+                {
+                    "line": 1120,
+                    "deleted": false,
+                    "data": "      } else {"
+                },
+                {
+                    "line": 1121,
+                    "deleted": false,
+                    "data": "        cx->setPendingExceptionAndCaptureStack(value);"
+                },
+                {
+                    "line": 1122,
+                    "deleted": false,
+                    "data": "      }"
+                },
+                {
+                    "line": 1892,
+                    "deleted": true,
+                    "data": "                                  MutableHandleValue value) {"
+                },
+                {
+                    "line": 1900,
+                    "deleted": false,
+                    "data": "                                  MutableHandleValue value,"
+                },
+                {
+                    "line": 1901,
+                    "deleted": false,
+                    "data": "                                  MutableHandleSavedFrame exnStack) {"
+                },
+                {
+                    "line": 1912,
+                    "deleted": false,
+                    "data": "    exnStack.set(cx->getPendingExceptionStack());"
+                },
+                {
+                    "line": 1911,
+                    "deleted": true,
+                    "data": "                                  const Value& value_,"
+                },
+                {
+                    "line": 1921,
+                    "deleted": false,
+                    "data": "                                  const Value& value_, SavedFrame* exnStack_,"
+                },
+                {
+                    "line": 1930,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx, exnStack_);"
+                },
+                {
+                    "line": 1956,
+                    "deleted": false,
+                    "data": "  if (exnStack) {"
+                },
+                {
+                    "line": 1957,
+                    "deleted": false,
+                    "data": "    RootedId nkey(cx, NameToId(cx->names().stack));"
+                },
+                {
+                    "line": 1958,
+                    "deleted": false,
+                    "data": "    RootedValue nvalue(cx, ObjectValue(*exnStack));"
+                },
+                {
+                    "line": 1959,
+                    "deleted": false,
+                    "data": "    if (!cx->compartment()->wrap(cx, &nvalue) ||"
+                },
+                {
+                    "line": 1960,
+                    "deleted": false,
+                    "data": "        !NativeDefineDataProperty(cx, obj, nkey, nvalue, JSPROP_ENUMERATE)) {"
+                },
+                {
+                    "line": 1961,
+                    "deleted": false,
+                    "data": "      return false;"
+                },
+                {
+                    "line": 1962,
+                    "deleted": false,
+                    "data": "    }"
+                },
+                {
+                    "line": 1963,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 1964,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 1955,
+                    "deleted": true,
+                    "data": "  resultToCompletion(cx, ok, val, &resumeMode, &value);"
+                },
+                {
+                    "line": 1975,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 1976,
+                    "deleted": false,
+                    "data": "  resultToCompletion(cx, ok, val, &resumeMode, &value, &exnStack);"
+                },
+                {
+                    "line": 1958,
+                    "deleted": true,
+                    "data": "         newCompletionValue(cx, resumeMode, value, vp);"
+                },
+                {
+                    "line": 1979,
+                    "deleted": false,
+                    "data": "         newCompletionValue(cx, resumeMode, value, exnStack, vp);"
+                },
+                {
+                    "line": 8869,
+                    "deleted": true,
+                    "data": "                                 MutableHandleValue vp) {"
+                },
+                {
+                    "line": 8890,
+                    "deleted": false,
+                    "data": "                                 MutableHandleValue vp,"
+                },
+                {
+                    "line": 8891,
+                    "deleted": false,
+                    "data": "                                 HandleSavedFrame exnStack) {"
+                },
+                {
+                    "line": 8886,
+                    "deleted": true,
+                    "data": "  if (!dbg->newCompletionValue(cx, resumeMode, vp, &completion)) {"
+                },
+                {
+                    "line": 8908,
+                    "deleted": false,
+                    "data": "  if (!dbg->newCompletionValue(cx, resumeMode, vp, exnStack, &completion)) {"
+                },
+                {
+                    "line": 9345,
+                    "deleted": true,
+                    "data": "                                MutableHandleValue value, Debugger* dbg,"
+                },
+                {
+                    "line": 9367,
+                    "deleted": false,
+                    "data": "                                MutableHandleValue value,"
+                },
+                {
+                    "line": 9368,
+                    "deleted": false,
+                    "data": "                                MutableHandleSavedFrame exnStack, Debugger* dbg,"
+                },
+                {
+                    "line": 9426,
+                    "deleted": true,
+                    "data": "  Debugger::resultToCompletion(cx, ok, rval, &resumeMode, value);"
+                },
+                {
+                    "line": 9449,
+                    "deleted": false,
+                    "data": "  Debugger::resultToCompletion(cx, ok, rval, &resumeMode, value, exnStack);"
+                },
+                {
+                    "line": 9435,
+                    "deleted": true,
+                    "data": "                         ResumeMode& resumeMode, MutableHandleValue value) {"
+                },
+                {
+                    "line": 9458,
+                    "deleted": false,
+                    "data": "                         ResumeMode& resumeMode, MutableHandleValue value,"
+                },
+                {
+                    "line": 9459,
+                    "deleted": false,
+                    "data": "                         MutableHandleSavedFrame exnStack) {"
+                },
+                {
+                    "line": 9449,
+                    "deleted": true,
+                    "data": "                             dbg, nullptr, &iter);"
+                },
+                {
+                    "line": 9473,
+                    "deleted": false,
+                    "data": "                             exnStack, dbg, nullptr, &iter);"
+                },
+                {
+                    "line": 10057,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 10034,
+                    "deleted": true,
+                    "data": "                           &value)) {"
+                },
+                {
+                    "line": 10035,
+                    "deleted": true,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 10036,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 10037,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 10038,
+                    "deleted": true,
+                    "data": "  return frame->owner()->newCompletionValue(cx, resumeMode, value, args.rval());"
+                },
+                {
+                    "line": 10059,
+                    "deleted": false,
+                    "data": "                           &value, &exnStack)) {"
+                },
+                {
+                    "line": 10060,
+                    "deleted": false,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 10061,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 10062,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 10063,
+                    "deleted": false,
+                    "data": "  return frame->owner()->newCompletionValue(cx, resumeMode, value, exnStack,"
+                },
+                {
+                    "line": 10064,
+                    "deleted": false,
+                    "data": "                                            args.rval());"
+                },
+                {
+                    "line": 10095,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 10070,
+                    "deleted": true,
+                    "data": "                           &value)) {"
+                },
+                {
+                    "line": 10071,
+                    "deleted": true,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 10072,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 10073,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 10074,
+                    "deleted": true,
+                    "data": "  return frame->owner()->newCompletionValue(cx, resumeMode, value, args.rval());"
+                },
+                {
+                    "line": 10097,
+                    "deleted": false,
+                    "data": "                           &value, &exnStack)) {"
+                },
+                {
+                    "line": 10098,
+                    "deleted": false,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 10099,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 10100,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 10101,
+                    "deleted": false,
+                    "data": "  return frame->owner()->newCompletionValue(cx, resumeMode, value, exnStack,"
+                },
+                {
+                    "line": 10102,
+                    "deleted": false,
+                    "data": "                                            args.rval());"
+                },
+                {
+                    "line": 11236,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 11209,
+                    "deleted": true,
+                    "data": "                                       resumeMode, &value)) {"
+                },
+                {
+                    "line": 11210,
+                    "deleted": true,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 11211,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 11212,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 11213,
+                    "deleted": true,
+                    "data": "  return object->owner()->newCompletionValue(cx, resumeMode, value,"
+                },
+                {
+                    "line": 11238,
+                    "deleted": false,
+                    "data": "                                       resumeMode, &value, &exnStack)) {"
+                },
+                {
+                    "line": 11239,
+                    "deleted": false,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 11240,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 11241,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 11242,
+                    "deleted": false,
+                    "data": "  return object->owner()->newCompletionValue(cx, resumeMode, value, exnStack,"
+                },
+                {
+                    "line": 11280,
+                    "deleted": false,
+                    "data": "  RootedSavedFrame exnStack(cx);"
+                },
+                {
+                    "line": 11252,
+                    "deleted": true,
+                    "data": "                                       resumeMode, &value)) {"
+                },
+                {
+                    "line": 11253,
+                    "deleted": true,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 11254,
+                    "deleted": true,
+                    "data": "  }"
+                },
+                {
+                    "line": 11255,
+                    "deleted": true,
+                    "data": ""
+                },
+                {
+                    "line": 11256,
+                    "deleted": true,
+                    "data": "  return object->owner()->newCompletionValue(cx, resumeMode, value,"
+                },
+                {
+                    "line": 11282,
+                    "deleted": false,
+                    "data": "                                       resumeMode, &value, &exnStack)) {"
+                },
+                {
+                    "line": 11283,
+                    "deleted": false,
+                    "data": "    return false;"
+                },
+                {
+                    "line": 11284,
+                    "deleted": false,
+                    "data": "  }"
+                },
+                {
+                    "line": 11285,
+                    "deleted": false,
+                    "data": ""
+                },
+                {
+                    "line": 11286,
+                    "deleted": false,
+                    "data": "  return object->owner()->newCompletionValue(cx, resumeMode, value, exnStack,"
+                },
+                {
+                    "line": 12221,
+                    "deleted": true,
+                    "data": "                                     MutableHandleValue value) {"
+                },
+                {
+                    "line": 12251,
+                    "deleted": false,
+                    "data": "                                     MutableHandleValue value,"
+                },
+                {
+                    "line": 12252,
+                    "deleted": false,
+                    "data": "                                     MutableHandleSavedFrame exnStack) {"
+                },
+                {
+                    "line": 12229,
+                    "deleted": true,
+                    "data": "                             dbg, globalLexical, nullptr);"
+                },
+                {
+                    "line": 12260,
+                    "deleted": false,
+                    "data": "                             exnStack, dbg, globalLexical, nullptr);"
+                }
+            ]
+        },
+        {
+            "filename": "js/src/vm/Debugger.h",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 1153,
+                    "deleted": true,
+                    "data": "   * to be false)."
+                },
+                {
+                    "line": 1153,
+                    "deleted": false,
+                    "data": "   * to be false). On exceptional returns, exnStack will be set to any stack"
+                },
+                {
+                    "line": 1154,
+                    "deleted": false,
+                    "data": "   * associated with the original throw, if available."
+                },
+                {
+                    "line": 1157,
+                    "deleted": true,
+                    "data": "                                 MutableHandleValue value);"
+                },
+                {
+                    "line": 1158,
+                    "deleted": false,
+                    "data": "                                 MutableHandleValue value,"
+                },
+                {
+                    "line": 1159,
+                    "deleted": false,
+                    "data": "                                 MutableHandleSavedFrame exnStack);"
+                },
+                {
+                    "line": 1162,
+                    "deleted": true,
+                    "data": "   * value, not wrapped as a debuggee value. |cx| must be in the debugger"
+                },
+                {
+                    "line": 1163,
+                    "deleted": true,
+                    "data": "   * compartment."
+                },
+                {
+                    "line": 1164,
+                    "deleted": false,
+                    "data": "   * value, not wrapped as a debuggee value. When throwing an exception,"
+                },
+                {
+                    "line": 1165,
+                    "deleted": false,
+                    "data": "   * |exnStack| may be set to the stack when the value was thrown. |cx| must be"
+                },
+                {
+                    "line": 1166,
+                    "deleted": false,
+                    "data": "   * in the debugger compartment."
+                },
+                {
+                    "line": 1166,
+                    "deleted": true,
+                    "data": "                                       const Value& value,"
+                },
+                {
+                    "line": 1169,
+                    "deleted": false,
+                    "data": "                                       const Value& value, SavedFrame* exnStack,"
+                },
+                {
+                    "line": 1414,
+                    "deleted": true,
+                    "data": "                     ResumeMode& resumeMode, MutableHandleValue vp) = 0;"
+                },
+                {
+                    "line": 1417,
+                    "deleted": false,
+                    "data": "                     ResumeMode& resumeMode, MutableHandleValue vp,"
+                },
+                {
+                    "line": 1418,
+                    "deleted": false,
+                    "data": "                     HandleSavedFrame exnStack) = 0;"
+                },
+                {
+                    "line": 1424,
+                    "deleted": true,
+                    "data": "                     ResumeMode& resumeMode, MutableHandleValue vp) override;"
+                },
+                {
+                    "line": 1428,
+                    "deleted": false,
+                    "data": "                     ResumeMode& resumeMode, MutableHandleValue vp,"
+                },
+                {
+                    "line": 1429,
+                    "deleted": false,
+                    "data": "                     HandleSavedFrame exnStack) override;"
+                },
+                {
+                    "line": 1475,
+                    "deleted": true,
+                    "data": "                                MutableHandleValue value);"
+                },
+                {
+                    "line": 1480,
+                    "deleted": false,
+                    "data": "                                MutableHandleValue value,"
+                },
+                {
+                    "line": 1481,
+                    "deleted": false,
+                    "data": "                                MutableHandleSavedFrame exnStack);"
+                },
+                {
+                    "line": 1646,
+                    "deleted": true,
+                    "data": "                                           MutableHandleValue value);"
+                },
+                {
+                    "line": 1652,
+                    "deleted": false,
+                    "data": "                                           MutableHandleValue value,"
+                },
+                {
+                    "line": 1653,
+                    "deleted": false,
+                    "data": "                                           MutableHandleSavedFrame exnStack);"
+                }
+            ]
+        }
+    ]
+}
