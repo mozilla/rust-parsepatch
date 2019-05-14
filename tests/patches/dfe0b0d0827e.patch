@@ -1,0 +1,54 @@
+# HG changeset patch
+# User Brian Grinstead <bgrinstead@mozilla.com>
+# Date 1555606302 0
+#      jeu. avril 18 16:51:42 2019 +0000
+# Node ID dfe0b0d0827ef69bf678785cc287883cf016d220
+# Parent  c83490ca7185506ddf5e9828f8159930c03d15a0
+Bug 1544051 - Part 4 - Remove AddTask.js r=ahal
+
+Differential Revision: https://phabricator.services.mozilla.com/D27762
+
+diff --git a/testing/mochitest/moz.build b/testing/mochitest/moz.build
+--- a/testing/mochitest/moz.build
++++ b/testing/mochitest/moz.build
+@@ -46,17 +46,16 @@ FINAL_TARGET_FILES.content.static += [
+ 
+ FINAL_TARGET_FILES.content.tests.SimpleTest += [
+     '../../docshell/test/chrome/docshell_helpers.js',
+     '../modules/StructuredLog.jsm',
+     '../specialpowers/content/MozillaLogger.js',
+     '../specialpowers/content/specialpowers.js',
+     '../specialpowers/content/specialpowersAPI.js',
+     '../specialpowers/content/SpecialPowersObserverAPI.js',
+-    'tests/SimpleTest/AddTask.js',
+     'tests/SimpleTest/AsyncUtilsContent.js',
+     'tests/SimpleTest/ChromePowers.js',
+     'tests/SimpleTest/EventUtils.js',
+     'tests/SimpleTest/ExtensionTestUtils.js',
+     'tests/SimpleTest/iframe-between-tests.html',
+     'tests/SimpleTest/LogController.js',
+     'tests/SimpleTest/MemoryStats.js',
+     'tests/SimpleTest/MockObjects.js',
+diff --git a/testing/mochitest/tests/SimpleTest/AddTask.js b/testing/mochitest/tests/SimpleTest/AddTask.js
+deleted file mode 100644
+diff --git a/testing/mochitest/tests/SimpleTest/moz.build b/testing/mochitest/tests/SimpleTest/moz.build
+--- a/testing/mochitest/tests/SimpleTest/moz.build
++++ b/testing/mochitest/tests/SimpleTest/moz.build
+@@ -2,17 +2,16 @@
+ # vim: set filetype=python:
+ # This Source Code Form is subject to the terms of the Mozilla Public
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ TEST_HARNESS_FILES.testing.mochitest.tests.SimpleTest += [
+     '/docshell/test/chrome/docshell_helpers.js',
+     '/testing/specialpowers/content/MozillaLogger.js',
+-    'AddTask.js',
+     'ChromeTask.js',
+     'EventUtils.js',
+     'ExtensionTestUtils.js',
+     'iframe-between-tests.html',
+     'LogController.js',
+     'MemoryStats.js',
+     'MockObjects.js',
+     'NativeKeyCodes.js',

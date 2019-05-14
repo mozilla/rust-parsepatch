@@ -285,9 +285,9 @@ impl<'a> PatchReader<'a> {
             }
         } else {
             if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
-                trace!("New file: {:?}", line);
+                trace!("New/Delete file: {:?}", line);
                 line = self.next(PatchReader::useful, false).unwrap();
-                trace!("New file: next useful line {:?}", line);
+                trace!("New/Delete file: next useful line {:?}", line);
                 if line.is_binary() {
                     // We've file info only in the diff line
                     // TODO: old is probably useless here
@@ -300,11 +300,11 @@ impl<'a> PatchReader<'a> {
                     self.skip_binary();
                     return;
                 } else if PatchReader::diff(&line) {
-                    let (_, new) = diff_line.parse_files();
+                    let (old, new) = diff_line.parse_files();
 
-                    trace!("Single new diff line: new: {}", new);
+                    trace!("Single new/delete diff line: new: {}", new);
 
-                    diff.set_info("", new, FileOp::New, false);
+                    diff.set_info(old, new, op, false);
                     diff.close();
                     self.parse_diff(&mut line, patch);
                     return;

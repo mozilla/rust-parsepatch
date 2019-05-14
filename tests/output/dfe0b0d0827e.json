@@ -1,0 +1,40 @@
+{
+    "diffs": [
+        {
+            "filename": "testing/mochitest/moz.build",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 54,
+                    "deleted": true,
+                    "data": "    'tests/SimpleTest/AddTask.js',"
+                }
+            ]
+        },
+        {
+            "filename": "testing/mochitest/tests/SimpleTest/AddTask.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": []
+        },
+        {
+            "filename": "testing/mochitest/tests/SimpleTest/moz.build",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "lines": [
+                {
+                    "line": 10,
+                    "deleted": true,
+                    "data": "    'AddTask.js',"
+                }
+            ]
+        }
+    ]
+}
