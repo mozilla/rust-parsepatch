@@ -231,7 +231,6 @@ impl<'a> PatchReader<'a> {
 
     fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
         trace!("Diff {:?}", diff_line);
-        let diff = patch.new_diff();
         let mut line = if let Some(line) = self.next(PatchReader::old_new_mode, false) {
             line
         } else {
@@ -240,6 +239,7 @@ impl<'a> PatchReader<'a> {
 
             trace!("Single diff line: new: {}", new);
 
+            let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::None, false);
             diff.close();
             return;
@@ -253,6 +253,7 @@ impl<'a> PatchReader<'a> {
 
             trace!("Single diff line: old: {} -- new: {}", old, new);
 
+            let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::None, false);
             diff.close();
             self.parse_diff(&mut line, patch);
@@ -277,6 +278,7 @@ impl<'a> PatchReader<'a> {
 
             trace!("Copy/Renamed from {} to {}", old, new);
 
+            let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::Renamed, false);
 
             if let Some(mut _line) = self.next(PatchReader::mv, false) {
@@ -284,17 +286,17 @@ impl<'a> PatchReader<'a> {
                     // skip +++ line
                     self.next(PatchReader::mv, false);
                     line = self.next(PatchReader::mv, false).unwrap();
+                    self.parse_hunks(&mut line, diff);
+                    diff.close();
                 } else {
                     // we just have a rename/copy but no changes in the file
                     diff.close();
                     if PatchReader::diff(&_line) {
                         self.parse_diff(&mut _line, patch);
                     }
-                    return;
                 }
-            } else {
-                return;
             }
+            return;
         } else {
             if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
                 trace!("New/Delete file: {:?}", line);
@@ -306,6 +308,7 @@ impl<'a> PatchReader<'a> {
 
                     trace!("Single new/delete diff line: new: {}", new);
 
+                    let diff = patch.new_diff();
                     diff.set_info(old, new, op, false);
                     diff.close();
                     return;
@@ -318,6 +321,7 @@ impl<'a> PatchReader<'a> {
 
                     trace!("Binary file (op == {:?}): {}", op, new);
 
+                    let diff = patch.new_diff();
                     diff.set_info(old, new, op, true);
                     diff.close();
                     self.skip_binary();
@@ -327,11 +331,17 @@ impl<'a> PatchReader<'a> {
 
                     trace!("Single new/delete diff line: new: {}", new);
 
+                    let diff = patch.new_diff();
                     diff.set_info(old, new, op, false);
                     diff.close();
                     self.parse_diff(&mut line, patch);
                     return;
                 }
+            }
+
+            if !line.is_triple_minus() {
+                trace!("DEBUG (not a ---): {:?}", line);
+                return;
             }
 
             trace!("DEBUG (---): {:?}", line);
@@ -344,12 +354,12 @@ impl<'a> PatchReader<'a> {
 
             trace!("Files: old: {} -- new: {}", old, new);
 
+            let diff = patch.new_diff();
             diff.set_info(old, new, op, false);
             line = self.next(PatchReader::mv, false).unwrap();
+            self.parse_hunks(&mut line, diff);
+            diff.close();
         }
-
-        self.parse_hunks(&mut line, diff);
-        diff.close();
     }
 
     fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
@@ -460,7 +470,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn diff(line: &LineReader) -> bool {
-        line.buf.starts_with(&[b'd', b'i', b'f', b'f', b' '])
+        line.buf.starts_with(&[b'd', b'i', b'f', b'f', b' ', b'-'])
     }
 
     fn mv(_: &LineReader) -> bool {

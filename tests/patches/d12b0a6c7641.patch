@@ -1,0 +1,445 @@
+# HG changeset patch
+# User Gregory Szorc <gps@mozilla.com>
+# Date 1386734816 -32400
+#      mer. déc. 11 13:06:56 2013 +0900
+# Node ID d12b0a6c7641e5f3333b3711a5e8bb628831de7c
+# Parent  3d388fb26b80be2b28e55c81c33d0a5f10fac994
+Bug 948787 - Print diffs during config.status; r=glandium
+
+Build system developers commonly need to see what changes have on the
+generated build files. We often put our objdir under version control and
+diff commits before and after running config.status.
+
+This patch adds a --diff option to config.status that will print diffs
+of changes made during config.status. This functionality is implemented
+on top of FileAvoidWrite, using Python's built-in diffing library.
+
+While display of diffs is opt-in, diffs are always being captured when
+config.status runs. There could be an unwanted performance regression
+from this. Because diffs are only computed if files change and most
+files don't change during most config.status runs, this greatly reduces
+the surface area of the concern. The area for largest concern is clobber
+builds. On my machine, I measured an increase of 0.2 to 0.3s from 2.0s.
+While this is 10-15%, the total time is so small that I don't feel
+snaking a "capture diff" flag through the build system is worth the
+effort. This would make a decent followup bug if this turns out to be a
+problem in the future.
+
+I also snuck in a change to reindent all-tests.json because displaying
+diffs for this massive 11MB all-in-one-line JSON file results in an
+extremely large string being printed to my terminal.
+
+diff --git a/build/ConfigStatus.py b/build/ConfigStatus.py
+--- a/build/ConfigStatus.py
++++ b/build/ConfigStatus.py
+@@ -59,17 +59,19 @@ def config_status(topobjdir='.', topsrcd
+ 
+     parser = OptionParser()
+     parser.add_option('--recheck', dest='recheck', action='store_true',
+                       help='update config.status by reconfiguring in the same conditions')
+     parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
+                       help='display verbose output')
+     parser.add_option('-n', dest='not_topobjdir', action='store_true',
+                       help='do not consider current directory as top object directory')
+-    (options, args) = parser.parse_args()
++    parser.add_option('-d', '--diff', action='store_true',
++                      help='print diffs of changed files.')
++    options, args = parser.parse_args()
+ 
+     # Without -n, the current directory is meant to be the top object directory
+     if not options.not_topobjdir:
+         topobjdir = os.path.abspath('.')
+ 
+     env = ConfigEnvironment(topsrcdir, topobjdir, defines=defines,
+             non_global_defines=non_global_defines, substs=substs)
+ 
+@@ -93,8 +95,12 @@ def config_status(topobjdir='.', topsrcd
+     log_manager.add_terminal_logging(level=log_level)
+     log_manager.enable_unstructured()
+ 
+     print('Reticulating splines...', file=sys.stderr)
+     summary = backend.consume(definitions)
+ 
+     for line in summary.summaries():
+         print(line, file=sys.stderr)
++
++    if options.diff:
++        for path, diff in sorted(summary.file_diffs.items()):
++            print(diff)
+diff --git a/js/src/build/ConfigStatus.py b/js/src/build/ConfigStatus.py
+--- a/js/src/build/ConfigStatus.py
++++ b/js/src/build/ConfigStatus.py
+@@ -59,17 +59,19 @@ def config_status(topobjdir='.', topsrcd
+ 
+     parser = OptionParser()
+     parser.add_option('--recheck', dest='recheck', action='store_true',
+                       help='update config.status by reconfiguring in the same conditions')
+     parser.add_option('-v', '--verbose', dest='verbose', action='store_true',
+                       help='display verbose output')
+     parser.add_option('-n', dest='not_topobjdir', action='store_true',
+                       help='do not consider current directory as top object directory')
+-    (options, args) = parser.parse_args()
++    parser.add_option('-d', '--diff', action='store_true',
++                      help='print diffs of changed files.')
++    options, args = parser.parse_args()
+ 
+     # Without -n, the current directory is meant to be the top object directory
+     if not options.not_topobjdir:
+         topobjdir = os.path.abspath('.')
+ 
+     env = ConfigEnvironment(topsrcdir, topobjdir, defines=defines,
+             non_global_defines=non_global_defines, substs=substs)
+ 
+@@ -93,8 +95,12 @@ def config_status(topobjdir='.', topsrcd
+     log_manager.add_terminal_logging(level=log_level)
+     log_manager.enable_unstructured()
+ 
+     print('Reticulating splines...', file=sys.stderr)
+     summary = backend.consume(definitions)
+ 
+     for line in summary.summaries():
+         print(line, file=sys.stderr)
++
++    if options.diff:
++        for path, diff in sorted(summary.file_diffs.items()):
++            print(diff)
+diff --git a/python/mozbuild/mozbuild/backend/base.py b/python/mozbuild/mozbuild/backend/base.py
+--- a/python/mozbuild/mozbuild/backend/base.py
++++ b/python/mozbuild/mozbuild/backend/base.py
+@@ -73,16 +73,19 @@ class BackendConsumeSummary(object):
+         # backend writes out files, etc.
+         self.backend_execution_time = 0.0
+ 
+         # How much wall time the system spent doing other things. This is
+         # wall_time - mozbuild_execution_time - emitter_execution_time -
+         # backend_execution_time.
+         self.other_time = 0.0
+ 
++        # Mapping of changed file paths to diffs of the changes.
++        self.file_diffs = {}
++
+     @property
+     def reader_summary(self):
+         return 'Finished reading {:d} moz.build files in {:.2f}s'.format(
+             self.mozbuild_count,
+             self.mozbuild_execution_time)
+ 
+     @property
+     def emitter_summary(self):
+@@ -271,17 +274,17 @@ class BuildBackend(LoggingMixin):
+         Example usage:
+ 
+             with self._write_file('foo.txt') as fh:
+                 fh.write('hello world')
+         """
+ 
+         if path is not None:
+             assert fh is None
+-            fh = FileAvoidWrite(path)
++            fh = FileAvoidWrite(path, capture_diff=True)
+         else:
+             assert fh is not None
+ 
+         dirname = mozpath.dirname(fh.name)
+         try:
+             os.makedirs(dirname)
+         except OSError as error:
+             if error.errno != errno.EEXIST:
+@@ -290,16 +293,18 @@ class BuildBackend(LoggingMixin):
+         yield fh
+ 
+         self._backend_output_files.add(mozpath.relpath(fh.name, self.environment.topobjdir))
+         existed, updated = fh.close()
+         if not existed:
+             self.summary.created_count += 1
+         elif updated:
+             self.summary.updated_count += 1
++            if fh.diff:
++                self.summary.file_diffs[fh.name] = fh.diff
+         else:
+             self.summary.unchanged_count += 1
+ 
+     @contextmanager
+     def _get_preprocessor(self, obj):
+         '''Returns a preprocessor with a few predefined values depending on
+         the given BaseConfigSubstitution(-like) object, and all the substs
+         in the current environment.'''
+diff --git a/python/mozbuild/mozbuild/backend/common.py b/python/mozbuild/mozbuild/backend/common.py
+--- a/python/mozbuild/mozbuild/backend/common.py
++++ b/python/mozbuild/mozbuild/backend/common.py
+@@ -120,17 +120,18 @@ class CommonBackend(BuildBackend):
+ 
+     def consume_finished(self):
+         if len(self._idl_manager.idls):
+             self._handle_idl_manager(self._idl_manager)
+ 
+         # Write out a machine-readable file describing every test.
+         path = mozpath.join(self.environment.topobjdir, 'all-tests.json')
+         with self._write_file(path) as fh:
+-            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True)
++            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True,
++                indent=2)
+ 
+     def _create_config_header(self, obj):
+         '''Creates the given config header. A config header is generated by
+         taking the corresponding source file and replacing some #define/#undef
+         occurences:
+             "#undef NAME" is turned into "#define NAME VALUE"
+             "#define NAME" is unchanged
+             "#define NAME ORIGINAL_VALUE" is turned into "#define NAME VALUE"
+diff --git a/python/mozbuild/mozbuild/backend/recursivemake.py b/python/mozbuild/mozbuild/backend/recursivemake.py
+--- a/python/mozbuild/mozbuild/backend/recursivemake.py
++++ b/python/mozbuild/mozbuild/backend/recursivemake.py
+@@ -85,17 +85,17 @@ class BackendMakeFile(object):
+         self.relobjdir = objdir[len(environment.topobjdir) + 1:]
+         self.environment = environment
+         self.name = mozpath.join(objdir, 'backend.mk')
+ 
+         # XPIDLFiles attached to this file.
+         self.idls = []
+         self.xpt_name = None
+ 
+-        self.fh = FileAvoidWrite(self.name)
++        self.fh = FileAvoidWrite(self.name, capture_diff=True)
+         self.fh.write('# THIS FILE WAS AUTOMATICALLY GENERATED. DO NOT EDIT.\n')
+         self.fh.write('\n')
+         self.fh.write('MOZBUILD_DERIVED := 1\n')
+ 
+     def write(self, buf):
+         self.fh.write(buf)
+ 
+     # For compatibility with makeutil.Makefile
+@@ -112,16 +112,20 @@ class BackendMakeFile(object):
+             self.fh.write('NONRECURSIVE_TARGETS_export += xpidl\n')
+             self.fh.write('NONRECURSIVE_TARGETS_export_xpidl_DIRECTORY = '
+                 '$(DEPTH)/xpcom/xpidl\n')
+             self.fh.write('NONRECURSIVE_TARGETS_export_xpidl_TARGETS += '
+                 'export\n')
+ 
+         return self.fh.close()
+ 
++    @property
++    def diff(self):
++        return self.fh.diff
++
+ 
+ class RecursiveMakeTraversal(object):
+     """
+     Helper class to keep track of how the "traditional" recursive make backend
+     recurses subdirectories. This is useful until all adhoc rules are removed
+     from Makefiles.
+ 
+     Each directory may have one or more types of subdirectories:
+diff --git a/python/mozbuild/mozbuild/mach_commands.py b/python/mozbuild/mozbuild/mach_commands.py
+--- a/python/mozbuild/mozbuild/mach_commands.py
++++ b/python/mozbuild/mozbuild/mach_commands.py
+@@ -521,23 +521,30 @@ class Build(MachCommandBase):
+                         "Could not clobber because a file was in use. If the "
+                         "application is running, try closing it. {error}")
+                     return 1
+ 
+             raise
+ 
+     @Command('build-backend', category='build',
+         description='Generate a backend used to build the tree.')
+-    def build_backend(self):
++    @CommandArgument('-d', '--diff', action='store_true',
++        help='Show a diff of changes.')
++    def build_backend(self, diff=False):
+         # When we support multiple build backends (Tup, Visual Studio, etc),
+         # this command will be expanded to support choosing what to generate.
+         python = self.virtualenv_manager.python_path
+         config_status = os.path.join(self.topobjdir, 'config.status')
+-        return self._run_command_in_objdir(args=[python, config_status],
+-            pass_thru=True, ensure_exit_code=False)
++
++        args = [python, config_status]
++        if diff:
++            args.append('--diff')
++
++        return self._run_command_in_objdir(args=args, pass_thru=True,
++            ensure_exit_code=False)
+ 
+ 
+ @CommandProvider
+ class Warnings(MachCommandBase):
+     """Provide commands for inspecting warnings."""
+ 
+     @property
+     def database_path(self):
+diff --git a/python/mozbuild/mozbuild/test/test_util.py b/python/mozbuild/mozbuild/test/test_util.py
+--- a/python/mozbuild/mozbuild/test/test_util.py
++++ b/python/mozbuild/mozbuild/test/test_util.py
+@@ -2,17 +2,19 @@
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ from __future__ import unicode_literals
+ 
+ import hashlib
+ import os
+ import unittest
++import shutil
+ import sys
++import tempfile
+ 
+ from mozfile.mozfile import NamedTemporaryFile
+ from mozunit import (
+     main,
+     MockedOpen,
+ )
+ 
+ from mozbuild.util import (
+@@ -103,16 +105,50 @@ class TestFileAvoidWrite(unittest.TestCa
+             self.assertRaises(Exception, file.close)
+ 
+             # Check that no write actually happens when writing the
+             # same content as what already is in the file
+             faw = FileAvoidWrite('file')
+             faw.write('content')
+             self.assertEqual(faw.close(), (True, False))
+ 
++    def test_diff_not_default(self):
++        """Diffs are not produced by default."""
++
++        faw = FileAvoidWrite('doesnotexist')
++        faw.write('dummy')
++        faw.close()
++        self.assertIsNone(faw.diff)
++
++    def test_diff_update(self):
++        """Diffs are produced on file update."""
++
++        with MockedOpen({'file': 'old'}):
++            faw = FileAvoidWrite('file', capture_diff=True)
++            faw.write('new')
++            faw.close()
++
++            self.assertIsInstance(faw.diff, unicode)
++            self.assertIn('-old', faw.diff)
++            self.assertIn('+new', faw.diff)
++
++    def test_diff_create(self):
++        """Diffs are produced when files are created."""
++
++        tmpdir = tempfile.mkdtemp()
++        try:
++            path = os.path.join(tmpdir, 'file')
++            faw = FileAvoidWrite(path, capture_diff=True)
++            faw.write('new')
++            faw.close()
++
++            self.assertIsInstance(faw.diff, unicode)
++            self.assertIn('+new', faw.diff)
++        finally:
++            shutil.rmtree(tmpdir)
+ 
+ class TestResolveTargetToMake(unittest.TestCase):
+     def setUp(self):
+         self.topobjdir = data_path
+ 
+     def assertResolve(self, path, expected):
+         # Handle Windows path separators.
+         (reldir, target) = resolve_target_to_make(self.topobjdir, path)
+diff --git a/python/mozbuild/mozbuild/util.py b/python/mozbuild/mozbuild/util.py
+--- a/python/mozbuild/mozbuild/util.py
++++ b/python/mozbuild/mozbuild/util.py
+@@ -3,16 +3,17 @@
+ # You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ # This file contains miscellaneous utility functions that don't belong anywhere
+ # in particular.
+ 
+ from __future__ import unicode_literals
+ 
+ import copy
++import difflib
+ import errno
+ import hashlib
+ import os
+ import stat
+ import sys
+ import time
+ 
+ from StringIO import StringIO
+@@ -110,49 +111,78 @@ def ensureParentDir(path):
+ 
+ class FileAvoidWrite(StringIO):
+     """File-like object that buffers output and only writes if content changed.
+ 
+     We create an instance from an existing filename. New content is written to
+     it. When we close the file object, if the content in the in-memory buffer
+     differs from what is on disk, then we write out the new content. Otherwise,
+     the original file is untouched.
++
++    Instances can optionally capture diffs of file changes. This feature is not
++    enabled by default because it a) doesn't make sense for binary files b)
++    could add unwanted overhead to calls.
+     """
+-    def __init__(self, filename):
++    def __init__(self, filename, capture_diff=False):
+         StringIO.__init__(self)
+         self.name = filename
++        self._capture_diff = capture_diff
++        self.diff = None
+ 
+     def close(self):
+         """Stop accepting writes, compare file contents, and rewrite if needed.
+ 
+         Returns a tuple of bools indicating what action was performed:
+ 
+             (file existed, file updated)
++
++        If ``capture_diff`` was specified at construction time and the
++        underlying file was changed, ``.diff`` will be populated with the diff
++        of the result.
+         """
+         buf = self.getvalue()
+         StringIO.close(self)
+         existed = False
++        old_content = None
++
+         try:
+             existing = open(self.name, 'rU')
+             existed = True
+         except IOError:
+             pass
+         else:
+             try:
+-                if existing.read() == buf:
++                old_content = existing.read()
++                if old_content == buf:
+                     return True, False
+             except IOError:
+                 pass
+             finally:
+                 existing.close()
+ 
+         ensureParentDir(self.name)
+         with open(self.name, 'w') as file:
+             file.write(buf)
+ 
++        if self._capture_diff:
++            try:
++                old_lines = old_content.splitlines() if old_content else []
++                new_lines = buf.splitlines()
++
++                self.diff = '\n'.join(difflib.unified_diff(old_lines, new_lines,
++                    self.name, self.name, n=4, lineterm=''))
++            # FileAvoidWrite isn't unicode/bytes safe. So, files with non-ascii
++            # content or opened and written in different modes may involve
++            # implicit conversion and this will make Python unhappy. Since
++            # diffing isn't a critical feature, we just ignore the failure.
++            # This can go away once FileAvoidWrite uses io.BytesIO and
++            # io.StringIO. But that will require a lot of work.
++            except (UnicodeDecodeError, UnicodeEncodeError):
++                self.diff = 'Binary or non-ascii file changed: %s' % self.name
++
+         return existed, True
+ 
+     def __enter__(self):
+         return self
+     def __exit__(self, type, value, traceback):
+         self.close()
+ 
+ 

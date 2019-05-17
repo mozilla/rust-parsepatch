@@ -13,20 +13,21 @@ use chardet::{charset2encoding, detect};
 use encoding::all::UTF_8;
 use encoding::label::encoding_from_whatwg_label;
 use encoding::{DecoderTrap, Encoding};
+use std::fmt::{Debug, Formatter, Result};
 use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::PathBuf;
 
 use crate::parsepatch::*;
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, PartialEq)]
 pub struct LineChange {
     pub line: u32,
     pub deleted: bool,
     pub data: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct DiffImpl {
     pub filename: String,
     pub new: bool,
@@ -37,9 +38,36 @@ pub struct DiffImpl {
     pub lines: Vec<LineChange>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct PatchImpl {
     diffs: Vec<DiffImpl>,
+}
+
+impl Debug for LineChange {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "line: {}, deleted: {}, data: {}", self.line, self.deleted, self.data)
+    }
+}
+
+impl Debug for DiffImpl {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        writeln!(f, "filename: {}", self.filename)?;
+        writeln!(f, "new: {}, deleted: {}, binary: {}", self.new, self.deleted, self.binary)?;
+        writeln!(f, "copied_from: {:?}, renamed_from: {:?}", self.copied_from, self.renamed_from)?;
+        for line in self.lines.iter() {
+            writeln!(f, " - {:?}", *line)?;
+        }
+        Ok(())
+    }
+}
+
+impl Debug for PatchImpl {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        for diff in self.diffs.iter() {
+            writeln!(f, "Diff:\n{:?}", *diff)?;
+        }
+        Ok(())
+    }
 }
 
 impl Patch<DiffImpl> for PatchImpl {
@@ -117,7 +145,6 @@ fn get_line(buf: &[u8]) -> String {
 
 fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
     patch.diffs.retain(|c| !c.binary);
-    println!("Parse patch {:?}", path);
     assert!(
         json.diffs.len() == patch.diffs.len(),
         "Not the same length in patch: {:?}",
@@ -169,8 +196,15 @@ fn test_parse() {
             let filename = path.with_extension("patch");
             let filename = filename.file_name().unwrap();
             let path = PathBuf::from("./tests/patches/").join(filename);
+
+            println!("Parse patch {:?}", path);
+
             let mut patch = PatchImpl { diffs: Vec::new() };
             PatchReader::by_path(&path, &mut patch);
+
+            if path.ends_with(PathBuf::from(".patch")) {
+                println!("Patch:\n{:?}", patch);
+            }
 
             compare(path, &json_patch, &mut patch);
         }

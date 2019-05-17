@@ -28,6 +28,8 @@ codecs.register_error('myreplacement', myreplacement)
 pat = re.compile(r"\t+$", re.MULTILINE)
 directory = './patches'
 for f in os.listdir(directory):
+    if not f.endswith('.patch'):
+        continue
     with open(os.path.join(directory, f), 'rb') as In:
         patch = In.read()
 
@@ -38,6 +40,12 @@ for f in os.listdir(directory):
         patch = patch.replace(bp, rep)
         patch = pat.sub('', patch)
     res = []
+
+    if 'd12b0a6c7641' in f:
+        # need to hack here because of bug in wtp
+        patch = patch.replace('diff commits', 'Diff commits')
+        patch = patch.replace('diffs for', 'Diffs for')
+
     for diff in whatthepatch.parse_patch(patch):
         r = OrderedDict()
 
