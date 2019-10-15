@@ -64,40 +64,31 @@ impl<'a> Debug for LineReader<'a> {
 impl<'a> LineReader<'a> {
     fn is_binary(&self) -> bool {
         self.buf
-            == [
-                b'G', b'I', b'T', b' ', b'b', b'i', b'n', b'a', b'r', b'y', b' ', b'p', b'a', b't',
-                b'c', b'h',
-            ]
+            == b"GIT binary patch"
     }
 
     fn is_rename_from(&self) -> bool {
-        self.buf.starts_with(&[
-            b'r', b'e', b'n', b'a', b'm', b'e', b' ', b'f', b'r', b'o', b'm',
-        ])
+        self.buf.starts_with(b"rename from")
     }
 
     fn is_copy_from(&self) -> bool {
-        self.buf.starts_with(&[
-            b'c', b'o', b'p', b'y', b' ', b'f', b'r', b'o', b'm',
-        ])
+        self.buf.starts_with(b"copy from")
     }
 
     fn is_new_file(&self) -> bool {
-        self.buf.starts_with(&[b'n', b'e', b'w', b' ', b'f', b'i', b'l', b'e'])
+        self.buf.starts_with(b"new file")
     }
 
     fn is_triple_minus(&self) -> bool {
-        self.buf.starts_with(&[b'-', b'-', b'-'])
+        self.buf.starts_with(b"---")
     }
 
     fn is_index(&self) -> bool {
-        self.buf.starts_with(&[b'i', b'n', b'd', b'e', b'x', b' '])
+        self.buf.starts_with(b"index ")
     }
 
     fn is_deleted_file(&self) -> bool {
-        self.buf.starts_with(&[
-            b'd', b'e', b'l', b'e', b't', b'e', b'd', b' ', b'f', b'i', b'l', b'e',
-        ])
+        self.buf.starts_with(b"deleted file")
     }
 
     fn get_file_op(&self) -> FileOp {
@@ -152,7 +143,7 @@ impl<'a> LineReader<'a> {
             unsafe { buf.get_unchecked(pos1..) }
         };
         let buf = if let Some(start) = buf.get(..2) {
-            if start == [b'a', b'/'] || start == [b'b', b'/'] {
+            if start == b"a/" || start == b"b/" {
                 unsafe { buf.get_unchecked(2..) }
             } else {
                 buf
@@ -160,7 +151,7 @@ impl<'a> LineReader<'a> {
         } else {
             buf
         };
-        if buf == [b'/', b'd', b'e', b'v', b'/', b'n', b'u', b'l', b'l'] {
+        if buf == b"/dev/null" {
             ""
         } else {
             std::str::from_utf8(buf).unwrap()
@@ -191,8 +182,8 @@ impl<'a> LineReader<'a> {
         // skip --git or -r
         iter.next();
 
-        let old_path = LineReader::get_file(iter.next(), &[b'a', b'/']);
-        let new_path = LineReader::get_file(iter.next(), &[b'b', b'/']);
+        let old_path = LineReader::get_file(iter.next(), b"a/");
+        let new_path = LineReader::get_file(iter.next(), b"b/");
 
         (
             std::str::from_utf8(old_path).unwrap(),
@@ -450,13 +441,13 @@ impl<'a> PatchReader<'a> {
             if let Some(buf) = self.buf.get(self.pos..) {
                 // 8 == len(literal )
                 if let Some(buf) = buf.get(..8) {
-                    if buf == [b'l', b'i', b't', b'e', b'r', b'a', b'l', b' '] {
+                    if buf == b"literal " {
                         continue;
                     }
                 }
                 // 6 == len(delta )
                 if let Some(buf) = buf.get(..6) {
-                    if buf == [b'd', b'e', b'l', b't', b'a', b' '] {
+                    if buf == b"delta " {
                         continue;
                     }
                 }
@@ -470,7 +461,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn diff(line: &LineReader) -> bool {
-        line.buf.starts_with(&[b'd', b'i', b'f', b'f', b' ', b'-'])
+        line.buf.starts_with(b"diff -")
     }
 
     fn mv(_: &LineReader) -> bool {
@@ -478,19 +469,17 @@ impl<'a> PatchReader<'a> {
     }
 
     fn hunk_at(line: &LineReader) -> bool {
-        line.buf.starts_with(&[b'@', b'@', b' ', b'-'])
+        line.buf.starts_with(b"@@ -")
     }
 
     fn old_new_mode(line: &LineReader) -> bool {
-        !line.buf.starts_with(&[b'o', b'l', b'd', b' ']) && !line.buf.starts_with(&[b'n', b'e', b'w', b' ', b'm', b'o', b'd', b'e'])
+        !line.buf.starts_with(b"old ") && !line.buf.starts_with(b"new mode")
     }
 
     fn hunk_change(line: &LineReader) -> bool {
         if let Some(c) = line.buf.get(0) {
             let c = *c;
-            c == b'-' || c == b'+' || c == b' ' || line.buf.starts_with(&[
-                b'\\', b' ', b'N', b'o', b' ', b'n', b'e', b'w', b'l', b'i', b'n', b'e'
-            ])
+            c == b'-' || c == b'+' || c == b' ' || line.buf.starts_with(b"\\ No newline")
         } else {
             false
         }
