@@ -6,21 +6,25 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 685,
-                    "deleted": true,
-                    "data": "  } else if (aPreferred == CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return"
-                },
-                {
-                    "line": 685,
-                    "deleted": false,
-                    "data": "  } else if (aPreferred =="
-                },
-                {
-                    "line": 686,
-                    "deleted": false,
-                    "data": "             CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return"
+                    "lines": [
+                        {
+                            "line": 685,
+                            "deleted": true,
+                            "data": "  } else if (aPreferred == CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return"
+                        },
+                        {
+                            "line": 685,
+                            "deleted": false,
+                            "data": "  } else if (aPreferred =="
+                        },
+                        {
+                            "line": 686,
+                            "deleted": false,
+                            "data": "             CUBEB_DEVICE_PREF_ALL) { // before: readability-else-after-return"
+                        }
+                    ]
                 }
             ]
         },
@@ -30,41 +34,45 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 54,
-                    "deleted": true,
-                    "data": "     JSAutoRealm ar(cx, obj);"
-                },
-                {
-                    "line": 55,
-                    "deleted": true,
-                    "data": "           if (!JS_DefineDebuggerObject(cx, obj)) {"
-                },
-                {
-                    "line": 56,
-                    "deleted": true,
-                    "data": "                         return NS_ERROR_FAILURE;    } // after: clang-format"
-                },
-                {
-                    "line": 54,
-                    "deleted": false,
-                    "data": "  JSAutoRealm ar(cx, obj);"
-                },
-                {
-                    "line": 55,
-                    "deleted": false,
-                    "data": "  if (!JS_DefineDebuggerObject(cx, obj)) {"
-                },
-                {
-                    "line": 56,
-                    "deleted": false,
-                    "data": "    return NS_ERROR_FAILURE;"
-                },
-                {
-                    "line": 57,
-                    "deleted": false,
-                    "data": "  } // after: clang-format"
+                    "lines": [
+                        {
+                            "line": 54,
+                            "deleted": true,
+                            "data": "     JSAutoRealm ar(cx, obj);"
+                        },
+                        {
+                            "line": 55,
+                            "deleted": true,
+                            "data": "           if (!JS_DefineDebuggerObject(cx, obj)) {"
+                        },
+                        {
+                            "line": 56,
+                            "deleted": true,
+                            "data": "                         return NS_ERROR_FAILURE;    } // after: clang-format"
+                        },
+                        {
+                            "line": 54,
+                            "deleted": false,
+                            "data": "  JSAutoRealm ar(cx, obj);"
+                        },
+                        {
+                            "line": 55,
+                            "deleted": false,
+                            "data": "  if (!JS_DefineDebuggerObject(cx, obj)) {"
+                        },
+                        {
+                            "line": 56,
+                            "deleted": false,
+                            "data": "    return NS_ERROR_FAILURE;"
+                        },
+                        {
+                            "line": 57,
+                            "deleted": false,
+                            "data": "  } // after: clang-format"
+                        }
+                    ]
                 }
             ]
         },
@@ -74,226 +82,242 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 125,
-                    "deleted": true,
-                    "data": "  \"line 1\","
+                    "lines": [
+                        {
+                            "line": 125,
+                            "deleted": true,
+                            "data": "  \"line 1\","
+                        },
+                        {
+                            "line": 126,
+                            "deleted": true,
+                            "data": "  \"line 2\","
+                        },
+                        {
+                            "line": 127,
+                            "deleted": true,
+                            "data": "  \"line 3\","
+                        },
+                        {
+                            "line": 128,
+                            "deleted": true,
+                            "data": "  \"line 4\","
+                        },
+                        {
+                            "line": 129,
+                            "deleted": true,
+                            "data": "  \"line 5\","
+                        },
+                        {
+                            "line": 130,
+                            "deleted": true,
+                            "data": "  \"line 6\"     // after: bugprone-suspicious-missing-comma"
+                        },
+                        {
+                            "line": 131,
+                            "deleted": true,
+                            "data": "  \"line 7\","
+                        },
+                        {
+                            "line": 132,
+                            "deleted": true,
+                            "data": "  \"line 8\","
+                        },
+                        {
+                            "line": 125,
+                            "deleted": false,
+                            "data": "    \"line 1\","
+                        },
+                        {
+                            "line": 126,
+                            "deleted": false,
+                            "data": "    \"line 2\","
+                        },
+                        {
+                            "line": 127,
+                            "deleted": false,
+                            "data": "    \"line 3\","
+                        },
+                        {
+                            "line": 128,
+                            "deleted": false,
+                            "data": "    \"line 4\","
+                        },
+                        {
+                            "line": 129,
+                            "deleted": false,
+                            "data": "    \"line 5\","
+                        },
+                        {
+                            "line": 130,
+                            "deleted": false,
+                            "data": "    \"line 6\" // after: bugprone-suspicious-missing-comma"
+                        },
+                        {
+                            "line": 131,
+                            "deleted": false,
+                            "data": "    \"line 7\","
+                        },
+                        {
+                            "line": 132,
+                            "deleted": false,
+                            "data": "    \"line 8\","
+                        },
+                        {
+                            "line": 141,
+                            "deleted": true,
+                            "data": "class AnnotateConflict {"
+                        },
+                        {
+                            "line": 142,
+                            "deleted": true,
+                            "data": "  MOZ_NO_DANGLING_ON_TEMPORARIES int *get() && { return nullptr; } // after: mozilla-dangling-on-temporary"
+                        },
+                        {
+                            "line": 143,
+                            "deleted": true,
+                            "data": "  MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary"
+                        },
+                        {
+                            "line": 141,
+                            "deleted": false,
+                            "data": "class AnnotateConflict"
+                        },
+                        {
+                            "line": 142,
+                            "deleted": false,
+                            "data": "{"
+                        },
+                        {
+                            "line": 143,
+                            "deleted": false,
+                            "data": "    MOZ_NO_DANGLING_ON_TEMPORARIES int* get() &&"
+                        },
+                        {
+                            "line": 144,
+                            "deleted": false,
+                            "data": "    {"
+                        },
+                        {
+                            "line": 145,
+                            "deleted": false,
+                            "data": "        return nullptr;"
+                        },
+                        {
+                            "line": 146,
+                            "deleted": false,
+                            "data": "    }                                                       // after: mozilla-dangling-on-temporary"
+                        },
+                        {
+                            "line": 147,
+                            "deleted": false,
+                            "data": "    MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary"
+                        }
+                    ]
                 },
                 {
-                    "line": 126,
-                    "deleted": true,
-                    "data": "  \"line 2\","
+                    "lines": [
+                        {
+                            "line": 195,
+                            "deleted": true,
+                            "data": "    else if (ErrorTakesArguments(code_)) { // after: readability-misleading-indentation or readability-else-after-return"
+                        },
+                        {
+                            "line": 199,
+                            "deleted": false,
+                            "data": "    else if ("
+                        },
+                        {
+                            "line": 200,
+                            "deleted": false,
+                            "data": "      ErrorTakesArguments("
+                        },
+                        {
+                            "line": 201,
+                            "deleted": false,
+                            "data": "        code_)) { // after: readability-misleading-indentation or readability-else-after-return"
+                        }
+                    ]
                 },
                 {
-                    "line": 127,
-                    "deleted": true,
-                    "data": "  \"line 3\","
+                    "lines": [
+                        {
+                            "line": 227,
+                            "deleted": true,
+                            "data": "    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {} // after: clang-analyzer-security.FloatLoopCounter"
+                        },
+                        {
+                            "line": 233,
+                            "deleted": false,
+                            "data": "    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {"
+                        },
+                        {
+                            "line": 234,
+                            "deleted": false,
+                            "data": "    } // after: clang-analyzer-security.FloatLoopCounter"
+                        },
+                        {
+                            "line": 233,
+                            "deleted": true,
+                            "data": "    if (x < y); // after: bugprone-suspicious-semicolon; readability-braces-around-statements"
+                        },
+                        {
+                            "line": 240,
+                            "deleted": false,
+                            "data": "    if (x < y)"
+                        },
+                        {
+                            "line": 241,
+                            "deleted": false,
+                            "data": "        ; // after: bugprone-suspicious-semicolon; readability-braces-around-statements"
+                        },
+                        {
+                            "line": 235,
+                            "deleted": true,
+                            "data": "      x++;"
+                        },
+                        {
+                            "line": 243,
+                            "deleted": false,
+                            "data": "        x++;"
+                        },
+                        {
+                            "line": 248,
+                            "deleted": true,
+                            "data": "JS::ObjectOpResult::failCantRedefineProp(void) // (should not be published: modernize-redundant-void-arg)"
+                        },
+                        {
+                            "line": 256,
+                            "deleted": false,
+                            "data": "JS::ObjectOpResult::failCantRedefineProp("
+                        },
+                        {
+                            "line": 257,
+                            "deleted": false,
+                            "data": "  void) // (should not be published: modernize-redundant-void-arg)"
+                        }
+                    ]
                 },
                 {
-                    "line": 128,
-                    "deleted": true,
-                    "data": "  \"line 4\","
-                },
-                {
-                    "line": 129,
-                    "deleted": true,
-                    "data": "  \"line 5\","
-                },
-                {
-                    "line": 130,
-                    "deleted": true,
-                    "data": "  \"line 6\"     // after: bugprone-suspicious-missing-comma"
-                },
-                {
-                    "line": 131,
-                    "deleted": true,
-                    "data": "  \"line 7\","
-                },
-                {
-                    "line": 132,
-                    "deleted": true,
-                    "data": "  \"line 8\","
-                },
-                {
-                    "line": 125,
-                    "deleted": false,
-                    "data": "    \"line 1\","
-                },
-                {
-                    "line": 126,
-                    "deleted": false,
-                    "data": "    \"line 2\","
-                },
-                {
-                    "line": 127,
-                    "deleted": false,
-                    "data": "    \"line 3\","
-                },
-                {
-                    "line": 128,
-                    "deleted": false,
-                    "data": "    \"line 4\","
-                },
-                {
-                    "line": 129,
-                    "deleted": false,
-                    "data": "    \"line 5\","
-                },
-                {
-                    "line": 130,
-                    "deleted": false,
-                    "data": "    \"line 6\" // after: bugprone-suspicious-missing-comma"
-                },
-                {
-                    "line": 131,
-                    "deleted": false,
-                    "data": "    \"line 7\","
-                },
-                {
-                    "line": 132,
-                    "deleted": false,
-                    "data": "    \"line 8\","
-                },
-                {
-                    "line": 141,
-                    "deleted": true,
-                    "data": "class AnnotateConflict {"
-                },
-                {
-                    "line": 142,
-                    "deleted": true,
-                    "data": "  MOZ_NO_DANGLING_ON_TEMPORARIES int *get() && { return nullptr; } // after: mozilla-dangling-on-temporary"
-                },
-                {
-                    "line": 143,
-                    "deleted": true,
-                    "data": "  MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary"
-                },
-                {
-                    "line": 141,
-                    "deleted": false,
-                    "data": "class AnnotateConflict"
-                },
-                {
-                    "line": 142,
-                    "deleted": false,
-                    "data": "{"
-                },
-                {
-                    "line": 143,
-                    "deleted": false,
-                    "data": "    MOZ_NO_DANGLING_ON_TEMPORARIES int* get() &&"
-                },
-                {
-                    "line": 144,
-                    "deleted": false,
-                    "data": "    {"
-                },
-                {
-                    "line": 145,
-                    "deleted": false,
-                    "data": "        return nullptr;"
-                },
-                {
-                    "line": 146,
-                    "deleted": false,
-                    "data": "    }                                                       // after: mozilla-dangling-on-temporary"
-                },
-                {
-                    "line": 147,
-                    "deleted": false,
-                    "data": "    MOZ_NO_DANGLING_ON_TEMPORARIES int test() { return 0; } // after: mozilla-dangling-on-temporary"
-                },
-                {
-                    "line": 195,
-                    "deleted": true,
-                    "data": "    else if (ErrorTakesArguments(code_)) { // after: readability-misleading-indentation or readability-else-after-return"
-                },
-                {
-                    "line": 199,
-                    "deleted": false,
-                    "data": "    else if ("
-                },
-                {
-                    "line": 200,
-                    "deleted": false,
-                    "data": "      ErrorTakesArguments("
-                },
-                {
-                    "line": 201,
-                    "deleted": false,
-                    "data": "        code_)) { // after: readability-misleading-indentation or readability-else-after-return"
-                },
-                {
-                    "line": 227,
-                    "deleted": true,
-                    "data": "    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {} // after: clang-analyzer-security.FloatLoopCounter"
-                },
-                {
-                    "line": 233,
-                    "deleted": false,
-                    "data": "    for (float x = 0.1f; x <= 1.0f; x += 0.1f) {"
-                },
-                {
-                    "line": 234,
-                    "deleted": false,
-                    "data": "    } // after: clang-analyzer-security.FloatLoopCounter"
-                },
-                {
-                    "line": 233,
-                    "deleted": true,
-                    "data": "    if (x < y); // after: bugprone-suspicious-semicolon; readability-braces-around-statements"
-                },
-                {
-                    "line": 240,
-                    "deleted": false,
-                    "data": "    if (x < y)"
-                },
-                {
-                    "line": 241,
-                    "deleted": false,
-                    "data": "        ; // after: bugprone-suspicious-semicolon; readability-braces-around-statements"
-                },
-                {
-                    "line": 235,
-                    "deleted": true,
-                    "data": "      x++;"
-                },
-                {
-                    "line": 243,
-                    "deleted": false,
-                    "data": "        x++;"
-                },
-                {
-                    "line": 248,
-                    "deleted": true,
-                    "data": "JS::ObjectOpResult::failCantRedefineProp(void) // (should not be published: modernize-redundant-void-arg)"
-                },
-                {
-                    "line": 256,
-                    "deleted": false,
-                    "data": "JS::ObjectOpResult::failCantRedefineProp("
-                },
-                {
-                    "line": 257,
-                    "deleted": false,
-                    "data": "  void) // (should not be published: modernize-redundant-void-arg)"
-                },
-                {
-                    "line": 365,
-                    "deleted": true,
-                    "data": "    for (const std::pair<int, std::vector<std::string>>& p : my_map) {} // after: performance-implicit-conversion-in-loop"
-                },
-                {
-                    "line": 374,
-                    "deleted": false,
-                    "data": "    for (const std::pair<int, std::vector<std::string>>& p : my_map) {"
-                },
-                {
-                    "line": 375,
-                    "deleted": false,
-                    "data": "    } // after: performance-implicit-conversion-in-loop"
+                    "lines": [
+                        {
+                            "line": 365,
+                            "deleted": true,
+                            "data": "    for (const std::pair<int, std::vector<std::string>>& p : my_map) {} // after: performance-implicit-conversion-in-loop"
+                        },
+                        {
+                            "line": 374,
+                            "deleted": false,
+                            "data": "    for (const std::pair<int, std::vector<std::string>>& p : my_map) {"
+                        },
+                        {
+                            "line": 375,
+                            "deleted": false,
+                            "data": "    } // after: performance-implicit-conversion-in-loop"
+                        }
+                    ]
                 }
             ]
         }

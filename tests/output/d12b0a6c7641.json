@@ -6,46 +6,54 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 67,
-                    "deleted": true,
-                    "data": "    (options, args) = parser.parse_args()"
+                    "lines": [
+                        {
+                            "line": 67,
+                            "deleted": true,
+                            "data": "    (options, args) = parser.parse_args()"
+                        },
+                        {
+                            "line": 67,
+                            "deleted": false,
+                            "data": "    parser.add_option('-d', '--diff', action='store_true',"
+                        },
+                        {
+                            "line": 68,
+                            "deleted": false,
+                            "data": "                      help='print diffs of changed files.')"
+                        },
+                        {
+                            "line": 69,
+                            "deleted": false,
+                            "data": "    options, args = parser.parse_args()"
+                        }
+                    ]
                 },
                 {
-                    "line": 67,
-                    "deleted": false,
-                    "data": "    parser.add_option('-d', '--diff', action='store_true',"
-                },
-                {
-                    "line": 68,
-                    "deleted": false,
-                    "data": "                      help='print diffs of changed files.')"
-                },
-                {
-                    "line": 69,
-                    "deleted": false,
-                    "data": "    options, args = parser.parse_args()"
-                },
-                {
-                    "line": 103,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 104,
-                    "deleted": false,
-                    "data": "    if options.diff:"
-                },
-                {
-                    "line": 105,
-                    "deleted": false,
-                    "data": "        for path, diff in sorted(summary.file_diffs.items()):"
-                },
-                {
-                    "line": 106,
-                    "deleted": false,
-                    "data": "            print(diff)"
+                    "lines": [
+                        {
+                            "line": 103,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 104,
+                            "deleted": false,
+                            "data": "    if options.diff:"
+                        },
+                        {
+                            "line": 105,
+                            "deleted": false,
+                            "data": "        for path, diff in sorted(summary.file_diffs.items()):"
+                        },
+                        {
+                            "line": 106,
+                            "deleted": false,
+                            "data": "            print(diff)"
+                        }
+                    ]
                 }
             ]
         },
@@ -55,46 +63,54 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 67,
-                    "deleted": true,
-                    "data": "    (options, args) = parser.parse_args()"
+                    "lines": [
+                        {
+                            "line": 67,
+                            "deleted": true,
+                            "data": "    (options, args) = parser.parse_args()"
+                        },
+                        {
+                            "line": 67,
+                            "deleted": false,
+                            "data": "    parser.add_option('-d', '--diff', action='store_true',"
+                        },
+                        {
+                            "line": 68,
+                            "deleted": false,
+                            "data": "                      help='print diffs of changed files.')"
+                        },
+                        {
+                            "line": 69,
+                            "deleted": false,
+                            "data": "    options, args = parser.parse_args()"
+                        }
+                    ]
                 },
                 {
-                    "line": 67,
-                    "deleted": false,
-                    "data": "    parser.add_option('-d', '--diff', action='store_true',"
-                },
-                {
-                    "line": 68,
-                    "deleted": false,
-                    "data": "                      help='print diffs of changed files.')"
-                },
-                {
-                    "line": 69,
-                    "deleted": false,
-                    "data": "    options, args = parser.parse_args()"
-                },
-                {
-                    "line": 103,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 104,
-                    "deleted": false,
-                    "data": "    if options.diff:"
-                },
-                {
-                    "line": 105,
-                    "deleted": false,
-                    "data": "        for path, diff in sorted(summary.file_diffs.items()):"
-                },
-                {
-                    "line": 106,
-                    "deleted": false,
-                    "data": "            print(diff)"
+                    "lines": [
+                        {
+                            "line": 103,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 104,
+                            "deleted": false,
+                            "data": "    if options.diff:"
+                        },
+                        {
+                            "line": 105,
+                            "deleted": false,
+                            "data": "        for path, diff in sorted(summary.file_diffs.items()):"
+                        },
+                        {
+                            "line": 106,
+                            "deleted": false,
+                            "data": "            print(diff)"
+                        }
+                    ]
                 }
             ]
         },
@@ -104,41 +120,53 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 81,
-                    "deleted": false,
-                    "data": "        # Mapping of changed file paths to diffs of the changes."
+                    "lines": [
+                        {
+                            "line": 81,
+                            "deleted": false,
+                            "data": "        # Mapping of changed file paths to diffs of the changes."
+                        },
+                        {
+                            "line": 82,
+                            "deleted": false,
+                            "data": "        self.file_diffs = {}"
+                        },
+                        {
+                            "line": 83,
+                            "deleted": false,
+                            "data": ""
+                        }
+                    ]
                 },
                 {
-                    "line": 82,
-                    "deleted": false,
-                    "data": "        self.file_diffs = {}"
+                    "lines": [
+                        {
+                            "line": 279,
+                            "deleted": true,
+                            "data": "            fh = FileAvoidWrite(path)"
+                        },
+                        {
+                            "line": 282,
+                            "deleted": false,
+                            "data": "            fh = FileAvoidWrite(path, capture_diff=True)"
+                        }
+                    ]
                 },
                 {
-                    "line": 83,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 279,
-                    "deleted": true,
-                    "data": "            fh = FileAvoidWrite(path)"
-                },
-                {
-                    "line": 282,
-                    "deleted": false,
-                    "data": "            fh = FileAvoidWrite(path, capture_diff=True)"
-                },
-                {
-                    "line": 301,
-                    "deleted": false,
-                    "data": "            if fh.diff:"
-                },
-                {
-                    "line": 302,
-                    "deleted": false,
-                    "data": "                self.summary.file_diffs[fh.name] = fh.diff"
+                    "lines": [
+                        {
+                            "line": 301,
+                            "deleted": false,
+                            "data": "            if fh.diff:"
+                        },
+                        {
+                            "line": 302,
+                            "deleted": false,
+                            "data": "                self.summary.file_diffs[fh.name] = fh.diff"
+                        }
+                    ]
                 }
             ]
         },
@@ -148,21 +176,25 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 128,
-                    "deleted": true,
-                    "data": "            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True)"
-                },
-                {
-                    "line": 128,
-                    "deleted": false,
-                    "data": "            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True,"
-                },
-                {
-                    "line": 129,
-                    "deleted": false,
-                    "data": "                indent=2)"
+                    "lines": [
+                        {
+                            "line": 128,
+                            "deleted": true,
+                            "data": "            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True)"
+                        },
+                        {
+                            "line": 128,
+                            "deleted": false,
+                            "data": "            json.dump(self._test_manager.tests_by_path, fh, sort_keys=True,"
+                        },
+                        {
+                            "line": 129,
+                            "deleted": false,
+                            "data": "                indent=2)"
+                        }
+                    ]
                 }
             ]
         },
@@ -172,36 +204,44 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 93,
-                    "deleted": true,
-                    "data": "        self.fh = FileAvoidWrite(self.name)"
+                    "lines": [
+                        {
+                            "line": 93,
+                            "deleted": true,
+                            "data": "        self.fh = FileAvoidWrite(self.name)"
+                        },
+                        {
+                            "line": 93,
+                            "deleted": false,
+                            "data": "        self.fh = FileAvoidWrite(self.name, capture_diff=True)"
+                        }
+                    ]
                 },
                 {
-                    "line": 93,
-                    "deleted": false,
-                    "data": "        self.fh = FileAvoidWrite(self.name, capture_diff=True)"
-                },
-                {
-                    "line": 120,
-                    "deleted": false,
-                    "data": "    @property"
-                },
-                {
-                    "line": 121,
-                    "deleted": false,
-                    "data": "    def diff(self):"
-                },
-                {
-                    "line": 122,
-                    "deleted": false,
-                    "data": "        return self.fh.diff"
-                },
-                {
-                    "line": 123,
-                    "deleted": false,
-                    "data": ""
+                    "lines": [
+                        {
+                            "line": 120,
+                            "deleted": false,
+                            "data": "    @property"
+                        },
+                        {
+                            "line": 121,
+                            "deleted": false,
+                            "data": "    def diff(self):"
+                        },
+                        {
+                            "line": 122,
+                            "deleted": false,
+                            "data": "        return self.fh.diff"
+                        },
+                        {
+                            "line": 123,
+                            "deleted": false,
+                            "data": ""
+                        }
+                    ]
                 }
             ]
         },
@@ -211,71 +251,75 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 529,
-                    "deleted": true,
-                    "data": "    def build_backend(self):"
-                },
-                {
-                    "line": 529,
-                    "deleted": false,
-                    "data": "    @CommandArgument('-d', '--diff', action='store_true',"
-                },
-                {
-                    "line": 530,
-                    "deleted": false,
-                    "data": "        help='Show a diff of changes.')"
-                },
-                {
-                    "line": 531,
-                    "deleted": false,
-                    "data": "    def build_backend(self, diff=False):"
-                },
-                {
-                    "line": 534,
-                    "deleted": true,
-                    "data": "        return self._run_command_in_objdir(args=[python, config_status],"
-                },
-                {
-                    "line": 535,
-                    "deleted": true,
-                    "data": "            pass_thru=True, ensure_exit_code=False)"
-                },
-                {
-                    "line": 536,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 537,
-                    "deleted": false,
-                    "data": "        args = [python, config_status]"
-                },
-                {
-                    "line": 538,
-                    "deleted": false,
-                    "data": "        if diff:"
-                },
-                {
-                    "line": 539,
-                    "deleted": false,
-                    "data": "            args.append('--diff')"
-                },
-                {
-                    "line": 540,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 541,
-                    "deleted": false,
-                    "data": "        return self._run_command_in_objdir(args=args, pass_thru=True,"
-                },
-                {
-                    "line": 542,
-                    "deleted": false,
-                    "data": "            ensure_exit_code=False)"
+                    "lines": [
+                        {
+                            "line": 529,
+                            "deleted": true,
+                            "data": "    def build_backend(self):"
+                        },
+                        {
+                            "line": 529,
+                            "deleted": false,
+                            "data": "    @CommandArgument('-d', '--diff', action='store_true',"
+                        },
+                        {
+                            "line": 530,
+                            "deleted": false,
+                            "data": "        help='Show a diff of changes.')"
+                        },
+                        {
+                            "line": 531,
+                            "deleted": false,
+                            "data": "    def build_backend(self, diff=False):"
+                        },
+                        {
+                            "line": 534,
+                            "deleted": true,
+                            "data": "        return self._run_command_in_objdir(args=[python, config_status],"
+                        },
+                        {
+                            "line": 535,
+                            "deleted": true,
+                            "data": "            pass_thru=True, ensure_exit_code=False)"
+                        },
+                        {
+                            "line": 536,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 537,
+                            "deleted": false,
+                            "data": "        args = [python, config_status]"
+                        },
+                        {
+                            "line": 538,
+                            "deleted": false,
+                            "data": "        if diff:"
+                        },
+                        {
+                            "line": 539,
+                            "deleted": false,
+                            "data": "            args.append('--diff')"
+                        },
+                        {
+                            "line": 540,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 541,
+                            "deleted": false,
+                            "data": "        return self._run_command_in_objdir(args=args, pass_thru=True,"
+                        },
+                        {
+                            "line": 542,
+                            "deleted": false,
+                            "data": "            ensure_exit_code=False)"
+                        }
+                    ]
                 }
             ]
         },
@@ -285,186 +329,194 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 10,
-                    "deleted": false,
-                    "data": "import shutil"
+                    "lines": [
+                        {
+                            "line": 10,
+                            "deleted": false,
+                            "data": "import shutil"
+                        },
+                        {
+                            "line": 12,
+                            "deleted": false,
+                            "data": "import tempfile"
+                        }
+                    ]
                 },
                 {
-                    "line": 12,
-                    "deleted": false,
-                    "data": "import tempfile"
-                },
-                {
-                    "line": 113,
-                    "deleted": false,
-                    "data": "    def test_diff_not_default(self):"
-                },
-                {
-                    "line": 114,
-                    "deleted": false,
-                    "data": "        \"\"\"Diffs are not produced by default.\"\"\""
-                },
-                {
-                    "line": 115,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 116,
-                    "deleted": false,
-                    "data": "        faw = FileAvoidWrite('doesnotexist')"
-                },
-                {
-                    "line": 117,
-                    "deleted": false,
-                    "data": "        faw.write('dummy')"
-                },
-                {
-                    "line": 118,
-                    "deleted": false,
-                    "data": "        faw.close()"
-                },
-                {
-                    "line": 119,
-                    "deleted": false,
-                    "data": "        self.assertIsNone(faw.diff)"
-                },
-                {
-                    "line": 120,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 121,
-                    "deleted": false,
-                    "data": "    def test_diff_update(self):"
-                },
-                {
-                    "line": 122,
-                    "deleted": false,
-                    "data": "        \"\"\"Diffs are produced on file update.\"\"\""
-                },
-                {
-                    "line": 123,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 124,
-                    "deleted": false,
-                    "data": "        with MockedOpen({'file': 'old'}):"
-                },
-                {
-                    "line": 125,
-                    "deleted": false,
-                    "data": "            faw = FileAvoidWrite('file', capture_diff=True)"
-                },
-                {
-                    "line": 126,
-                    "deleted": false,
-                    "data": "            faw.write('new')"
-                },
-                {
-                    "line": 127,
-                    "deleted": false,
-                    "data": "            faw.close()"
-                },
-                {
-                    "line": 128,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 129,
-                    "deleted": false,
-                    "data": "            self.assertIsInstance(faw.diff, unicode)"
-                },
-                {
-                    "line": 130,
-                    "deleted": false,
-                    "data": "            self.assertIn('-old', faw.diff)"
-                },
-                {
-                    "line": 131,
-                    "deleted": false,
-                    "data": "            self.assertIn('+new', faw.diff)"
-                },
-                {
-                    "line": 132,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 133,
-                    "deleted": false,
-                    "data": "    def test_diff_create(self):"
-                },
-                {
-                    "line": 134,
-                    "deleted": false,
-                    "data": "        \"\"\"Diffs are produced when files are created.\"\"\""
-                },
-                {
-                    "line": 135,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 136,
-                    "deleted": false,
-                    "data": "        tmpdir = tempfile.mkdtemp()"
-                },
-                {
-                    "line": 137,
-                    "deleted": false,
-                    "data": "        try:"
-                },
-                {
-                    "line": 138,
-                    "deleted": false,
-                    "data": "            path = os.path.join(tmpdir, 'file')"
-                },
-                {
-                    "line": 139,
-                    "deleted": false,
-                    "data": "            faw = FileAvoidWrite(path, capture_diff=True)"
-                },
-                {
-                    "line": 140,
-                    "deleted": false,
-                    "data": "            faw.write('new')"
-                },
-                {
-                    "line": 141,
-                    "deleted": false,
-                    "data": "            faw.close()"
-                },
-                {
-                    "line": 142,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 143,
-                    "deleted": false,
-                    "data": "            self.assertIsInstance(faw.diff, unicode)"
-                },
-                {
-                    "line": 144,
-                    "deleted": false,
-                    "data": "            self.assertIn('+new', faw.diff)"
-                },
-                {
-                    "line": 145,
-                    "deleted": false,
-                    "data": "        finally:"
-                },
-                {
-                    "line": 146,
-                    "deleted": false,
-                    "data": "            shutil.rmtree(tmpdir)"
+                    "lines": [
+                        {
+                            "line": 113,
+                            "deleted": false,
+                            "data": "    def test_diff_not_default(self):"
+                        },
+                        {
+                            "line": 114,
+                            "deleted": false,
+                            "data": "        \"\"\"Diffs are not produced by default.\"\"\""
+                        },
+                        {
+                            "line": 115,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 116,
+                            "deleted": false,
+                            "data": "        faw = FileAvoidWrite('doesnotexist')"
+                        },
+                        {
+                            "line": 117,
+                            "deleted": false,
+                            "data": "        faw.write('dummy')"
+                        },
+                        {
+                            "line": 118,
+                            "deleted": false,
+                            "data": "        faw.close()"
+                        },
+                        {
+                            "line": 119,
+                            "deleted": false,
+                            "data": "        self.assertIsNone(faw.diff)"
+                        },
+                        {
+                            "line": 120,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 121,
+                            "deleted": false,
+                            "data": "    def test_diff_update(self):"
+                        },
+                        {
+                            "line": 122,
+                            "deleted": false,
+                            "data": "        \"\"\"Diffs are produced on file update.\"\"\""
+                        },
+                        {
+                            "line": 123,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 124,
+                            "deleted": false,
+                            "data": "        with MockedOpen({'file': 'old'}):"
+                        },
+                        {
+                            "line": 125,
+                            "deleted": false,
+                            "data": "            faw = FileAvoidWrite('file', capture_diff=True)"
+                        },
+                        {
+                            "line": 126,
+                            "deleted": false,
+                            "data": "            faw.write('new')"
+                        },
+                        {
+                            "line": 127,
+                            "deleted": false,
+                            "data": "            faw.close()"
+                        },
+                        {
+                            "line": 128,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 129,
+                            "deleted": false,
+                            "data": "            self.assertIsInstance(faw.diff, unicode)"
+                        },
+                        {
+                            "line": 130,
+                            "deleted": false,
+                            "data": "            self.assertIn('-old', faw.diff)"
+                        },
+                        {
+                            "line": 131,
+                            "deleted": false,
+                            "data": "            self.assertIn('+new', faw.diff)"
+                        },
+                        {
+                            "line": 132,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 133,
+                            "deleted": false,
+                            "data": "    def test_diff_create(self):"
+                        },
+                        {
+                            "line": 134,
+                            "deleted": false,
+                            "data": "        \"\"\"Diffs are produced when files are created.\"\"\""
+                        },
+                        {
+                            "line": 135,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 136,
+                            "deleted": false,
+                            "data": "        tmpdir = tempfile.mkdtemp()"
+                        },
+                        {
+                            "line": 137,
+                            "deleted": false,
+                            "data": "        try:"
+                        },
+                        {
+                            "line": 138,
+                            "deleted": false,
+                            "data": "            path = os.path.join(tmpdir, 'file')"
+                        },
+                        {
+                            "line": 139,
+                            "deleted": false,
+                            "data": "            faw = FileAvoidWrite(path, capture_diff=True)"
+                        },
+                        {
+                            "line": 140,
+                            "deleted": false,
+                            "data": "            faw.write('new')"
+                        },
+                        {
+                            "line": 141,
+                            "deleted": false,
+                            "data": "            faw.close()"
+                        },
+                        {
+                            "line": 142,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 143,
+                            "deleted": false,
+                            "data": "            self.assertIsInstance(faw.diff, unicode)"
+                        },
+                        {
+                            "line": 144,
+                            "deleted": false,
+                            "data": "            self.assertIn('+new', faw.diff)"
+                        },
+                        {
+                            "line": 145,
+                            "deleted": false,
+                            "data": "        finally:"
+                        },
+                        {
+                            "line": 146,
+                            "deleted": false,
+                            "data": "            shutil.rmtree(tmpdir)"
+                        }
+                    ]
                 }
             ]
         },
@@ -474,176 +526,184 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 11,
-                    "deleted": false,
-                    "data": "import difflib"
+                    "lines": [
+                        {
+                            "line": 11,
+                            "deleted": false,
+                            "data": "import difflib"
+                        }
+                    ]
                 },
                 {
-                    "line": 119,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 120,
-                    "deleted": false,
-                    "data": "    Instances can optionally capture diffs of file changes. This feature is not"
-                },
-                {
-                    "line": 121,
-                    "deleted": false,
-                    "data": "    enabled by default because it a) doesn't make sense for binary files b)"
-                },
-                {
-                    "line": 122,
-                    "deleted": false,
-                    "data": "    could add unwanted overhead to calls."
-                },
-                {
-                    "line": 119,
-                    "deleted": true,
-                    "data": "    def __init__(self, filename):"
-                },
-                {
-                    "line": 124,
-                    "deleted": false,
-                    "data": "    def __init__(self, filename, capture_diff=False):"
-                },
-                {
-                    "line": 127,
-                    "deleted": false,
-                    "data": "        self._capture_diff = capture_diff"
-                },
-                {
-                    "line": 128,
-                    "deleted": false,
-                    "data": "        self.diff = None"
-                },
-                {
-                    "line": 136,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 137,
-                    "deleted": false,
-                    "data": "        If ``capture_diff`` was specified at construction time and the"
-                },
-                {
-                    "line": 138,
-                    "deleted": false,
-                    "data": "        underlying file was changed, ``.diff`` will be populated with the diff"
-                },
-                {
-                    "line": 139,
-                    "deleted": false,
-                    "data": "        of the result."
-                },
-                {
-                    "line": 144,
-                    "deleted": false,
-                    "data": "        old_content = None"
-                },
-                {
-                    "line": 145,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 140,
-                    "deleted": true,
-                    "data": "                if existing.read() == buf:"
-                },
-                {
-                    "line": 153,
-                    "deleted": false,
-                    "data": "                old_content = existing.read()"
-                },
-                {
-                    "line": 154,
-                    "deleted": false,
-                    "data": "                if old_content == buf:"
-                },
-                {
-                    "line": 165,
-                    "deleted": false,
-                    "data": "        if self._capture_diff:"
-                },
-                {
-                    "line": 166,
-                    "deleted": false,
-                    "data": "            try:"
-                },
-                {
-                    "line": 167,
-                    "deleted": false,
-                    "data": "                old_lines = old_content.splitlines() if old_content else []"
-                },
-                {
-                    "line": 168,
-                    "deleted": false,
-                    "data": "                new_lines = buf.splitlines()"
-                },
-                {
-                    "line": 169,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 170,
-                    "deleted": false,
-                    "data": "                self.diff = '\\n'.join(difflib.unified_diff(old_lines, new_lines,"
-                },
-                {
-                    "line": 171,
-                    "deleted": false,
-                    "data": "                    self.name, self.name, n=4, lineterm=''))"
-                },
-                {
-                    "line": 172,
-                    "deleted": false,
-                    "data": "            # FileAvoidWrite isn't unicode/bytes safe. So, files with non-ascii"
-                },
-                {
-                    "line": 173,
-                    "deleted": false,
-                    "data": "            # content or opened and written in different modes may involve"
-                },
-                {
-                    "line": 174,
-                    "deleted": false,
-                    "data": "            # implicit conversion and this will make Python unhappy. Since"
-                },
-                {
-                    "line": 175,
-                    "deleted": false,
-                    "data": "            # diffing isn't a critical feature, we just ignore the failure."
-                },
-                {
-                    "line": 176,
-                    "deleted": false,
-                    "data": "            # This can go away once FileAvoidWrite uses io.BytesIO and"
-                },
-                {
-                    "line": 177,
-                    "deleted": false,
-                    "data": "            # io.StringIO. But that will require a lot of work."
-                },
-                {
-                    "line": 178,
-                    "deleted": false,
-                    "data": "            except (UnicodeDecodeError, UnicodeEncodeError):"
-                },
-                {
-                    "line": 179,
-                    "deleted": false,
-                    "data": "                self.diff = 'Binary or non-ascii file changed: %s' % self.name"
-                },
-                {
-                    "line": 180,
-                    "deleted": false,
-                    "data": ""
+                    "lines": [
+                        {
+                            "line": 119,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 120,
+                            "deleted": false,
+                            "data": "    Instances can optionally capture diffs of file changes. This feature is not"
+                        },
+                        {
+                            "line": 121,
+                            "deleted": false,
+                            "data": "    enabled by default because it a) doesn't make sense for binary files b)"
+                        },
+                        {
+                            "line": 122,
+                            "deleted": false,
+                            "data": "    could add unwanted overhead to calls."
+                        },
+                        {
+                            "line": 119,
+                            "deleted": true,
+                            "data": "    def __init__(self, filename):"
+                        },
+                        {
+                            "line": 124,
+                            "deleted": false,
+                            "data": "    def __init__(self, filename, capture_diff=False):"
+                        },
+                        {
+                            "line": 127,
+                            "deleted": false,
+                            "data": "        self._capture_diff = capture_diff"
+                        },
+                        {
+                            "line": 128,
+                            "deleted": false,
+                            "data": "        self.diff = None"
+                        },
+                        {
+                            "line": 136,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 137,
+                            "deleted": false,
+                            "data": "        If ``capture_diff`` was specified at construction time and the"
+                        },
+                        {
+                            "line": 138,
+                            "deleted": false,
+                            "data": "        underlying file was changed, ``.diff`` will be populated with the diff"
+                        },
+                        {
+                            "line": 139,
+                            "deleted": false,
+                            "data": "        of the result."
+                        },
+                        {
+                            "line": 144,
+                            "deleted": false,
+                            "data": "        old_content = None"
+                        },
+                        {
+                            "line": 145,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 140,
+                            "deleted": true,
+                            "data": "                if existing.read() == buf:"
+                        },
+                        {
+                            "line": 153,
+                            "deleted": false,
+                            "data": "                old_content = existing.read()"
+                        },
+                        {
+                            "line": 154,
+                            "deleted": false,
+                            "data": "                if old_content == buf:"
+                        },
+                        {
+                            "line": 165,
+                            "deleted": false,
+                            "data": "        if self._capture_diff:"
+                        },
+                        {
+                            "line": 166,
+                            "deleted": false,
+                            "data": "            try:"
+                        },
+                        {
+                            "line": 167,
+                            "deleted": false,
+                            "data": "                old_lines = old_content.splitlines() if old_content else []"
+                        },
+                        {
+                            "line": 168,
+                            "deleted": false,
+                            "data": "                new_lines = buf.splitlines()"
+                        },
+                        {
+                            "line": 169,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 170,
+                            "deleted": false,
+                            "data": "                self.diff = '\\n'.join(difflib.unified_diff(old_lines, new_lines,"
+                        },
+                        {
+                            "line": 171,
+                            "deleted": false,
+                            "data": "                    self.name, self.name, n=4, lineterm=''))"
+                        },
+                        {
+                            "line": 172,
+                            "deleted": false,
+                            "data": "            # FileAvoidWrite isn't unicode/bytes safe. So, files with non-ascii"
+                        },
+                        {
+                            "line": 173,
+                            "deleted": false,
+                            "data": "            # content or opened and written in different modes may involve"
+                        },
+                        {
+                            "line": 174,
+                            "deleted": false,
+                            "data": "            # implicit conversion and this will make Python unhappy. Since"
+                        },
+                        {
+                            "line": 175,
+                            "deleted": false,
+                            "data": "            # diffing isn't a critical feature, we just ignore the failure."
+                        },
+                        {
+                            "line": 176,
+                            "deleted": false,
+                            "data": "            # This can go away once FileAvoidWrite uses io.BytesIO and"
+                        },
+                        {
+                            "line": 177,
+                            "deleted": false,
+                            "data": "            # io.StringIO. But that will require a lot of work."
+                        },
+                        {
+                            "line": 178,
+                            "deleted": false,
+                            "data": "            except (UnicodeDecodeError, UnicodeEncodeError):"
+                        },
+                        {
+                            "line": 179,
+                            "deleted": false,
+                            "data": "                self.diff = 'Binary or non-ascii file changed: %s' % self.name"
+                        },
+                        {
+                            "line": 180,
+                            "deleted": false,
+                            "data": ""
+                        }
+                    ]
                 }
             ]
         }

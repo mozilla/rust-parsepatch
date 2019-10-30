@@ -17,6 +17,9 @@ pub trait Diff {
     /// If a line is added ( ) then old_line is the line in the source file and new_line is the line in the destination file.
     fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]);
 
+    /// A new hunk is created
+    fn new_hunk(&mut self);
+
     /// Close the diff: no more lines will be added
     fn close(&mut self);
 }
@@ -63,8 +66,7 @@ impl<'a> Debug for LineReader<'a> {
 
 impl<'a> LineReader<'a> {
     fn is_binary(&self) -> bool {
-        self.buf
-            == b"GIT binary patch"
+        self.buf == b"GIT binary patch"
     }
 
     fn is_rename_from(&self) -> bool {
@@ -201,7 +203,7 @@ impl<'a> PatchReader<'a> {
                 reader.read_to_end(&mut data).unwrap();
                 PatchReader::by_buf(&data, patch);
             }
-            Err(_) => {
+            _ => {
                 panic!(format!("Failed to read the file: {:?}", path));
             }
         }
@@ -237,7 +239,12 @@ impl<'a> PatchReader<'a> {
         };
         let op = line.get_file_op();
 
-        trace!("Diff (op = {:?}): {:?}, next_line: {:?}", op, diff_line, line);
+        trace!(
+            "Diff (op = {:?}): {:?}, next_line: {:?}",
+            op,
+            diff_line,
+            line
+        );
 
         if PatchReader::diff(&line) {
             let (old, new) = diff_line.parse_files();
@@ -287,7 +294,6 @@ impl<'a> PatchReader<'a> {
                     }
                 }
             }
-            return;
         } else {
             if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
                 trace!("New/Delete file: {:?}", line);
@@ -365,6 +371,9 @@ impl<'a> PatchReader<'a> {
     fn parse_hunk<D: Diff>(&mut self, o: u32, n: u32, diff: &mut D) {
         let mut old_count = o;
         let mut new_count = n;
+
+        diff.new_hunk();
+
         while let Some(line) = self.next(PatchReader::hunk_change, true) {
             // we know that line is beginning with -, +, ... so no need to check bounds
             let first = unsafe { *line.buf.get_unchecked(0) };
@@ -499,7 +508,7 @@ mod tests {
             ("@@ -123,456 +789 @@", (123, 789)),
             ("@@ -123 +789 @@", (123, 789)),
         ];
-        for c in cases.into_iter() {
+        for c in cases.iter() {
             let buf = c.0.as_bytes();
             let line = LineReader { buf: &buf };
             assert!(line.parse_numbers() == c.1);
@@ -515,7 +524,7 @@ mod tests {
             ("   b/world/hello\t", "world/hello"),
             (" /dev/null\t", ""),
         ];
-        for c in cases.into_iter() {
+        for c in cases.iter() {
             let buf = c.0.as_bytes();
             let p = LineReader::get_filename(buf);
             assert!(p == c.1);
@@ -525,7 +534,7 @@ mod tests {
     #[test]
     fn test_line_starts_with() {
         let cases = [("+++ hello", "+++"), ("+++ hello", "++++")];
-        for c in cases.into_iter() {
+        for c in cases.iter() {
             let buf = c.0.as_bytes();
             let line = LineReader { buf: &buf };
             let pat = c.1.as_bytes();

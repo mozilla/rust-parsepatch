@@ -6,36 +6,40 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 11,
-                    "deleted": true,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 12,
-                    "deleted": true,
-                    "data": "  content/branding/icon64.png"
-                },
-                {
-                    "line": 15,
-                    "deleted": true,
-                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-                },
-                {
-                    "line": 13,
-                    "deleted": false,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 14,
-                    "deleted": false,
-                    "data": "  content/branding/icon64.png                    (../default64.png)"
-                },
-                {
-                    "line": 15,
-                    "deleted": false,
-                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                    "lines": [
+                        {
+                            "line": 11,
+                            "deleted": true,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 12,
+                            "deleted": true,
+                            "data": "  content/branding/icon64.png"
+                        },
+                        {
+                            "line": 15,
+                            "deleted": true,
+                            "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                        },
+                        {
+                            "line": 13,
+                            "deleted": false,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": false,
+                            "data": "  content/branding/icon64.png                    (../default64.png)"
+                        },
+                        {
+                            "line": 15,
+                            "deleted": false,
+                            "data": "  content/branding/icon128.png                   (../default128.png)"
+                        }
+                    ]
                 }
             ]
         },
@@ -45,7 +49,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/aurora/mozicon128.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/aurora/default64.png",
@@ -53,7 +57,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/aurora/content/icon64.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/branding-common.mozbuild",
@@ -61,36 +65,40 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 45,
-                    "deleted": false,
-                    "data": "            'default128.png',"
-                },
-                {
-                    "line": 48,
-                    "deleted": true,
-                    "data": "            'mozicon128.png',"
-                },
-                {
-                    "line": 49,
-                    "deleted": false,
-                    "data": "            'default64.png',"
-                },
-                {
-                    "line": 50,
-                    "deleted": true,
-                    "data": "        FINAL_TARGET_FILES.icons += ['mozicon128.png']"
-                },
-                {
-                    "line": 52,
-                    "deleted": false,
-                    "data": "            'default128.png',"
-                },
-                {
-                    "line": 56,
-                    "deleted": false,
-                    "data": "            'default64.png',"
+                    "lines": [
+                        {
+                            "line": 45,
+                            "deleted": false,
+                            "data": "            'default128.png',"
+                        },
+                        {
+                            "line": 48,
+                            "deleted": true,
+                            "data": "            'mozicon128.png',"
+                        },
+                        {
+                            "line": 49,
+                            "deleted": false,
+                            "data": "            'default64.png',"
+                        },
+                        {
+                            "line": 50,
+                            "deleted": true,
+                            "data": "        FINAL_TARGET_FILES.icons += ['mozicon128.png']"
+                        },
+                        {
+                            "line": 52,
+                            "deleted": false,
+                            "data": "            'default128.png',"
+                        },
+                        {
+                            "line": 56,
+                            "deleted": false,
+                            "data": "            'default64.png',"
+                        }
+                    ]
                 }
             ]
         },
@@ -100,36 +108,40 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 11,
-                    "deleted": true,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 12,
-                    "deleted": true,
-                    "data": "  content/branding/icon64.png"
-                },
-                {
-                    "line": 15,
-                    "deleted": true,
-                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-                },
-                {
-                    "line": 13,
-                    "deleted": false,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 14,
-                    "deleted": false,
-                    "data": "  content/branding/icon64.png                    (../default64.png)"
-                },
-                {
-                    "line": 15,
-                    "deleted": false,
-                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                    "lines": [
+                        {
+                            "line": 11,
+                            "deleted": true,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 12,
+                            "deleted": true,
+                            "data": "  content/branding/icon64.png"
+                        },
+                        {
+                            "line": 15,
+                            "deleted": true,
+                            "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                        },
+                        {
+                            "line": 13,
+                            "deleted": false,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": false,
+                            "data": "  content/branding/icon64.png                    (../default64.png)"
+                        },
+                        {
+                            "line": 15,
+                            "deleted": false,
+                            "data": "  content/branding/icon128.png                   (../default128.png)"
+                        }
+                    ]
                 }
             ]
         },
@@ -139,7 +151,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/nightly/mozicon128.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/nightly/default64.png",
@@ -147,7 +159,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/nightly/content/icon64.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/official/content/jar.mn",
@@ -155,26 +167,30 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 11,
-                    "deleted": true,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 12,
-                    "deleted": true,
-                    "data": "  content/branding/icon64.png"
-                },
-                {
-                    "line": 13,
-                    "deleted": false,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 14,
-                    "deleted": false,
-                    "data": "  content/branding/icon64.png                    (../default64.png)"
+                    "lines": [
+                        {
+                            "line": 11,
+                            "deleted": true,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 12,
+                            "deleted": true,
+                            "data": "  content/branding/icon64.png"
+                        },
+                        {
+                            "line": 13,
+                            "deleted": false,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": false,
+                            "data": "  content/branding/icon64.png                    (../default64.png)"
+                        }
+                    ]
                 }
             ]
         },
@@ -184,7 +200,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/official/mozicon128.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/official/default64.png",
@@ -192,7 +208,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/official/content/icon64.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/unofficial/content/jar.mn",
@@ -200,36 +216,40 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 12,
-                    "deleted": true,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 13,
-                    "deleted": true,
-                    "data": "  content/branding/icon64.png"
-                },
-                {
-                    "line": 16,
-                    "deleted": true,
-                    "data": "  content/branding/icon128.png                   (../mozicon128.png)"
-                },
-                {
-                    "line": 14,
-                    "deleted": false,
-                    "data": "  content/branding/icon48.png"
-                },
-                {
-                    "line": 15,
-                    "deleted": false,
-                    "data": "  content/branding/icon64.png                    (../default64.png)"
-                },
-                {
-                    "line": 16,
-                    "deleted": false,
-                    "data": "  content/branding/icon128.png                   (../default128.png)"
+                    "lines": [
+                        {
+                            "line": 12,
+                            "deleted": true,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 13,
+                            "deleted": true,
+                            "data": "  content/branding/icon64.png"
+                        },
+                        {
+                            "line": 16,
+                            "deleted": true,
+                            "data": "  content/branding/icon128.png                   (../mozicon128.png)"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": false,
+                            "data": "  content/branding/icon48.png"
+                        },
+                        {
+                            "line": 15,
+                            "deleted": false,
+                            "data": "  content/branding/icon64.png                    (../default64.png)"
+                        },
+                        {
+                            "line": 16,
+                            "deleted": false,
+                            "data": "  content/branding/icon128.png                   (../default128.png)"
+                        }
+                    ]
                 }
             ]
         },
@@ -239,7 +259,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/unofficial/mozicon128.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/branding/unofficial/default64.png",
@@ -247,7 +267,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": "browser/branding/unofficial/content/icon64.png",
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "browser/installer/allowed-dupes.mn",
@@ -255,21 +275,29 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 79,
-                    "deleted": false,
-                    "data": "browser/chrome/icons/default/default64.png"
+                    "lines": [
+                        {
+                            "line": 79,
+                            "deleted": false,
+                            "data": "browser/chrome/icons/default/default64.png"
+                        },
+                        {
+                            "line": 80,
+                            "deleted": false,
+                            "data": "browser/chrome/icons/default/default128.png"
+                        }
+                    ]
                 },
                 {
-                    "line": 80,
-                    "deleted": false,
-                    "data": "browser/chrome/icons/default/default128.png"
-                },
-                {
-                    "line": 108,
-                    "deleted": true,
-                    "data": "browser/icons/mozicon128.png"
+                    "lines": [
+                        {
+                            "line": 108,
+                            "deleted": true,
+                            "data": "browser/icons/mozicon128.png"
+                        }
+                    ]
                 }
             ]
         },
@@ -279,26 +307,34 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 618,
-                    "deleted": false,
-                    "data": "@RESPATH@/browser/chrome/icons/default/default64.png"
+                    "lines": [
+                        {
+                            "line": 618,
+                            "deleted": false,
+                            "data": "@RESPATH@/browser/chrome/icons/default/default64.png"
+                        },
+                        {
+                            "line": 619,
+                            "deleted": false,
+                            "data": "@RESPATH@/browser/chrome/icons/default/default128.png"
+                        }
+                    ]
                 },
                 {
-                    "line": 619,
-                    "deleted": false,
-                    "data": "@RESPATH@/browser/chrome/icons/default/default128.png"
-                },
-                {
-                    "line": 640,
-                    "deleted": true,
-                    "data": "; shell icons"
-                },
-                {
-                    "line": 641,
-                    "deleted": true,
-                    "data": "@RESPATH@/browser/icons/*.png"
+                    "lines": [
+                        {
+                            "line": 640,
+                            "deleted": true,
+                            "data": "; shell icons"
+                        },
+                        {
+                            "line": 641,
+                            "deleted": true,
+                            "data": "@RESPATH@/browser/icons/*.png"
+                        }
+                    ]
                 }
             ]
         }

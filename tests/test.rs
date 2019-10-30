@@ -27,6 +27,11 @@ pub struct LineChange {
     pub data: String,
 }
 
+#[derive(Default, Deserialize, PartialEq)]
+pub struct Hunk {
+    pub lines: Vec<LineChange>,
+}
+
 #[derive(Deserialize)]
 pub struct DiffImpl {
     pub filename: String,
@@ -35,7 +40,7 @@ pub struct DiffImpl {
     pub binary: bool,
     pub copied_from: Option<String>,
     pub renamed_from: Option<String>,
-    pub lines: Vec<LineChange>,
+    pub hunks: Vec<Hunk>,
 }
 
 #[derive(Deserialize)]
@@ -45,17 +50,32 @@ struct PatchImpl {
 
 impl Debug for LineChange {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "line: {}, deleted: {}, data: {}", self.line, self.deleted, self.data)
+        write!(
+            f,
+            "line: {}, deleted: {}, data: {}",
+            self.line, self.deleted, self.data
+        )
     }
 }
 
 impl Debug for DiffImpl {
     fn fmt(&self, f: &mut Formatter) -> Result {
         writeln!(f, "filename: {}", self.filename)?;
-        writeln!(f, "new: {}, deleted: {}, binary: {}", self.new, self.deleted, self.binary)?;
-        writeln!(f, "copied_from: {:?}, renamed_from: {:?}", self.copied_from, self.renamed_from)?;
-        for line in self.lines.iter() {
-            writeln!(f, " - {:?}", *line)?;
+        writeln!(
+            f,
+            "new: {}, deleted: {}, binary: {}",
+            self.new, self.deleted, self.binary
+        )?;
+        writeln!(
+            f,
+            "copied_from: {:?}, renamed_from: {:?}",
+            self.copied_from, self.renamed_from
+        )?;
+        for hunk in self.hunks.iter() {
+            writeln!(f, " @@")?;
+            for line in hunk.lines.iter() {
+                writeln!(f, " - {:?}", *line)?;
+            }
         }
         Ok(())
     }
@@ -79,7 +99,7 @@ impl Patch<DiffImpl> for PatchImpl {
             binary: false,
             copied_from: None,
             renamed_from: None,
-            lines: Vec::new(),
+            hunks: Vec::new(),
         });
         self.diffs.last_mut().unwrap()
     }
@@ -111,18 +131,22 @@ impl Diff for DiffImpl {
 
     fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]) {
         if old_line == 0 {
-            self.lines.push(LineChange {
+            self.hunks.last_mut().unwrap().lines.push(LineChange {
                 line: new_line,
                 deleted: false,
                 data: get_line(line),
             });
         } else if new_line == 0 {
-            self.lines.push(LineChange {
+            self.hunks.last_mut().unwrap().lines.push(LineChange {
                 line: old_line,
                 deleted: true,
                 data: get_line(line),
             });
         }
+    }
+
+    fn new_hunk(&mut self) {
+        self.hunks.push(Hunk::default());
     }
 
     fn close(&mut self) {}
@@ -144,11 +168,12 @@ fn get_line(buf: &[u8]) -> String {
 }
 
 fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
-    patch.diffs.retain(|c| !c.binary);
     assert!(
         json.diffs.len() == patch.diffs.len(),
-        "Not the same length in patch: {:?}",
-        path
+        "Not the same length in patch {:?}: {} ({} expected)",
+        path,
+        patch.diffs.len(),
+        json.diffs.len(),
     );
     for (cj, cp) in json.diffs.iter().zip(patch.diffs.iter()) {
         assert!(
@@ -166,18 +191,28 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
             )
         );
         assert!(
-            cj.lines.len() == cp.lines.len(),
+            cj.hunks.len() == cp.hunks.len(),
             format!(
-                "Not the same length for changed lines: {} ({} expected)",
-                cp.lines.len(),
-                cj.lines.len()
+                "Not the same length for hunks: {} ({} expected)",
+                cp.hunks.len(),
+                cj.hunks.len()
             )
         );
-        for (lj, lp) in cj.lines.iter().zip(cp.lines.iter()) {
+        for (hj, hp) in cj.hunks.iter().zip(cp.hunks.iter()) {
             assert!(
-                lj == lp,
-                format!("Not the same line change: {:?} ({:?} expected", lp, lj)
+                hj.lines.len() == hp.lines.len(),
+                format!(
+                    "Not the same length for changed lines: {} ({} expected)",
+                    hp.lines.len(),
+                    hj.lines.len()
+                )
             );
+            for (lj, lp) in hj.lines.iter().zip(hp.lines.iter()) {
+                assert!(
+                    lj == lp,
+                    format!("Not the same line change: {:?} ({:?} expected", lp, lj)
+                );
+            }
         }
     }
 }
@@ -189,6 +224,9 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
+            /*if path != PathBuf::from("./tests/output/ea8bdd612f43.json") {
+                continue;
+            }*/
             let file = File::open(&path).unwrap();
             let reader = BufReader::new(file);
             let json_patch = serde_json::from_reader::<_, PatchImpl>(reader).unwrap();

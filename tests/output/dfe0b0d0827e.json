@@ -6,11 +6,15 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 54,
-                    "deleted": true,
-                    "data": "    'tests/SimpleTest/AddTask.js',"
+                    "lines": [
+                        {
+                            "line": 54,
+                            "deleted": true,
+                            "data": "    'tests/SimpleTest/AddTask.js',"
+                        }
+                    ]
                 }
             ]
         },
@@ -20,7 +24,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "testing/mochitest/tests/SimpleTest/moz.build",
@@ -28,11 +32,15 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 10,
-                    "deleted": true,
-                    "data": "    'AddTask.js',"
+                    "lines": [
+                        {
+                            "line": 10,
+                            "deleted": true,
+                            "data": "    'AddTask.js',"
+                        }
+                    ]
                 }
             ]
         }

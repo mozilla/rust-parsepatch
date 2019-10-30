@@ -4,7 +4,7 @@ import json
 import os
 import re
 import whatthepatch
-
+from pprint import pprint
 
 def _bytes_repr(c):
     # https://github.com/jboy/distil/blob/master/distil/unicode_string_utils.py#L170
@@ -28,6 +28,8 @@ codecs.register_error('myreplacement', myreplacement)
 pat = re.compile(r"\t+$", re.MULTILINE)
 directory = './patches'
 for f in os.listdir(directory):
+    #if not f.endswith("ea8bdd612f43.patch"):
+    #    continue
     if not f.endswith('.patch'):
         continue
     with open(os.path.join(directory, f), 'rb') as In:
@@ -64,12 +66,18 @@ for f in os.listdir(directory):
         r['filename'] = new
         r['new'] = False
         r['deleted'] = False
-        r['binary'] = False
+        r['binary'] = "GIT binary patch" in diff.text
         r['copied_from'] = old if old != new else None
-        r['lines'] = lines = []
+        r['hunks'] = hunks = []
+        last_hunk = -1
 
         if diff.changes:
-            for old, new, line in diff.changes:
+            for old, new, line, hunk in diff.changes:
+                if hunk != last_hunk:
+                    lines = []
+                    hunks.append({'lines': lines})
+                    last_hunk = hunk
+
                 if old is None:
                     lines.append(
                         OrderedDict([('line', new), ('deleted', False), ('data', line)])

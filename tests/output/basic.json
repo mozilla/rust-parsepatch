@@ -6,26 +6,30 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 226,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 226,
-                    "deleted": false,
-                    "data": "c"
-                },
-                {
-                    "line": 227,
-                    "deleted": false,
-                    "data": "d"
-                },
-                {
-                    "line": 228,
-                    "deleted": true,
-                    "data": "f"
+                    "lines": [
+                        {
+                            "line": 226,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 226,
+                            "deleted": false,
+                            "data": "c"
+                        },
+                        {
+                            "line": 227,
+                            "deleted": false,
+                            "data": "d"
+                        },
+                        {
+                            "line": 228,
+                            "deleted": true,
+                            "data": "f"
+                        }
+                    ]
                 }
             ]
         },
@@ -35,7 +39,7 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": []
+            "hunks": []
         },
         {
             "filename": "oof",
@@ -43,16 +47,20 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 1,
-                    "deleted": false,
-                    "data": "a"
-                },
-                {
-                    "line": 2,
-                    "deleted": false,
-                    "data": "b"
+                    "lines": [
+                        {
+                            "line": 1,
+                            "deleted": false,
+                            "data": "a"
+                        },
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": "b"
+                        }
+                    ]
                 }
             ]
         },
@@ -62,16 +70,20 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 226,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 226,
-                    "deleted": false,
-                    "data": "c"
+                    "lines": [
+                        {
+                            "line": 226,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 226,
+                            "deleted": false,
+                            "data": "c"
+                        }
+                    ]
                 }
             ]
         },
@@ -81,7 +93,15 @@
             "deleted": false,
             "binary": false,
             "copied_from": "toto",
-            "lines": []
+            "hunks": []
+        },
+        {
+            "filename": "tete",
+            "new": false,
+            "deleted": false,
+            "binary": true,
+            "copied_from": null,
+            "hunks": []
         },
         {
             "filename": "tutu",
@@ -89,28 +109,40 @@
             "deleted": false,
             "binary": false,
             "copied_from": "titi",
-            "lines": [
+            "hunks": [
                 {
-                    "line": 2,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 2,
-                    "deleted": false,
-                    "data": "c"
-                },
-                {
-                    "line": 4,
-                    "deleted": true,
-                    "data": "e"
-                },
-                {
-                    "line": 5,
-                    "deleted": true,
-                    "data": "f"
+                    "lines": [
+                        {
+                            "line": 2,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": "c"
+                        },
+                        {
+                            "line": 4,
+                            "deleted": true,
+                            "data": "e"
+                        },
+                        {
+                            "line": 5,
+                            "deleted": true,
+                            "data": "f"
+                        }
+                    ]
                 }
             ]
+        },
+        {
+            "filename": "tyty",
+            "new": false,
+            "deleted": false,
+            "binary": true,
+            "copied_from": null,
+            "hunks": []
         },
         {
             "filename": "ofo",
@@ -118,21 +150,25 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 1,
-                    "deleted": true,
-                    "data": "a"
-                },
-                {
-                    "line": 2,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 3,
-                    "deleted": true,
-                    "data": "c"
+                    "lines": [
+                        {
+                            "line": 1,
+                            "deleted": true,
+                            "data": "a"
+                        },
+                        {
+                            "line": 2,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 3,
+                            "deleted": true,
+                            "data": "c"
+                        }
+                    ]
                 }
             ]
         },
@@ -142,51 +178,63 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 226,
-                    "deleted": true,
-                    "data": "b"
+                    "lines": [
+                        {
+                            "line": 226,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 226,
+                            "deleted": false,
+                            "data": "c"
+                        }
+                    ]
                 },
                 {
-                    "line": 226,
-                    "deleted": false,
-                    "data": "c"
+                    "lines": [
+                        {
+                            "line": 326,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 326,
+                            "deleted": false,
+                            "data": "c"
+                        },
+                        {
+                            "line": 328,
+                            "deleted": true,
+                            "data": "e"
+                        },
+                        {
+                            "line": 329,
+                            "deleted": true,
+                            "data": "f"
+                        },
+                        {
+                            "line": 329,
+                            "deleted": false,
+                            "data": "h"
+                        }
+                    ]
                 },
                 {
-                    "line": 326,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 326,
-                    "deleted": false,
-                    "data": "c"
-                },
-                {
-                    "line": 328,
-                    "deleted": true,
-                    "data": "e"
-                },
-                {
-                    "line": 329,
-                    "deleted": true,
-                    "data": "f"
-                },
-                {
-                    "line": 329,
-                    "deleted": false,
-                    "data": "h"
-                },
-                {
-                    "line": 426,
-                    "deleted": true,
-                    "data": "b"
-                },
-                {
-                    "line": 460,
-                    "deleted": false,
-                    "data": "c"
+                    "lines": [
+                        {
+                            "line": 426,
+                            "deleted": true,
+                            "data": "b"
+                        },
+                        {
+                            "line": 460,
+                            "deleted": false,
+                            "data": "c"
+                        }
+                    ]
                 }
             ]
         }

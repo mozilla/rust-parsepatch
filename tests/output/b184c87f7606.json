@@ -6,11 +6,15 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 7,
-                    "deleted": false,
-                    "data": "[browser_screenshots_cropping.js]"
+                    "lines": [
+                        {
+                            "line": 7,
+                            "deleted": false,
+                            "data": "[browser_screenshots_cropping.js]"
+                        }
+                    ]
                 }
             ]
         },
@@ -20,416 +24,420 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
-                {
-                    "line": 1,
-                    "deleted": false,
-                    "data": "/* This Source Code Form is subject to the terms of the Mozilla Public"
-                },
-                {
-                    "line": 2,
-                    "deleted": false,
-                    "data": " * License, v. 2.0. If a copy of the MPL was not distributed with this"
-                },
-                {
-                    "line": 3,
-                    "deleted": false,
-                    "data": " * file, You can obtain one at http://mozilla.org/MPL/2.0/. */"
-                },
-                {
-                    "line": 4,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 5,
-                    "deleted": false,
-                    "data": "\"use strict\";"
-                },
-                {
-                    "line": 6,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 7,
-                    "deleted": false,
-                    "data": "Cu.import(\"resource://gre/modules/Geometry.jsm\", this);"
-                },
-                {
-                    "line": 8,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 9,
-                    "deleted": false,
-                    "data": "async function draw(window, src) {"
-                },
-                {
-                    "line": 10,
-                    "deleted": false,
-                    "data": "  const { document, Image } = window;"
-                },
-                {
-                    "line": 11,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 12,
-                    "deleted": false,
-                    "data": "  const promise = new Promise((resolve, reject) => {"
-                },
-                {
-                    "line": 13,
-                    "deleted": false,
-                    "data": "    const img = new Image();"
-                },
-                {
-                    "line": 14,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 15,
-                    "deleted": false,
-                    "data": "    img.onload = function() {"
-                },
-                {
-                    "line": 16,
-                    "deleted": false,
-                    "data": "      // Create a new offscreen canvas"
-                },
-                {
-                    "line": 17,
-                    "deleted": false,
-                    "data": "      const canvas = document.createElementNS(\"http://www.w3.org/1999/xhtml\", \"canvas\");"
-                },
-                {
-                    "line": 18,
-                    "deleted": false,
-                    "data": "      canvas.width = img.naturalWidth;"
-                },
-                {
-                    "line": 19,
-                    "deleted": false,
-                    "data": "      canvas.height = img.naturalHeight;"
-                },
-                {
-                    "line": 20,
-                    "deleted": false,
-                    "data": "      const ctx = canvas.getContext(\"2d\");"
-                },
-                {
-                    "line": 21,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 22,
-                    "deleted": false,
-                    "data": "      ctx.drawImage(img, 0, 0);"
-                },
-                {
-                    "line": 23,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 24,
-                    "deleted": false,
-                    "data": "      resolve(canvas);"
-                },
-                {
-                    "line": 25,
-                    "deleted": false,
-                    "data": "    };"
-                },
-                {
-                    "line": 26,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 27,
-                    "deleted": false,
-                    "data": "    img.onerror = function() {"
-                },
-                {
-                    "line": 28,
-                    "deleted": false,
-                    "data": "      reject(`error loading image ${src}`);"
-                },
-                {
-                    "line": 29,
-                    "deleted": false,
-                    "data": "    };"
-                },
-                {
-                    "line": 30,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 31,
-                    "deleted": false,
-                    "data": "    // Load the src image for drawing"
-                },
-                {
-                    "line": 32,
-                    "deleted": false,
-                    "data": "    img.src = src;"
-                },
-                {
-                    "line": 33,
-                    "deleted": false,
-                    "data": "  });"
-                },
-                {
-                    "line": 34,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 35,
-                    "deleted": false,
-                    "data": "  return promise;"
-                },
-                {
-                    "line": 36,
-                    "deleted": false,
-                    "data": "}"
-                },
-                {
-                    "line": 37,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 38,
-                    "deleted": false,
-                    "data": "async function compareImages(window, expected, test) {"
-                },
-                {
-                    "line": 39,
-                    "deleted": false,
-                    "data": "  const testCanvas = await draw(window, test);"
-                },
-                {
-                    "line": 40,
-                    "deleted": false,
-                    "data": "  const expectedCanvas = await draw(window, expected);"
-                },
-                {
-                    "line": 41,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 42,
-                    "deleted": false,
-                    "data": "  is(testCanvas.width, expectedCanvas.width, \"The test and expected images must be the same size\");"
-                },
-                {
-                    "line": 43,
-                    "deleted": false,
-                    "data": "  is(testCanvas.height, expectedCanvas.height, \"The test and expected images must be the same size\");"
-                },
-                {
-                    "line": 44,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 45,
-                    "deleted": false,
-                    "data": "  const nsIDOMWindowUtils = window.getInterface(Ci.nsIDOMWindowUtils);"
-                },
-                {
-                    "line": 46,
-                    "deleted": false,
-                    "data": "  return nsIDOMWindowUtils.compareCanvases(expectedCanvas, testCanvas, {});"
-                },
-                {
-                    "line": 47,
-                    "deleted": false,
-                    "data": "}"
-                },
-                {
-                    "line": 48,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 49,
-                    "deleted": false,
-                    "data": "async function cropAndCompare(window, src, expected, test, region) {"
-                },
-                {
-                    "line": 50,
-                    "deleted": false,
-                    "data": "  await TestRunner._cropImage(window, src, region, test);"
-                },
-                {
-                    "line": 51,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 52,
-                    "deleted": false,
-                    "data": "  return compareImages(window, expected, OS.Path.toFileURI(test));"
-                },
-                {
-                    "line": 53,
-                    "deleted": false,
-                    "data": "}"
-                },
-                {
-                    "line": 54,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 55,
-                    "deleted": false,
-                    "data": "add_task(async function crop() {"
-                },
-                {
-                    "line": 56,
-                    "deleted": false,
-                    "data": "  const window = Services.wm.getMostRecentWindow(\"navigator:browser\");"
-                },
-                {
-                    "line": 57,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 58,
-                    "deleted": false,
-                    "data": "  const tmp = OS.Constants.Path.tmpDir;"
-                },
-                {
-                    "line": 59,
-                    "deleted": false,
-                    "data": "  is(await cropAndCompare("
-                },
-                {
-                    "line": 60,
-                    "deleted": false,
-                    "data": "      window,"
-                },
-                {
-                    "line": 61,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
-                },
-                {
-                    "line": 62,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot_upperleft.png\","
-                },
-                {
-                    "line": 63,
-                    "deleted": false,
-                    "data": "      OS.Path.join(tmp, \"test_cropped_upperleft.png\"),"
-                },
-                {
-                    "line": 64,
-                    "deleted": false,
-                    "data": "      new Rect(0, 0, 32, 32)"
-                },
-                {
-                    "line": 65,
-                    "deleted": false,
-                    "data": "  ), 0, \"The image should be cropped to the upper left quadrant\");"
-                },
-                {
-                    "line": 66,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 67,
-                    "deleted": false,
-                    "data": "  is(await cropAndCompare("
-                },
-                {
-                    "line": 68,
-                    "deleted": false,
-                    "data": "      window,"
-                },
-                {
-                    "line": 69,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
-                },
-                {
-                    "line": 70,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot_center.png\","
-                },
-                {
-                    "line": 71,
-                    "deleted": false,
-                    "data": "      OS.Path.join(tmp, \"test_cropped_center.png\"),"
-                },
-                {
-                    "line": 72,
-                    "deleted": false,
-                    "data": "      new Rect(16, 16, 32, 32)"
-                },
-                {
-                    "line": 73,
-                    "deleted": false,
-                    "data": "  ), 0, \"The image should be cropped to the center of the image\");"
-                },
-                {
-                    "line": 74,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 75,
-                    "deleted": false,
-                    "data": "  is(await cropAndCompare("
-                },
-                {
-                    "line": 76,
-                    "deleted": false,
-                    "data": "      window,"
-                },
-                {
-                    "line": 77,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
-                },
-                {
-                    "line": 78,
-                    "deleted": false,
-                    "data": "      \"chrome://mozscreenshots/content/lib/robot_uncropped.png\","
-                },
-                {
-                    "line": 79,
-                    "deleted": false,
-                    "data": "      OS.Path.join(tmp, \"test_uncropped.png\"),"
-                },
-                {
-                    "line": 80,
-                    "deleted": false,
-                    "data": "      new Rect(-8, -9, 80, 80)"
-                },
-                {
-                    "line": 81,
-                    "deleted": false,
-                    "data": "  ), 0, \"The image should be not be cropped, and the cropping region should be clipped to the size of the image\");"
-                },
-                {
-                    "line": 82,
-                    "deleted": false,
-                    "data": "});"
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 1,
+                            "deleted": false,
+                            "data": "/* This Source Code Form is subject to the terms of the Mozilla Public"
+                        },
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": " * License, v. 2.0. If a copy of the MPL was not distributed with this"
+                        },
+                        {
+                            "line": 3,
+                            "deleted": false,
+                            "data": " * file, You can obtain one at http://mozilla.org/MPL/2.0/. */"
+                        },
+                        {
+                            "line": 4,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 5,
+                            "deleted": false,
+                            "data": "\"use strict\";"
+                        },
+                        {
+                            "line": 6,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 7,
+                            "deleted": false,
+                            "data": "Cu.import(\"resource://gre/modules/Geometry.jsm\", this);"
+                        },
+                        {
+                            "line": 8,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 9,
+                            "deleted": false,
+                            "data": "async function draw(window, src) {"
+                        },
+                        {
+                            "line": 10,
+                            "deleted": false,
+                            "data": "  const { document, Image } = window;"
+                        },
+                        {
+                            "line": 11,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 12,
+                            "deleted": false,
+                            "data": "  const promise = new Promise((resolve, reject) => {"
+                        },
+                        {
+                            "line": 13,
+                            "deleted": false,
+                            "data": "    const img = new Image();"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 15,
+                            "deleted": false,
+                            "data": "    img.onload = function() {"
+                        },
+                        {
+                            "line": 16,
+                            "deleted": false,
+                            "data": "      // Create a new offscreen canvas"
+                        },
+                        {
+                            "line": 17,
+                            "deleted": false,
+                            "data": "      const canvas = document.createElementNS(\"http://www.w3.org/1999/xhtml\", \"canvas\");"
+                        },
+                        {
+                            "line": 18,
+                            "deleted": false,
+                            "data": "      canvas.width = img.naturalWidth;"
+                        },
+                        {
+                            "line": 19,
+                            "deleted": false,
+                            "data": "      canvas.height = img.naturalHeight;"
+                        },
+                        {
+                            "line": 20,
+                            "deleted": false,
+                            "data": "      const ctx = canvas.getContext(\"2d\");"
+                        },
+                        {
+                            "line": 21,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 22,
+                            "deleted": false,
+                            "data": "      ctx.drawImage(img, 0, 0);"
+                        },
+                        {
+                            "line": 23,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 24,
+                            "deleted": false,
+                            "data": "      resolve(canvas);"
+                        },
+                        {
+                            "line": 25,
+                            "deleted": false,
+                            "data": "    };"
+                        },
+                        {
+                            "line": 26,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 27,
+                            "deleted": false,
+                            "data": "    img.onerror = function() {"
+                        },
+                        {
+                            "line": 28,
+                            "deleted": false,
+                            "data": "      reject(`error loading image ${src}`);"
+                        },
+                        {
+                            "line": 29,
+                            "deleted": false,
+                            "data": "    };"
+                        },
+                        {
+                            "line": 30,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 31,
+                            "deleted": false,
+                            "data": "    // Load the src image for drawing"
+                        },
+                        {
+                            "line": 32,
+                            "deleted": false,
+                            "data": "    img.src = src;"
+                        },
+                        {
+                            "line": 33,
+                            "deleted": false,
+                            "data": "  });"
+                        },
+                        {
+                            "line": 34,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 35,
+                            "deleted": false,
+                            "data": "  return promise;"
+                        },
+                        {
+                            "line": 36,
+                            "deleted": false,
+                            "data": "}"
+                        },
+                        {
+                            "line": 37,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 38,
+                            "deleted": false,
+                            "data": "async function compareImages(window, expected, test) {"
+                        },
+                        {
+                            "line": 39,
+                            "deleted": false,
+                            "data": "  const testCanvas = await draw(window, test);"
+                        },
+                        {
+                            "line": 40,
+                            "deleted": false,
+                            "data": "  const expectedCanvas = await draw(window, expected);"
+                        },
+                        {
+                            "line": 41,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 42,
+                            "deleted": false,
+                            "data": "  is(testCanvas.width, expectedCanvas.width, \"The test and expected images must be the same size\");"
+                        },
+                        {
+                            "line": 43,
+                            "deleted": false,
+                            "data": "  is(testCanvas.height, expectedCanvas.height, \"The test and expected images must be the same size\");"
+                        },
+                        {
+                            "line": 44,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 45,
+                            "deleted": false,
+                            "data": "  const nsIDOMWindowUtils = window.getInterface(Ci.nsIDOMWindowUtils);"
+                        },
+                        {
+                            "line": 46,
+                            "deleted": false,
+                            "data": "  return nsIDOMWindowUtils.compareCanvases(expectedCanvas, testCanvas, {});"
+                        },
+                        {
+                            "line": 47,
+                            "deleted": false,
+                            "data": "}"
+                        },
+                        {
+                            "line": 48,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 49,
+                            "deleted": false,
+                            "data": "async function cropAndCompare(window, src, expected, test, region) {"
+                        },
+                        {
+                            "line": 50,
+                            "deleted": false,
+                            "data": "  await TestRunner._cropImage(window, src, region, test);"
+                        },
+                        {
+                            "line": 51,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 52,
+                            "deleted": false,
+                            "data": "  return compareImages(window, expected, OS.Path.toFileURI(test));"
+                        },
+                        {
+                            "line": 53,
+                            "deleted": false,
+                            "data": "}"
+                        },
+                        {
+                            "line": 54,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 55,
+                            "deleted": false,
+                            "data": "add_task(async function crop() {"
+                        },
+                        {
+                            "line": 56,
+                            "deleted": false,
+                            "data": "  const window = Services.wm.getMostRecentWindow(\"navigator:browser\");"
+                        },
+                        {
+                            "line": 57,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 58,
+                            "deleted": false,
+                            "data": "  const tmp = OS.Constants.Path.tmpDir;"
+                        },
+                        {
+                            "line": 59,
+                            "deleted": false,
+                            "data": "  is(await cropAndCompare("
+                        },
+                        {
+                            "line": 60,
+                            "deleted": false,
+                            "data": "      window,"
+                        },
+                        {
+                            "line": 61,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
+                        },
+                        {
+                            "line": 62,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot_upperleft.png\","
+                        },
+                        {
+                            "line": 63,
+                            "deleted": false,
+                            "data": "      OS.Path.join(tmp, \"test_cropped_upperleft.png\"),"
+                        },
+                        {
+                            "line": 64,
+                            "deleted": false,
+                            "data": "      new Rect(0, 0, 32, 32)"
+                        },
+                        {
+                            "line": 65,
+                            "deleted": false,
+                            "data": "  ), 0, \"The image should be cropped to the upper left quadrant\");"
+                        },
+                        {
+                            "line": 66,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 67,
+                            "deleted": false,
+                            "data": "  is(await cropAndCompare("
+                        },
+                        {
+                            "line": 68,
+                            "deleted": false,
+                            "data": "      window,"
+                        },
+                        {
+                            "line": 69,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
+                        },
+                        {
+                            "line": 70,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot_center.png\","
+                        },
+                        {
+                            "line": 71,
+                            "deleted": false,
+                            "data": "      OS.Path.join(tmp, \"test_cropped_center.png\"),"
+                        },
+                        {
+                            "line": 72,
+                            "deleted": false,
+                            "data": "      new Rect(16, 16, 32, 32)"
+                        },
+                        {
+                            "line": 73,
+                            "deleted": false,
+                            "data": "  ), 0, \"The image should be cropped to the center of the image\");"
+                        },
+                        {
+                            "line": 74,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 75,
+                            "deleted": false,
+                            "data": "  is(await cropAndCompare("
+                        },
+                        {
+                            "line": 76,
+                            "deleted": false,
+                            "data": "      window,"
+                        },
+                        {
+                            "line": 77,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot.png\","
+                        },
+                        {
+                            "line": 78,
+                            "deleted": false,
+                            "data": "      \"chrome://mozscreenshots/content/lib/robot_uncropped.png\","
+                        },
+                        {
+                            "line": 79,
+                            "deleted": false,
+                            "data": "      OS.Path.join(tmp, \"test_uncropped.png\"),"
+                        },
+                        {
+                            "line": 80,
+                            "deleted": false,
+                            "data": "      new Rect(-8, -9, 80, 80)"
+                        },
+                        {
+                            "line": 81,
+                            "deleted": false,
+                            "data": "  ), 0, \"The image should be not be cropped, and the cropping region should be clipped to the size of the image\");"
+                        },
+                        {
+                            "line": 82,
+                            "deleted": false,
+                            "data": "});"
+                        }
+                    ]
                 }
             ]
         },
@@ -439,76 +447,84 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 67,
-                    "deleted": true,
-                    "data": "  captureExternal(filename) {"
+                    "lines": [
+                        {
+                            "line": 67,
+                            "deleted": true,
+                            "data": "  captureExternal(filename) {"
+                        },
+                        {
+                            "line": 67,
+                            "deleted": false,
+                            "data": "  async captureExternal(filename) {"
+                        },
+                        {
+                            "line": 69,
+                            "deleted": true,
+                            "data": "    return this._screenshotFunction(imagePath).then(() => {"
+                        },
+                        {
+                            "line": 70,
+                            "deleted": true,
+                            "data": "      log.debug(\"saved screenshot: \" + filename);"
+                        },
+                        {
+                            "line": 71,
+                            "deleted": true,
+                            "data": "    });"
+                        },
+                        {
+                            "line": 69,
+                            "deleted": false,
+                            "data": "    await this._screenshotFunction(imagePath);"
+                        },
+                        {
+                            "line": 70,
+                            "deleted": false,
+                            "data": "    log.debug(\"saved screenshot: \" + filename);"
+                        },
+                        {
+                            "line": 71,
+                            "deleted": false,
+                            "data": "    return imagePath;"
+                        }
+                    ]
                 },
                 {
-                    "line": 67,
-                    "deleted": false,
-                    "data": "  async captureExternal(filename) {"
-                },
-                {
-                    "line": 69,
-                    "deleted": true,
-                    "data": "    return this._screenshotFunction(imagePath).then(() => {"
-                },
-                {
-                    "line": 70,
-                    "deleted": true,
-                    "data": "      log.debug(\"saved screenshot: \" + filename);"
-                },
-                {
-                    "line": 71,
-                    "deleted": true,
-                    "data": "    });"
-                },
-                {
-                    "line": 69,
-                    "deleted": false,
-                    "data": "    await this._screenshotFunction(imagePath);"
-                },
-                {
-                    "line": 70,
-                    "deleted": false,
-                    "data": "    log.debug(\"saved screenshot: \" + filename);"
-                },
-                {
-                    "line": 71,
-                    "deleted": false,
-                    "data": "    return imagePath;"
-                },
-                {
-                    "line": 105,
-                    "deleted": true,
-                    "data": "        // Darwin version number for OS X 10.6 is 10.x"
-                },
-                {
-                    "line": 106,
-                    "deleted": true,
-                    "data": "        if (windowID && Services.sysinfo.getProperty(\"version\").indexOf(\"10.\") !== 0) {"
-                },
-                {
-                    "line": 107,
-                    "deleted": true,
-                    "data": "          // Capture only that window on 10.7+"
-                },
-                {
-                    "line": 108,
-                    "deleted": true,
-                    "data": "          args.push(\"-l\");"
-                },
-                {
-                    "line": 109,
-                    "deleted": true,
-                    "data": "          args.push(windowID);"
-                },
-                {
-                    "line": 110,
-                    "deleted": true,
-                    "data": "        }"
+                    "lines": [
+                        {
+                            "line": 105,
+                            "deleted": true,
+                            "data": "        // Darwin version number for OS X 10.6 is 10.x"
+                        },
+                        {
+                            "line": 106,
+                            "deleted": true,
+                            "data": "        if (windowID && Services.sysinfo.getProperty(\"version\").indexOf(\"10.\") !== 0) {"
+                        },
+                        {
+                            "line": 107,
+                            "deleted": true,
+                            "data": "          // Capture only that window on 10.7+"
+                        },
+                        {
+                            "line": 108,
+                            "deleted": true,
+                            "data": "          args.push(\"-l\");"
+                        },
+                        {
+                            "line": 109,
+                            "deleted": true,
+                            "data": "          args.push(windowID);"
+                        },
+                        {
+                            "line": 110,
+                            "deleted": true,
+                            "data": "        }"
+                        }
+                    ]
                 }
             ]
         },
@@ -518,416 +534,424 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
-                {
-                    "line": 23,
-                    "deleted": true,
-                    "data": ""
-                },
-                {
-                    "line": 23,
-                    "deleted": false,
-                    "data": "// Screenshot.jsm must be imported this way for xpcshell tests to work"
-                },
-                {
-                    "line": 327,
-                    "deleted": true,
-                    "data": "    await this._onConfigurationReady(combo);"
-                },
-                {
-                    "line": 327,
-                    "deleted": false,
-                    "data": "    // Collect selectors from combo configs for cropping region"
-                },
-                {
-                    "line": 328,
-                    "deleted": false,
-                    "data": "    let windowType;"
-                },
-                {
-                    "line": 329,
-                    "deleted": false,
-                    "data": "    const finalSelectors = [];"
-                },
-                {
-                    "line": 330,
-                    "deleted": false,
-                    "data": "    for (const obj of combo) {"
-                },
-                {
-                    "line": 331,
-                    "deleted": false,
-                    "data": "      if (!windowType) {"
-                },
-                {
-                    "line": 332,
-                    "deleted": false,
-                    "data": "        windowType = obj.windowType;"
-                },
-                {
-                    "line": 333,
-                    "deleted": false,
-                    "data": "      } else if (windowType !== obj.windowType) {"
-                },
-                {
-                    "line": 334,
-                    "deleted": false,
-                    "data": "        log.warn(\"\\tConfigurations with multiple window types are not allowed\");"
-                },
-                {
-                    "line": 335,
-                    "deleted": false,
-                    "data": "        return;"
-                },
-                {
-                    "line": 336,
-                    "deleted": false,
-                    "data": "      }"
-                },
-                {
-                    "line": 337,
-                    "deleted": false,
-                    "data": "      for (const selector of obj.selectors) {"
-                },
-                {
-                    "line": 338,
-                    "deleted": false,
-                    "data": "        finalSelectors.push(selector);"
-                },
-                {
-                    "line": 339,
-                    "deleted": false,
-                    "data": "      }"
-                },
-                {
-                    "line": 340,
-                    "deleted": false,
-                    "data": "    }"
-                },
-                {
-                    "line": 341,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 342,
-                    "deleted": false,
-                    "data": "    const rect = this._findBoundingBox(finalSelectors, windowType);"
-                },
-                {
-                    "line": 343,
-                    "deleted": false,
-                    "data": "    await this._onConfigurationReady(combo, rect);"
-                },
-                {
-                    "line": 330,
-                    "deleted": true,
-                    "data": "  _onConfigurationReady(combo) {"
-                },
-                {
-                    "line": 331,
-                    "deleted": true,
-                    "data": "    let delayedScreenshot = () => {"
-                },
-                {
-                    "line": 332,
-                    "deleted": true,
-                    "data": "      let filename = padLeft(this.currentComboIndex + 1,"
-                },
-                {
-                    "line": 333,
-                    "deleted": true,
-                    "data": "                             String(this.combos.length).length) + this._comboName(combo);"
-                },
-                {
-                    "line": 334,
-                    "deleted": true,
-                    "data": "      return Screenshot.captureExternal(filename)"
-                },
-                {
-                    "line": 335,
-                    "deleted": true,
-                    "data": "        .then(() => {"
-                },
-                {
-                    "line": 336,
-                    "deleted": true,
-                    "data": "          this.completedCombos++;"
-                },
-                {
-                    "line": 337,
-                    "deleted": true,
-                    "data": "        });"
-                },
-                {
-                    "line": 338,
-                    "deleted": true,
-                    "data": "    };"
-                },
-                {
-                    "line": 346,
-                    "deleted": false,
-                    "data": "  async _onConfigurationReady(combo, rect) {"
-                },
-                {
-                    "line": 347,
-                    "deleted": false,
-                    "data": "    let filename = padLeft(this.currentComboIndex + 1,"
-                },
-                {
-                    "line": 348,
-                    "deleted": false,
-                    "data": "                           String(this.combos.length).length) + this._comboName(combo);"
-                },
-                {
-                    "line": 349,
-                    "deleted": false,
-                    "data": "    const imagePath = await Screenshot.captureExternal(filename);"
-                },
-                {
-                    "line": 351,
-                    "deleted": false,
-                    "data": "    let browserWindow = Services.wm.getMostRecentWindow(\"navigator:browser\");"
-                },
-                {
-                    "line": 352,
-                    "deleted": false,
-                    "data": "    await this._cropImage(browserWindow, OS.Path.toFileURI(imagePath), rect, imagePath);"
-                },
-                {
-                    "line": 353,
-                    "deleted": false,
-                    "data": "    this.completedCombos++;"
-                },
-                {
-                    "line": 341,
-                    "deleted": true,
-                    "data": "    return delayedScreenshot();"
-                },
-                {
-                    "line": 363,
-                    "deleted": false,
-                    "data": "  async _cropImage(window, srcPath, rect, targetPath) {"
-                },
-                {
-                    "line": 364,
-                    "deleted": false,
-                    "data": "    const { document, Image } = window;"
-                },
-                {
-                    "line": 365,
-                    "deleted": false,
-                    "data": "    const promise = new Promise((resolve, reject) => {"
-                },
-                {
-                    "line": 366,
-                    "deleted": false,
-                    "data": "      const img = new Image();"
-                },
-                {
-                    "line": 367,
-                    "deleted": false,
-                    "data": "      img.onload = function() {"
-                },
-                {
-                    "line": 368,
-                    "deleted": false,
-                    "data": "        // Clip the cropping region to the size of the screenshot"
-                },
-                {
-                    "line": 369,
-                    "deleted": false,
-                    "data": "        // This is necessary mostly to deal with offscreen windows, since we"
-                },
-                {
-                    "line": 370,
-                    "deleted": false,
-                    "data": "        // are capturing an image of the operating system's desktop."
-                },
-                {
-                    "line": 371,
-                    "deleted": false,
-                    "data": "        rect.left = Math.max(0, rect.left);"
-                },
-                {
-                    "line": 372,
-                    "deleted": false,
-                    "data": "        rect.right = Math.min(img.naturalWidth, rect.right);"
-                },
-                {
-                    "line": 373,
-                    "deleted": false,
-                    "data": "        rect.top = Math.max(0, rect.top);"
-                },
-                {
-                    "line": 374,
-                    "deleted": false,
-                    "data": "        rect.bottom = Math.min(img.naturalHeight, rect.bottom);"
-                },
-                {
-                    "line": 375,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 376,
-                    "deleted": false,
-                    "data": "        // Create a new offscreen canvas with the width and height given by the"
-                },
-                {
-                    "line": 377,
-                    "deleted": false,
-                    "data": "        // size of the region we want to crop to"
-                },
-                {
-                    "line": 378,
-                    "deleted": false,
-                    "data": "        const canvas = document.createElementNS(\"http://www.w3.org/1999/xhtml\", \"canvas\");"
-                },
-                {
-                    "line": 379,
-                    "deleted": false,
-                    "data": "        canvas.width = rect.width;"
-                },
-                {
-                    "line": 380,
-                    "deleted": false,
-                    "data": "        canvas.height = rect.height;"
-                },
-                {
-                    "line": 381,
-                    "deleted": false,
-                    "data": "        const ctx = canvas.getContext(\"2d\");"
-                },
-                {
-                    "line": 382,
-                    "deleted": false,
-                    "data": "        // By drawing the image with the negative offset, the unwanted regions"
-                },
-                {
-                    "line": 383,
-                    "deleted": false,
-                    "data": "        // are drawn off canvas, and are not captured when the canvas is saved."
-                },
-                {
-                    "line": 384,
-                    "deleted": false,
-                    "data": "        ctx.drawImage(img, -rect.x, -rect.y);"
-                },
-                {
-                    "line": 385,
-                    "deleted": false,
-                    "data": "        // Converts the canvas to a binary blob, which can be saved to a png"
-                },
-                {
-                    "line": 386,
-                    "deleted": false,
-                    "data": "        canvas.toBlob((blob) => {"
-                },
-                {
-                    "line": 387,
-                    "deleted": false,
-                    "data": "          // Use a filereader to convert the raw binary blob into a writable buffer"
-                },
-                {
-                    "line": 388,
-                    "deleted": false,
-                    "data": "          const fr = new FileReader();"
-                },
-                {
-                    "line": 389,
-                    "deleted": false,
-                    "data": "          fr.onload = function(e) {"
-                },
-                {
-                    "line": 390,
-                    "deleted": false,
-                    "data": "            const buffer = new Uint8Array(e.target.result);"
-                },
-                {
-                    "line": 391,
-                    "deleted": false,
-                    "data": "            // Save the file and complete the promise"
-                },
-                {
-                    "line": 392,
-                    "deleted": false,
-                    "data": "            OS.File.writeAtomic(targetPath, buffer, {}).then(resolve);"
-                },
-                {
-                    "line": 393,
-                    "deleted": false,
-                    "data": "          };"
-                },
-                {
-                    "line": 394,
-                    "deleted": false,
-                    "data": "          // Do the conversion"
-                },
-                {
-                    "line": 395,
-                    "deleted": false,
-                    "data": "          fr.readAsArrayBuffer(blob);"
-                },
-                {
-                    "line": 396,
-                    "deleted": false,
-                    "data": "        });"
-                },
-                {
-                    "line": 397,
-                    "deleted": false,
-                    "data": "      };"
-                },
-                {
-                    "line": 398,
-                    "deleted": false,
-                    "data": ""
-                },
-                {
-                    "line": 399,
-                    "deleted": false,
-                    "data": "      img.onerror = function() {"
-                },
-                {
-                    "line": 400,
-                    "deleted": false,
-                    "data": "        reject(`error loading image ${srcPath}`);"
-                },
-                {
-                    "line": 401,
-                    "deleted": false,
-                    "data": "      };"
-                },
-                {
-                    "line": 402,
-                    "deleted": false,
-                    "data": "      // Load the src image for drawing"
-                },
-                {
-                    "line": 403,
-                    "deleted": false,
-                    "data": "      img.src = srcPath;"
-                },
-                {
-                    "line": 404,
-                    "deleted": false,
-                    "data": "    });"
-                },
-                {
-                    "line": 405,
-                    "deleted": false,
-                    "data": "    return promise;"
-                },
-                {
-                    "line": 406,
-                    "deleted": false,
-                    "data": "  },"
-                },
-                {
-                    "line": 407,
-                    "deleted": false,
-                    "data": ""
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 23,
+                            "deleted": true,
+                            "data": ""
+                        },
+                        {
+                            "line": 23,
+                            "deleted": false,
+                            "data": "// Screenshot.jsm must be imported this way for xpcshell tests to work"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 327,
+                            "deleted": true,
+                            "data": "    await this._onConfigurationReady(combo);"
+                        },
+                        {
+                            "line": 327,
+                            "deleted": false,
+                            "data": "    // Collect selectors from combo configs for cropping region"
+                        },
+                        {
+                            "line": 328,
+                            "deleted": false,
+                            "data": "    let windowType;"
+                        },
+                        {
+                            "line": 329,
+                            "deleted": false,
+                            "data": "    const finalSelectors = [];"
+                        },
+                        {
+                            "line": 330,
+                            "deleted": false,
+                            "data": "    for (const obj of combo) {"
+                        },
+                        {
+                            "line": 331,
+                            "deleted": false,
+                            "data": "      if (!windowType) {"
+                        },
+                        {
+                            "line": 332,
+                            "deleted": false,
+                            "data": "        windowType = obj.windowType;"
+                        },
+                        {
+                            "line": 333,
+                            "deleted": false,
+                            "data": "      } else if (windowType !== obj.windowType) {"
+                        },
+                        {
+                            "line": 334,
+                            "deleted": false,
+                            "data": "        log.warn(\"\\tConfigurations with multiple window types are not allowed\");"
+                        },
+                        {
+                            "line": 335,
+                            "deleted": false,
+                            "data": "        return;"
+                        },
+                        {
+                            "line": 336,
+                            "deleted": false,
+                            "data": "      }"
+                        },
+                        {
+                            "line": 337,
+                            "deleted": false,
+                            "data": "      for (const selector of obj.selectors) {"
+                        },
+                        {
+                            "line": 338,
+                            "deleted": false,
+                            "data": "        finalSelectors.push(selector);"
+                        },
+                        {
+                            "line": 339,
+                            "deleted": false,
+                            "data": "      }"
+                        },
+                        {
+                            "line": 340,
+                            "deleted": false,
+                            "data": "    }"
+                        },
+                        {
+                            "line": 341,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 342,
+                            "deleted": false,
+                            "data": "    const rect = this._findBoundingBox(finalSelectors, windowType);"
+                        },
+                        {
+                            "line": 343,
+                            "deleted": false,
+                            "data": "    await this._onConfigurationReady(combo, rect);"
+                        },
+                        {
+                            "line": 330,
+                            "deleted": true,
+                            "data": "  _onConfigurationReady(combo) {"
+                        },
+                        {
+                            "line": 331,
+                            "deleted": true,
+                            "data": "    let delayedScreenshot = () => {"
+                        },
+                        {
+                            "line": 332,
+                            "deleted": true,
+                            "data": "      let filename = padLeft(this.currentComboIndex + 1,"
+                        },
+                        {
+                            "line": 333,
+                            "deleted": true,
+                            "data": "                             String(this.combos.length).length) + this._comboName(combo);"
+                        },
+                        {
+                            "line": 334,
+                            "deleted": true,
+                            "data": "      return Screenshot.captureExternal(filename)"
+                        },
+                        {
+                            "line": 335,
+                            "deleted": true,
+                            "data": "        .then(() => {"
+                        },
+                        {
+                            "line": 336,
+                            "deleted": true,
+                            "data": "          this.completedCombos++;"
+                        },
+                        {
+                            "line": 337,
+                            "deleted": true,
+                            "data": "        });"
+                        },
+                        {
+                            "line": 338,
+                            "deleted": true,
+                            "data": "    };"
+                        },
+                        {
+                            "line": 346,
+                            "deleted": false,
+                            "data": "  async _onConfigurationReady(combo, rect) {"
+                        },
+                        {
+                            "line": 347,
+                            "deleted": false,
+                            "data": "    let filename = padLeft(this.currentComboIndex + 1,"
+                        },
+                        {
+                            "line": 348,
+                            "deleted": false,
+                            "data": "                           String(this.combos.length).length) + this._comboName(combo);"
+                        },
+                        {
+                            "line": 349,
+                            "deleted": false,
+                            "data": "    const imagePath = await Screenshot.captureExternal(filename);"
+                        },
+                        {
+                            "line": 351,
+                            "deleted": false,
+                            "data": "    let browserWindow = Services.wm.getMostRecentWindow(\"navigator:browser\");"
+                        },
+                        {
+                            "line": 352,
+                            "deleted": false,
+                            "data": "    await this._cropImage(browserWindow, OS.Path.toFileURI(imagePath), rect, imagePath);"
+                        },
+                        {
+                            "line": 353,
+                            "deleted": false,
+                            "data": "    this.completedCombos++;"
+                        },
+                        {
+                            "line": 341,
+                            "deleted": true,
+                            "data": "    return delayedScreenshot();"
+                        },
+                        {
+                            "line": 363,
+                            "deleted": false,
+                            "data": "  async _cropImage(window, srcPath, rect, targetPath) {"
+                        },
+                        {
+                            "line": 364,
+                            "deleted": false,
+                            "data": "    const { document, Image } = window;"
+                        },
+                        {
+                            "line": 365,
+                            "deleted": false,
+                            "data": "    const promise = new Promise((resolve, reject) => {"
+                        },
+                        {
+                            "line": 366,
+                            "deleted": false,
+                            "data": "      const img = new Image();"
+                        },
+                        {
+                            "line": 367,
+                            "deleted": false,
+                            "data": "      img.onload = function() {"
+                        },
+                        {
+                            "line": 368,
+                            "deleted": false,
+                            "data": "        // Clip the cropping region to the size of the screenshot"
+                        },
+                        {
+                            "line": 369,
+                            "deleted": false,
+                            "data": "        // This is necessary mostly to deal with offscreen windows, since we"
+                        },
+                        {
+                            "line": 370,
+                            "deleted": false,
+                            "data": "        // are capturing an image of the operating system's desktop."
+                        },
+                        {
+                            "line": 371,
+                            "deleted": false,
+                            "data": "        rect.left = Math.max(0, rect.left);"
+                        },
+                        {
+                            "line": 372,
+                            "deleted": false,
+                            "data": "        rect.right = Math.min(img.naturalWidth, rect.right);"
+                        },
+                        {
+                            "line": 373,
+                            "deleted": false,
+                            "data": "        rect.top = Math.max(0, rect.top);"
+                        },
+                        {
+                            "line": 374,
+                            "deleted": false,
+                            "data": "        rect.bottom = Math.min(img.naturalHeight, rect.bottom);"
+                        },
+                        {
+                            "line": 375,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 376,
+                            "deleted": false,
+                            "data": "        // Create a new offscreen canvas with the width and height given by the"
+                        },
+                        {
+                            "line": 377,
+                            "deleted": false,
+                            "data": "        // size of the region we want to crop to"
+                        },
+                        {
+                            "line": 378,
+                            "deleted": false,
+                            "data": "        const canvas = document.createElementNS(\"http://www.w3.org/1999/xhtml\", \"canvas\");"
+                        },
+                        {
+                            "line": 379,
+                            "deleted": false,
+                            "data": "        canvas.width = rect.width;"
+                        },
+                        {
+                            "line": 380,
+                            "deleted": false,
+                            "data": "        canvas.height = rect.height;"
+                        },
+                        {
+                            "line": 381,
+                            "deleted": false,
+                            "data": "        const ctx = canvas.getContext(\"2d\");"
+                        },
+                        {
+                            "line": 382,
+                            "deleted": false,
+                            "data": "        // By drawing the image with the negative offset, the unwanted regions"
+                        },
+                        {
+                            "line": 383,
+                            "deleted": false,
+                            "data": "        // are drawn off canvas, and are not captured when the canvas is saved."
+                        },
+                        {
+                            "line": 384,
+                            "deleted": false,
+                            "data": "        ctx.drawImage(img, -rect.x, -rect.y);"
+                        },
+                        {
+                            "line": 385,
+                            "deleted": false,
+                            "data": "        // Converts the canvas to a binary blob, which can be saved to a png"
+                        },
+                        {
+                            "line": 386,
+                            "deleted": false,
+                            "data": "        canvas.toBlob((blob) => {"
+                        },
+                        {
+                            "line": 387,
+                            "deleted": false,
+                            "data": "          // Use a filereader to convert the raw binary blob into a writable buffer"
+                        },
+                        {
+                            "line": 388,
+                            "deleted": false,
+                            "data": "          const fr = new FileReader();"
+                        },
+                        {
+                            "line": 389,
+                            "deleted": false,
+                            "data": "          fr.onload = function(e) {"
+                        },
+                        {
+                            "line": 390,
+                            "deleted": false,
+                            "data": "            const buffer = new Uint8Array(e.target.result);"
+                        },
+                        {
+                            "line": 391,
+                            "deleted": false,
+                            "data": "            // Save the file and complete the promise"
+                        },
+                        {
+                            "line": 392,
+                            "deleted": false,
+                            "data": "            OS.File.writeAtomic(targetPath, buffer, {}).then(resolve);"
+                        },
+                        {
+                            "line": 393,
+                            "deleted": false,
+                            "data": "          };"
+                        },
+                        {
+                            "line": 394,
+                            "deleted": false,
+                            "data": "          // Do the conversion"
+                        },
+                        {
+                            "line": 395,
+                            "deleted": false,
+                            "data": "          fr.readAsArrayBuffer(blob);"
+                        },
+                        {
+                            "line": 396,
+                            "deleted": false,
+                            "data": "        });"
+                        },
+                        {
+                            "line": 397,
+                            "deleted": false,
+                            "data": "      };"
+                        },
+                        {
+                            "line": 398,
+                            "deleted": false,
+                            "data": ""
+                        },
+                        {
+                            "line": 399,
+                            "deleted": false,
+                            "data": "      img.onerror = function() {"
+                        },
+                        {
+                            "line": 400,
+                            "deleted": false,
+                            "data": "        reject(`error loading image ${srcPath}`);"
+                        },
+                        {
+                            "line": 401,
+                            "deleted": false,
+                            "data": "      };"
+                        },
+                        {
+                            "line": 402,
+                            "deleted": false,
+                            "data": "      // Load the src image for drawing"
+                        },
+                        {
+                            "line": 403,
+                            "deleted": false,
+                            "data": "      img.src = srcPath;"
+                        },
+                        {
+                            "line": 404,
+                            "deleted": false,
+                            "data": "    });"
+                        },
+                        {
+                            "line": 405,
+                            "deleted": false,
+                            "data": "    return promise;"
+                        },
+                        {
+                            "line": 406,
+                            "deleted": false,
+                            "data": "  },"
+                        },
+                        {
+                            "line": 407,
+                            "deleted": false,
+                            "data": ""
+                        }
+                    ]
                 }
             ]
         },
@@ -937,18 +961,46 @@
             "deleted": false,
             "binary": false,
             "copied_from": null,
-            "lines": [
+            "hunks": [
                 {
-                    "line": 32,
-                    "deleted": true,
-                    "data": "      selectors: [\"#navigator-toolbox\", \"#titlebar\"],"
-                },
-                {
-                    "line": 32,
-                    "deleted": false,
-                    "data": "      selectors: [\"#navigator-toolbox\"].concat(Services.appinfo.OS == \"Linux\" ? [] : [\"#titlebar\"]),"
+                    "lines": [
+                        {
+                            "line": 32,
+                            "deleted": true,
+                            "data": "      selectors: [\"#navigator-toolbox\", \"#titlebar\"],"
+                        },
+                        {
+                            "line": 32,
+                            "deleted": false,
+                            "data": "      selectors: [\"#navigator-toolbox\"].concat(Services.appinfo.OS == \"Linux\" ? [] : [\"#titlebar\"]),"
+                        }
+                    ]
                 }
             ]
+        },
+        {
+            "filename": "browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_center.png",
+            "new": false,
+            "deleted": false,
+            "binary": true,
+            "copied_from": null,
+            "hunks": []
+        },
+        {
+            "filename": "browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_uncropped.png",
+            "new": false,
+            "deleted": false,
+            "binary": true,
+            "copied_from": null,
+            "hunks": []
+        },
+        {
+            "filename": "browser/tools/mozscreenshots/mozscreenshots/extension/lib/robot_upperleft.png",
+            "new": false,
+            "deleted": false,
+            "binary": true,
+            "copied_from": null,
+            "hunks": []
         }
     ]
 }
