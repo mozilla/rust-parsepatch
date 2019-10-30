@@ -6,7 +6,13 @@ use std::path::PathBuf;
 /// A type to handle lines in a diff
 pub trait Diff {
     /// Set the file info
-    fn set_info(&mut self, old_name: &str, new_name: &str, op: FileOp, binary: bool);
+    fn set_info(
+        &mut self,
+        old_name: &str,
+        new_name: &str,
+        op: FileOp,
+        binary_sizes: Option<Vec<BinaryHunk>>,
+    );
 
     /// Add a line in the diff
     ///
@@ -22,6 +28,13 @@ pub trait Diff {
 
     /// Close the diff: no more lines will be added
     fn close(&mut self);
+}
+
+/// An enum containing the size of binary hunks
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum BinaryHunk {
+    Literal(usize),
+    Delta(usize),
 }
 
 /// A type to handle patch
@@ -233,7 +246,7 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: new: {}", new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, false);
+            diff.set_info(old, new, FileOp::None, None);
             diff.close();
             return;
         };
@@ -252,7 +265,7 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, false);
+            diff.set_info(old, new, FileOp::None, None);
             diff.close();
             self.parse_diff(&mut line, patch);
             return;
@@ -277,7 +290,7 @@ impl<'a> PatchReader<'a> {
             trace!("Copy/Renamed from {} to {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::Renamed, false);
+            diff.set_info(old, new, FileOp::Renamed, None);
 
             if let Some(mut _line) = self.next(PatchReader::mv, false) {
                 if _line.is_triple_minus() {
@@ -306,7 +319,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, false);
+                    diff.set_info(old, new, op, None);
                     diff.close();
                     return;
                 };
@@ -319,9 +332,10 @@ impl<'a> PatchReader<'a> {
                     trace!("Binary file (op == {:?}): {}", op, new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, true);
+                    let sizes = self.skip_binary();
+
+                    diff.set_info(old, new, op, Some(sizes));
                     diff.close();
-                    self.skip_binary();
                     return;
                 } else if PatchReader::diff(&line) {
                     let (old, new) = diff_line.parse_files();
@@ -329,7 +343,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, false);
+                    diff.set_info(old, new, op, None);
                     diff.close();
                     self.parse_diff(&mut line, patch);
                     return;
@@ -352,7 +366,7 @@ impl<'a> PatchReader<'a> {
             trace!("Files: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, op, false);
+            diff.set_info(old, new, op, None);
             line = self.next(PatchReader::mv, false).unwrap();
             self.parse_hunks(&mut line, diff);
             diff.close();
@@ -444,25 +458,38 @@ impl<'a> PatchReader<'a> {
         self.pos = self.buf.len();
     }
 
-    fn skip_binary(&mut self) {
+    fn parse_usize(buf: &[u8]) -> usize {
+        let mut x = 0;
+        for c in buf.iter() {
+            if *c >= b'0' && *c <= b'9' {
+                x = x * 10 + usize::from(*c - b'0');
+            } else {
+                break;
+            }
+        }
+        x
+    }
+
+    fn skip_binary(&mut self) -> Vec<BinaryHunk> {
+        let mut sizes = Vec::new();
         loop {
             self.skip_until_empty_line();
             if let Some(buf) = self.buf.get(self.pos..) {
-                // 8 == len(literal )
-                if let Some(buf) = buf.get(..8) {
-                    if buf == b"literal " {
-                        continue;
-                    }
-                }
-                // 6 == len(delta )
-                if let Some(buf) = buf.get(..6) {
-                    if buf == b"delta " {
-                        continue;
-                    }
+                if buf.starts_with(b"literal ") {
+                    self.pos += 8;
+                    let buf = unsafe { self.buf.get_unchecked(self.pos..) };
+                    sizes.push(BinaryHunk::Literal(Self::parse_usize(buf)));
+                    continue;
+                } else if buf.starts_with(b"delta ") {
+                    self.pos += 6;
+                    let buf = unsafe { self.buf.get_unchecked(self.pos..) };
+                    sizes.push(BinaryHunk::Delta(Self::parse_usize(buf)));
+                    continue;
                 }
             }
             break;
         }
+        sizes
     }
 
     fn useful(line: &LineReader) -> bool {
@@ -565,7 +592,7 @@ mod tests {
             "abcdef",
             "ghijkl",
             "",
-            "delta 1",
+            "delta 2",
             "abcdef",
             "ghijkl",
             "",
@@ -577,8 +604,9 @@ mod tests {
             buf: s.as_bytes(),
             pos: 0,
         };
-        p.skip_binary();
-        assert!(p.pos == hpos);
+        let sizes = p.skip_binary();
+        assert_eq!(p.pos, hpos);
+        assert_eq!(sizes, vec![BinaryHunk::Literal(1), BinaryHunk::Delta(2)]);
     }
 
     #[test]

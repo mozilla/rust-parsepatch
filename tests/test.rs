@@ -108,7 +108,13 @@ impl Patch<DiffImpl> for PatchImpl {
 }
 
 impl Diff for DiffImpl {
-    fn set_info(&mut self, old_name: &str, new_name: &str, op: FileOp, binary: bool) {
+    fn set_info(
+        &mut self,
+        old_name: &str,
+        new_name: &str,
+        op: FileOp,
+        binary_sizes: Option<Vec<BinaryHunk>>,
+    ) {
         match op {
             FileOp::New => {
                 self.new = true;
@@ -126,7 +132,7 @@ impl Diff for DiffImpl {
                 self.filename = new_name.to_string();
             }
         }
-        self.binary = binary;
+        self.binary = binary_sizes.is_some();
     }
 
     fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]) {
