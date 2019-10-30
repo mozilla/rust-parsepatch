@@ -530,21 +530,22 @@ impl<'a> PatchReader<'a> {
     fn skip_binary(&mut self) -> Vec<BinaryHunk> {
         let mut sizes = Vec::new();
         loop {
-            self.skip_until_empty_line();
             if let Some(buf) = self.buf.get(self.pos..) {
                 if buf.starts_with(b"literal ") {
                     self.pos += 8;
                     let buf = unsafe { self.buf.get_unchecked(self.pos..) };
                     sizes.push(BinaryHunk::Literal(Self::parse_usize(buf)));
-                    continue;
                 } else if buf.starts_with(b"delta ") {
                     self.pos += 6;
                     let buf = unsafe { self.buf.get_unchecked(self.pos..) };
                     sizes.push(BinaryHunk::Delta(Self::parse_usize(buf)));
-                    continue;
+                } else {
+                    break;
                 }
+            } else {
+                break;
             }
-            break;
+            self.skip_until_empty_line();
         }
         sizes
     }
@@ -642,9 +643,6 @@ mod tests {
     #[test]
     fn test_skip_binary() {
         let s = vec![
-            "abcdef",
-            "ghijkl",
-            "",
             "literal 1",
             "abcdef",
             "ghijkl",
