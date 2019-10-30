@@ -12,6 +12,7 @@ pub trait Diff {
         new_name: &str,
         op: FileOp,
         binary_sizes: Option<Vec<BinaryHunk>>,
+        file_mode: Option<FileMode>,
     );
 
     /// Add a line in the diff
@@ -37,6 +38,13 @@ pub enum BinaryHunk {
     Delta(usize),
 }
 
+/// File mode change
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct FileMode {
+    pub old: u32,
+    pub new: u32,
+}
+
 /// A type to handle patch
 pub trait Patch<D: Diff> {
     /// Create a new diff where lines will be added
@@ -47,18 +55,28 @@ pub trait Patch<D: Diff> {
 }
 
 /// The different file operation
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FileOp {
-    /// The file is new
-    New,
-    /// The file is deleted
-    Deleted,
+    /// The file is new with its mode
+    New(u32),
+    /// The file is deleted with its mode
+    Deleted(u32),
     /// The file is renamed
     Renamed,
     /// The file is copied
     Copied,
     /// The file is touched
     None,
+}
+
+impl FileOp {
+    pub fn is_new_or_deleted(self) -> bool {
+        match self {
+            FileOp::New(_) => true,
+            FileOp::Deleted(_) => true,
+            _ => false,
+        }
+    }
 }
 
 /// Type to read a patch
@@ -108,9 +126,9 @@ impl<'a> LineReader<'a> {
 
     fn get_file_op(&self) -> FileOp {
         if self.is_new_file() {
-            FileOp::New
+            FileOp::New(self.parse_mode("new file mode "))
         } else if self.is_deleted_file() {
-            FileOp::Deleted
+            FileOp::Deleted(self.parse_mode("deleted file mode "))
         } else if self.is_rename_from() {
             FileOp::Renamed
         } else if self.is_copy_from() {
@@ -205,6 +223,21 @@ impl<'a> LineReader<'a> {
             std::str::from_utf8(new_path).unwrap(),
         )
     }
+
+    fn parse_mode(&self, start: &'static str) -> u32 {
+        // we know that line is beginning with "old/new mode "
+        // the following number is an octal number with 6 digits (so max is 8^6 - 1)
+        let buf = unsafe { self.buf.get_unchecked(start.len()..) };
+        let mut x = 0;
+        for c in buf.iter() {
+            if *c >= b'0' && *c <= b'7' {
+                x = x * 8 + u32::from(*c - b'0');
+            } else {
+                break;
+            }
+        }
+        x
+    }
 }
 
 impl<'a> PatchReader<'a> {
@@ -237,7 +270,7 @@ impl<'a> PatchReader<'a> {
 
     fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
         trace!("Diff {:?}", diff_line);
-        let mut line = if let Some(line) = self.next(PatchReader::old_new_mode, false) {
+        let mut line = if let Some(line) = self.next(PatchReader::mv, false) {
             line
         } else {
             // Nothing more... so close it
@@ -246,10 +279,34 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: new: {}", new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, None);
+            diff.set_info(old, new, FileOp::None, None, None);
             diff.close();
             return;
         };
+
+        let file_mode = if PatchReader::old_mode(&line) {
+            let old = line.parse_mode("old mode ");
+            let l = self.next(PatchReader::mv, false).unwrap();
+            let new = l.parse_mode("new mode ");
+            let file_mode = FileMode { old, new };
+            if let Some(l) = self.next(PatchReader::mv, false) {
+                line = l;
+                Some(file_mode)
+            } else {
+                // Nothing more... so close it
+                let (old, new) = diff_line.parse_files();
+
+                trace!("Single diff line (mode change): new: {}", new);
+
+                let diff = patch.new_diff();
+                diff.set_info(old, new, FileOp::None, None, Some(file_mode));
+                diff.close();
+                return;
+            }
+        } else {
+            None
+        };
+
         let op = line.get_file_op();
 
         trace!(
@@ -265,7 +322,7 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, None);
+            diff.set_info(old, new, FileOp::None, None, file_mode);
             diff.close();
             self.parse_diff(&mut line, patch);
             return;
@@ -290,7 +347,7 @@ impl<'a> PatchReader<'a> {
             trace!("Copy/Renamed from {} to {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::Renamed, None);
+            diff.set_info(old, new, FileOp::Renamed, None, file_mode);
 
             if let Some(mut _line) = self.next(PatchReader::mv, false) {
                 if _line.is_triple_minus() {
@@ -308,7 +365,7 @@ impl<'a> PatchReader<'a> {
                 }
             }
         } else {
-            if op == FileOp::New || op == FileOp::Deleted || line.is_index() {
+            if op.is_new_or_deleted() || line.is_index() {
                 trace!("New/Delete file: {:?}", line);
                 line = if let Some(line) = self.next(PatchReader::useful, false) {
                     line
@@ -319,7 +376,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, None);
+                    diff.set_info(old, new, op, None, file_mode);
                     diff.close();
                     return;
                 };
@@ -334,7 +391,7 @@ impl<'a> PatchReader<'a> {
                     let diff = patch.new_diff();
                     let sizes = self.skip_binary();
 
-                    diff.set_info(old, new, op, Some(sizes));
+                    diff.set_info(old, new, op, Some(sizes), file_mode);
                     diff.close();
                     return;
                 } else if PatchReader::diff(&line) {
@@ -343,7 +400,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, None);
+                    diff.set_info(old, new, op, None, file_mode);
                     diff.close();
                     self.parse_diff(&mut line, patch);
                     return;
@@ -366,7 +423,7 @@ impl<'a> PatchReader<'a> {
             trace!("Files: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, op, None);
+            diff.set_info(old, new, op, None, file_mode);
             line = self.next(PatchReader::mv, false).unwrap();
             self.parse_hunks(&mut line, diff);
             diff.close();
@@ -508,8 +565,8 @@ impl<'a> PatchReader<'a> {
         line.buf.starts_with(b"@@ -")
     }
 
-    fn old_new_mode(line: &LineReader) -> bool {
-        !line.buf.starts_with(b"old ") && !line.buf.starts_with(b"new mode")
+    fn old_mode(line: &LineReader) -> bool {
+        line.buf.starts_with(b"old mode ")
     }
 
     fn hunk_change(line: &LineReader) -> bool {

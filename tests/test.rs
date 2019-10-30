@@ -32,6 +32,12 @@ pub struct Hunk {
     pub lines: Vec<LineChange>,
 }
 
+#[derive(Default, Deserialize, PartialEq)]
+pub struct FileModeChange {
+    pub old: u32,
+    pub new: u32,
+}
+
 #[derive(Deserialize)]
 pub struct DiffImpl {
     pub filename: String,
@@ -41,6 +47,7 @@ pub struct DiffImpl {
     pub copied_from: Option<String>,
     pub renamed_from: Option<String>,
     pub hunks: Vec<Hunk>,
+    pub file_mode: Option<FileModeChange>,
 }
 
 #[derive(Deserialize)]
@@ -71,6 +78,13 @@ impl Debug for DiffImpl {
             "copied_from: {:?}, renamed_from: {:?}",
             self.copied_from, self.renamed_from
         )?;
+        if let Some(file_mode) = &self.file_mode {
+            writeln!(
+                f,
+                "old mode: {:06o}, new mode: {:06o}",
+                file_mode.old, file_mode.new
+            )?;
+        }
         for hunk in self.hunks.iter() {
             writeln!(f, " @@")?;
             for line in hunk.lines.iter() {
@@ -100,6 +114,7 @@ impl Patch<DiffImpl> for PatchImpl {
             copied_from: None,
             renamed_from: None,
             hunks: Vec::new(),
+            file_mode: None,
         });
         self.diffs.last_mut().unwrap()
     }
@@ -114,15 +129,18 @@ impl Diff for DiffImpl {
         new_name: &str,
         op: FileOp,
         binary_sizes: Option<Vec<BinaryHunk>>,
+        file_mode: Option<FileMode>,
     ) {
         match op {
-            FileOp::New => {
+            FileOp::New(m) => {
                 self.new = true;
                 self.filename = new_name.to_string();
+                self.file_mode = Some(FileModeChange { old: 0, new: m });
             }
-            FileOp::Deleted => {
+            FileOp::Deleted(m) => {
                 self.deleted = true;
                 self.filename = old_name.to_string();
+                self.file_mode = Some(FileModeChange { old: m, new: 0 });
             }
             FileOp::Renamed => {
                 self.filename = new_name.to_string();
@@ -133,6 +151,15 @@ impl Diff for DiffImpl {
             }
         }
         self.binary = binary_sizes.is_some();
+
+        if self.file_mode.is_none() {
+            self.file_mode = file_mode.and_then(|c| {
+                Some(FileModeChange {
+                    old: c.old,
+                    new: c.new,
+                })
+            });
+        }
     }
 
     fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]) {
@@ -174,6 +201,29 @@ fn get_line(buf: &[u8]) -> String {
 }
 
 fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
+    if path == PathBuf::from("./tests/patches/6f5fc0d644dd.patch") {
+        let modes = patch.diffs[0].file_mode.as_ref().unwrap();
+        assert_eq!(modes.old, 0o100644);
+        assert_eq!(modes.new, 0o100755);
+    }
+
+    if path == PathBuf::from("./tests/patches/d8571fb523a0.patch") {
+        let modes = patch.diffs[1].file_mode.as_ref().unwrap();
+        assert_eq!(modes.new, 0o100644);
+        assert_eq!(modes.old, 0);
+    }
+
+    if path == PathBuf::from("./tests/patches/d7a700707ddb.patch") {
+        eprintln!("{:?}", patch);
+        for diff in patch.diffs.iter() {
+            if diff.filename == "layout/style/test/test_overscroll_behavior_pref.html" {
+                let modes = diff.file_mode.as_ref().unwrap();
+                assert_eq!(modes.new, 0);
+                assert_eq!(modes.old, 0o100644);
+            }
+        }
+    }
+
     assert!(
         json.diffs.len() == patch.diffs.len(),
         "Not the same length in patch {:?}: {} ({} expected)",
@@ -230,7 +280,7 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
-            /*if path != PathBuf::from("./tests/output/ea8bdd612f43.json") {
+            /*if path != PathBuf::from("./tests/output/6f5fc0d644dd.json") {
                 continue;
             }*/
             let file = File::open(&path).unwrap();
