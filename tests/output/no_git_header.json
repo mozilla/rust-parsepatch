@@ -1,0 +1,133 @@
+{
+    "diffs": [
+        {
+            "filename": "gfx/2d/Factory.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 616,
+                            "deleted": true,
+                            "data": "    CGFontRef aCGFont, const RefPtr<UnscaledFont>& aUnscaledFont, Float aSize, const DeviceColor& aFontSmoothingBackgroundColor, bool aUseFontSmoothing, bool aApplySyntheticBold) {"
+                        },
+                        {
+                            "line": 617,
+                            "deleted": true,
+                            "data": "  return MakeAndAddRef<ScaledFontMac>(aCGFont, aUnscaledFont, aSize, false, aFontSmoothingBackgroundColor, aUseFontSmoothing, aApplySyntheticBold);"
+                        },
+                        {
+                            "line": 616,
+                            "deleted": false,
+                            "data": "    CGFontRef aCGFont, const RefPtr<UnscaledFont>& aUnscaledFont, Float aSize,"
+                        },
+                        {
+                            "line": 617,
+                            "deleted": false,
+                            "data": "    const DeviceColor& aFontSmoothingBackgroundColor, bool aUseFontSmoothing,"
+                        },
+                        {
+                            "line": 618,
+                            "deleted": false,
+                            "data": "    bool aApplySyntheticBold) {"
+                        },
+                        {
+                            "line": 619,
+                            "deleted": false,
+                            "data": "  return MakeAndAddRef<ScaledFontMac>(aCGFont, aUnscaledFont, aSize, false,"
+                        },
+                        {
+                            "line": 620,
+                            "deleted": false,
+                            "data": "                                      aFontSmoothingBackgroundColor,"
+                        },
+                        {
+                            "line": 621,
+                            "deleted": false,
+                            "data": "                                      aUseFontSmoothing, aApplySyntheticBold);"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "dom/canvas/ClientWebGLContext.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 118,
+                            "deleted": true,
+                            "data": "  }else {"
+                        },
+                        {
+                            "line": 119,
+                            "deleted": true,
+                            "data": "\t\t// Comment to trigger readability-else-after-return"
+                        },
+                        {
+                            "line": 120,
+                            "deleted": true,
+                            "data": "\t\tconst auto x = \"aa\";"
+                        },
+                        {
+                            "line": 121,
+                            "deleted": true,
+                            "data": "\t}"
+                        },
+                        {
+                            "line": 118,
+                            "deleted": false,
+                            "data": "  } else {"
+                        },
+                        {
+                            "line": 119,
+                            "deleted": false,
+                            "data": "    // Comment to trigger readability-else-after-return"
+                        },
+                        {
+                            "line": 120,
+                            "deleted": false,
+                            "data": "    const auto x = \"aa\";"
+                        },
+                        {
+                            "line": 121,
+                            "deleted": false,
+                            "data": "  }"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "accessible/xul/XULAlertAccessible.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 36,
+                            "deleted": true,
+                            "data": "\tif (false) return true;"
+                        },
+                        {
+                            "line": 36,
+                            "deleted": false,
+                            "data": "  if (false) return true;"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

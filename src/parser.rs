@@ -262,7 +262,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn parse<D: Diff, P: Patch<D>>(&mut self, patch: &mut P) {
-        while let Some(mut line) = self.next(PatchReader::diff, false) {
+        while let Some(mut line) = self.next(PatchReader::starter, false) {
             self.parse_diff(&mut line, patch);
         }
         patch.close();
@@ -270,6 +270,11 @@ impl<'a> PatchReader<'a> {
 
     fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
         trace!("Diff {:?}", diff_line);
+        if diff_line.is_triple_minus() {
+            self.parse_minus(diff_line, FileOp::None, None, patch);
+            return;
+        }
+
         let mut line = if let Some(line) = self.next(PatchReader::mv, false) {
             line
         } else {
@@ -407,27 +412,37 @@ impl<'a> PatchReader<'a> {
                 }
             }
 
-            if !line.is_triple_minus() {
-                trace!("DEBUG (not a ---): {:?}", line);
-                return;
-            }
-
-            trace!("DEBUG (---): {:?}", line);
-
-            // here we've a ---
-            let old = LineReader::get_filename(&line.buf[3..]);
-            let _line = self.next(PatchReader::mv, false).unwrap();
-            // 3 == len("+++")
-            let new = LineReader::get_filename(&_line.buf[3..]);
-
-            trace!("Files: old: {} -- new: {}", old, new);
-
-            let diff = patch.new_diff();
-            diff.set_info(old, new, op, None, file_mode);
-            line = self.next(PatchReader::mv, false).unwrap();
-            self.parse_hunks(&mut line, diff);
-            diff.close();
+            self.parse_minus(&mut line, op, file_mode, patch);
         }
+    }
+
+    fn parse_minus<D: Diff, P: Patch<D>>(
+        &mut self,
+        line: &mut LineReader,
+        op: FileOp,
+        file_mode: Option<FileMode>,
+        patch: &mut P,
+    ) {
+        if !line.is_triple_minus() {
+            trace!("DEBUG (not a ---): {:?}", line);
+            return;
+        }
+
+        trace!("DEBUG (---): {:?}", line);
+
+        // here we've a ---
+        let old = LineReader::get_filename(&line.buf[3..]);
+        let _line = self.next(PatchReader::mv, false).unwrap();
+        // 3 == len("+++")
+        let new = LineReader::get_filename(&_line.buf[3..]);
+
+        trace!("Files: old: {} -- new: {}", old, new);
+
+        let diff = patch.new_diff();
+        diff.set_info(old, new, op, None, file_mode);
+        let mut line = self.next(PatchReader::mv, false).unwrap();
+        self.parse_hunks(&mut line, diff);
+        diff.close();
     }
 
     fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
@@ -552,6 +567,10 @@ impl<'a> PatchReader<'a> {
 
     fn useful(line: &LineReader) -> bool {
         line.is_binary() || line.is_triple_minus() || Self::diff(&line)
+    }
+
+    fn starter(line: &LineReader) -> bool {
+        line.is_triple_minus() || Self::diff(&line)
     }
 
     fn diff(line: &LineReader) -> bool {
