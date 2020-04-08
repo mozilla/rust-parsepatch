@@ -294,7 +294,7 @@ fn test_parse() {
             println!("Parse patch {:?}", path);
 
             let mut patch = PatchImpl { diffs: Vec::new() };
-            PatchReader::by_path(&path, &mut patch);
+            PatchReader::by_path(&path, &mut patch).unwrap();
 
             if path.ends_with(PathBuf::from(".patch")) {
                 println!("Patch:\n{:?}", patch);

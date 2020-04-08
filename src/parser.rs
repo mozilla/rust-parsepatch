@@ -1,7 +1,35 @@
-use std::fmt::{Debug, Formatter, Result};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
+use std::result;
+
+#[derive(Debug)]
+pub enum ParsepatchError {
+    InvalidHunkHeader(usize),
+    NewModeExpected(usize),
+    NoFilename(usize),
+    IOError(String),
+    InvalidString(usize),
+}
+
+pub type Result<T> = result::Result<T, ParsepatchError>;
+
+impl Display for ParsepatchError {
+    fn fmt(&self, f: &mut Formatter) -> result::Result<(), fmt::Error> {
+        match self {
+            ParsepatchError::InvalidHunkHeader(n) => {
+                writeln!(f, "Invalid hunk header at line {}", n)
+            }
+            ParsepatchError::NewModeExpected(n) => {
+                writeln!(f, "New mode expected after old mode at line {}", n)
+            }
+            ParsepatchError::NoFilename(n) => writeln!(f, "Cannot get filename at line {}", n),
+            ParsepatchError::IOError(s) => writeln!(f, "Cannot read the file {}", s),
+            ParsepatchError::InvalidString(n) => writeln!(f, "Invalid utf-8 at line {}", n),
+        }
+    }
+}
 
 /// A type to handle lines in a diff
 pub trait Diff {
@@ -83,14 +111,16 @@ impl FileOp {
 pub struct PatchReader<'a> {
     buf: &'a [u8],
     pos: usize,
+    line: usize,
 }
 
 pub struct LineReader<'a> {
     pub buf: &'a [u8],
+    line: usize,
 }
 
 impl<'a> Debug for LineReader<'a> {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "buffer: {}", std::str::from_utf8(self.buf).unwrap())
     }
 }
@@ -124,6 +154,10 @@ impl<'a> LineReader<'a> {
         self.buf.starts_with(b"deleted file")
     }
 
+    fn get_line(&self) -> usize {
+        self.line
+    }
+
     fn get_file_op(&self) -> FileOp {
         if self.is_new_file() {
             FileOp::New(self.parse_mode("new file mode "))
@@ -138,18 +172,20 @@ impl<'a> LineReader<'a> {
         }
     }
 
-    pub fn parse_numbers(&self) -> (u32, u32, u32, u32) {
+    pub fn parse_numbers(&self) -> Result<(u32, u32, u32, u32)> {
         // we know that line is beginning with "@@ -"
         let buf = unsafe { self.buf.get_unchecked(4..) };
 
         // NUMS_PAT = re.compile(r'^@@ -([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@')
         let iter = &mut buf.iter();
-        let x = iter
+        let old_start = iter
             .take_while(|&&c| c >= b'0' && c <= b'9')
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
-        let c = *iter.next().unwrap();
-        let y = if c >= b'0' && c <= b'9' {
+        let c = *iter
+            .next()
+            .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+        let old_lines = if c >= b'0' && c <= b'9' {
             iter.take_while(|&&c| c >= b'0' && c <= b'9')
                 .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
         } else {
@@ -157,27 +193,31 @@ impl<'a> LineReader<'a> {
         };
 
         if c != b'+' {
-            iter.skip_while(|&&c| c != b'+').next();
+            iter.find(|&&c| c == b'+');
         }
 
-        let z = iter
+        let new_start = iter
             .take_while(|&&c| c >= b'0' && c <= b'9')
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
-        let c = *iter.next().unwrap();
-        let t = if c >= b'0' && c <= b'9' {
+        let c = *iter
+            .next()
+            .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+        let new_lines = if c >= b'0' && c <= b'9' {
             iter.take_while(|&&c| c >= b'0' && c <= b'9')
                 .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
         } else {
             1
         };
 
-        (x, y, z, t)
+        Ok((old_start, old_lines, new_start, new_lines))
     }
 
-    fn get_filename(buf: &[u8]) -> &str {
+    fn get_filename(buf: &[u8], line: usize) -> Result<&str> {
         let mut iter = buf.iter();
-        let pos1 = iter.position(|c| *c != b' ').unwrap();
+        let pos1 = iter
+            .position(|c| *c != b' ')
+            .ok_or_else(|| ParsepatchError::NoFilename(line))?;
         let pos2 = iter.position(|c| *c == b'\t');
         let buf = if let Some(pos2) = pos2 {
             unsafe { buf.get_unchecked(pos1..=pos1 + pos2) }
@@ -193,10 +233,11 @@ impl<'a> LineReader<'a> {
         } else {
             buf
         };
+
         if buf == b"/dev/null" {
-            ""
+            Ok("")
         } else {
-            std::str::from_utf8(buf).unwrap()
+            std::str::from_utf8(buf).map_err(|_| ParsepatchError::InvalidString(line))
         }
     }
 
@@ -216,7 +257,7 @@ impl<'a> LineReader<'a> {
         }
     }
 
-    fn parse_files(&self) -> (&str, &str) {
+    fn parse_files(&self) -> Result<(&str, &str)> {
         // We know we start with 'diff '
         let buf = unsafe { self.buf.get_unchecked(5..) };
         let mut iter = buf.split(|c| *c == b' ');
@@ -227,10 +268,12 @@ impl<'a> LineReader<'a> {
         let old_path = LineReader::get_file(iter.next(), b"a/");
         let new_path = LineReader::get_file(iter.next(), b"b/");
 
-        (
-            std::str::from_utf8(old_path).unwrap(),
-            std::str::from_utf8(new_path).unwrap(),
-        )
+        let old = std::str::from_utf8(old_path)
+            .map_err(|_| ParsepatchError::InvalidString(self.get_line()))?;
+        let new = std::str::from_utf8(new_path)
+            .map_err(|_| ParsepatchError::InvalidString(self.get_line()))?;
+
+        Ok((old, new))
     }
 
     fn parse_mode(&self, start: &'static str) -> u32 {
@@ -245,56 +288,72 @@ impl<'a> LineReader<'a> {
 
 impl<'a> PatchReader<'a> {
     /// Read a patch from the given path
-    pub fn by_path<D: Diff, P: Patch<D>>(path: &PathBuf, patch: &mut P) {
+    pub fn by_path<D: Diff, P: Patch<D>>(path: &PathBuf, patch: &mut P) -> Result<()> {
         match File::open(path) {
             Ok(mut reader) => {
                 let mut data = Vec::new();
-                reader.read_to_end(&mut data).unwrap();
-                PatchReader::by_buf(&data, patch);
+                reader
+                    .read_to_end(&mut data)
+                    .map_err(|_| ParsepatchError::IOError(format!("{:?}", path)))?;
+                PatchReader::by_buf(&data, patch)
             }
-            _ => {
-                panic!(format!("Failed to read the file: {:?}", path));
-            }
+            _ => Err(ParsepatchError::IOError(format!("{:?}", path))),
         }
     }
 
     /// Read a patch from the given buffer
-    pub fn by_buf<D: Diff, P: Patch<D>>(buf: &[u8], patch: &mut P) {
-        let mut p = PatchReader { buf, pos: 0 };
-        p.parse(patch);
+    pub fn by_buf<D: Diff, P: Patch<D>>(buf: &[u8], patch: &mut P) -> Result<()> {
+        let mut p = PatchReader {
+            buf,
+            pos: 0,
+            line: 1,
+        };
+        p.parse(patch)
     }
 
-    fn parse<D: Diff, P: Patch<D>>(&mut self, patch: &mut P) {
+    fn get_line(&self) -> usize {
+        self.line
+    }
+
+    fn parse<D: Diff, P: Patch<D>>(&mut self, patch: &mut P) -> Result<()> {
         while let Some(mut line) = self.next(PatchReader::starter, false) {
-            self.parse_diff(&mut line, patch);
+            self.parse_diff(&mut line, patch)?;
         }
         patch.close();
+
+        Ok(())
     }
 
-    fn parse_diff<D: Diff, P: Patch<D>>(&mut self, diff_line: &mut LineReader, patch: &mut P) {
+    fn parse_diff<D: Diff, P: Patch<D>>(
+        &mut self,
+        diff_line: &mut LineReader,
+        patch: &mut P,
+    ) -> Result<()> {
         trace!("Diff {:?}", diff_line);
         if diff_line.is_triple_minus() {
-            self.parse_minus(diff_line, FileOp::None, None, patch);
-            return;
+            self.parse_minus(diff_line, FileOp::None, None, patch)?;
+            return Ok(());
         }
 
         let mut line = if let Some(line) = self.next(PatchReader::mv, false) {
             line
         } else {
             // Nothing more... so close it
-            let (old, new) = diff_line.parse_files();
+            let (old, new) = diff_line.parse_files()?;
 
             trace!("Single diff line: new: {}", new);
 
             let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::None, None, None);
             diff.close();
-            return;
+            return Ok(());
         };
 
         let file_mode = if PatchReader::old_mode(&line) {
             let old = line.parse_mode("old mode ");
-            let l = self.next(PatchReader::mv, false).unwrap();
+            let l = self
+                .next(PatchReader::mv, false)
+                .ok_or_else(|| ParsepatchError::NewModeExpected(self.get_line()))?;
             let new = l.parse_mode("new mode ");
             let file_mode = FileMode { old, new };
             if let Some(l) = self.next(PatchReader::mv, false) {
@@ -302,14 +361,14 @@ impl<'a> PatchReader<'a> {
                 Some(file_mode)
             } else {
                 // Nothing more... so close it
-                let (old, new) = diff_line.parse_files();
+                let (old, new) = diff_line.parse_files()?;
 
                 trace!("Single diff line (mode change): new: {}", new);
 
                 let diff = patch.new_diff();
                 diff.set_info(old, new, FileOp::None, None, Some(file_mode));
                 diff.close();
-                return;
+                return Ok(());
             }
         } else {
             None
@@ -325,15 +384,15 @@ impl<'a> PatchReader<'a> {
         );
 
         if PatchReader::diff(&line) {
-            let (old, new) = diff_line.parse_files();
+            let (old, new) = diff_line.parse_files()?;
 
             trace!("Single diff line: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::None, None, file_mode);
             diff.close();
-            self.parse_diff(&mut line, patch);
-            return;
+            self.parse_diff(&mut line, patch)?;
+            return Ok(());
         }
 
         if op == FileOp::Renamed || op == FileOp::Copied {
@@ -348,9 +407,14 @@ impl<'a> PatchReader<'a> {
                 // 8 == len("copy to ")
                 (10, 8)
             };
-            let old = LineReader::get_filename(unsafe { line.buf.get_unchecked(shift_1..) });
-            let _line = self.next(PatchReader::mv, false).unwrap();
-            let new = LineReader::get_filename(&_line.buf[shift_2..]);
+            let old = LineReader::get_filename(
+                unsafe { line.buf.get_unchecked(shift_1..) },
+                line.get_line(),
+            )?;
+            let _line = self
+                .next(PatchReader::mv, false)
+                .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+            let new = LineReader::get_filename(&_line.buf[shift_2..], line.get_line())?;
 
             trace!("Copy/Renamed from {} to {}", old, new);
 
@@ -361,14 +425,16 @@ impl<'a> PatchReader<'a> {
                 if _line.is_triple_minus() {
                     // skip +++ line
                     self.next(PatchReader::mv, false);
-                    line = self.next(PatchReader::mv, false).unwrap();
-                    self.parse_hunks(&mut line, diff);
+                    line = self
+                        .next(PatchReader::mv, false)
+                        .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+                    self.parse_hunks(&mut line, diff)?;
                     diff.close();
                 } else {
                     // we just have a rename/copy but no changes in the file
                     diff.close();
                     if PatchReader::diff(&_line) {
-                        self.parse_diff(&mut _line, patch);
+                        self.parse_diff(&mut _line, patch)?;
                     }
                 }
             }
@@ -379,20 +445,20 @@ impl<'a> PatchReader<'a> {
                     line
                 } else {
                     // Nothing more... so close it
-                    let (old, new) = diff_line.parse_files();
+                    let (old, new) = diff_line.parse_files()?;
 
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
                     diff.set_info(old, new, op, None, file_mode);
                     diff.close();
-                    return;
+                    return Ok(());
                 };
                 trace!("New/Delete file: next useful line {:?}", line);
                 if line.is_binary() {
                     // We've file info only in the diff line
                     // TODO: old is probably useless here
-                    let (old, new) = diff_line.parse_files();
+                    let (old, new) = diff_line.parse_files()?;
 
                     trace!("Binary file (op == {:?}): {}", op, new);
 
@@ -401,22 +467,24 @@ impl<'a> PatchReader<'a> {
 
                     diff.set_info(old, new, op, Some(sizes), file_mode);
                     diff.close();
-                    return;
+                    return Ok(());
                 } else if PatchReader::diff(&line) {
-                    let (old, new) = diff_line.parse_files();
+                    let (old, new) = diff_line.parse_files()?;
 
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
                     diff.set_info(old, new, op, None, file_mode);
                     diff.close();
-                    self.parse_diff(&mut line, patch);
-                    return;
+                    self.parse_diff(&mut line, patch)?;
+                    return Ok(());
                 }
             }
 
-            self.parse_minus(&mut line, op, file_mode, patch);
+            self.parse_minus(&mut line, op, file_mode, patch)?;
         }
+
+        Ok(())
     }
 
     fn parse_minus<D: Diff, P: Patch<D>>(
@@ -425,36 +493,44 @@ impl<'a> PatchReader<'a> {
         op: FileOp,
         file_mode: Option<FileMode>,
         patch: &mut P,
-    ) {
+    ) -> Result<()> {
         if !line.is_triple_minus() {
             trace!("DEBUG (not a ---): {:?}", line);
-            return;
+            return Ok(());
         }
 
         trace!("DEBUG (---): {:?}", line);
 
         // here we've a ---
-        let old = LineReader::get_filename(&line.buf[3..]);
-        let _line = self.next(PatchReader::mv, false).unwrap();
+        let old = LineReader::get_filename(&line.buf[3..], line.get_line())?;
+        let _line = self
+            .next(PatchReader::mv, false)
+            .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
         // 3 == len("+++")
-        let new = LineReader::get_filename(&_line.buf[3..]);
+        let new = LineReader::get_filename(&_line.buf[3..], line.get_line())?;
 
         trace!("Files: old: {} -- new: {}", old, new);
 
         let diff = patch.new_diff();
         diff.set_info(old, new, op, None, file_mode);
-        let mut line = self.next(PatchReader::mv, false).unwrap();
-        self.parse_hunks(&mut line, diff);
+        let mut line = self
+            .next(PatchReader::mv, false)
+            .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+        self.parse_hunks(&mut line, diff)?;
         diff.close();
+
+        Ok(())
     }
 
-    fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
-        let (o1, o2, n1, n2) = line.parse_numbers();
+    fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) -> Result<()> {
+        let (o1, o2, n1, n2) = line.parse_numbers()?;
         self.parse_hunk(o1, o2, n1, n2, diff);
         while let Some(line) = self.next(PatchReader::hunk_at, true) {
-            let (o1, o2, n1, n2) = line.parse_numbers();
+            let (o1, o2, n1, n2) = line.parse_numbers()?;
             self.parse_hunk(o1, o2, n1, n2, diff);
         }
+
+        Ok(())
     }
 
     fn parse_hunk<D: Diff>(
@@ -513,7 +589,9 @@ impl<'a> PatchReader<'a> {
                     }
                     let line = LineReader {
                         buf: unsafe { self.buf.get_unchecked(pos..npos) },
+                        line: self.line,
                     };
+                    self.line += 1;
                     if filter(&line) {
                         self.pos += n + 1;
                         return Some(line);
@@ -532,6 +610,7 @@ impl<'a> PatchReader<'a> {
         if let Some(buf) = self.buf.get(self.pos..) {
             for (n, c) in buf.iter().enumerate() {
                 if *c == b'\n' {
+                    self.line += 1;
                     if n == spos {
                         self.pos += n + 1;
                         return;
@@ -552,19 +631,15 @@ impl<'a> PatchReader<'a> {
 
     fn skip_binary(&mut self) -> Vec<BinaryHunk> {
         let mut sizes = Vec::new();
-        loop {
-            if let Some(buf) = self.buf.get(self.pos..) {
-                if buf.starts_with(b"literal ") {
-                    self.pos += 8;
-                    let buf = unsafe { self.buf.get_unchecked(self.pos..) };
-                    sizes.push(BinaryHunk::Literal(Self::parse_usize(buf)));
-                } else if buf.starts_with(b"delta ") {
-                    self.pos += 6;
-                    let buf = unsafe { self.buf.get_unchecked(self.pos..) };
-                    sizes.push(BinaryHunk::Delta(Self::parse_usize(buf)));
-                } else {
-                    break;
-                }
+        while let Some(buf) = self.buf.get(self.pos..) {
+            if buf.starts_with(b"literal ") {
+                self.pos += 8;
+                let buf = unsafe { self.buf.get_unchecked(self.pos..) };
+                sizes.push(BinaryHunk::Literal(Self::parse_usize(buf)));
+            } else if buf.starts_with(b"delta ") {
+                self.pos += 6;
+                let buf = unsafe { self.buf.get_unchecked(self.pos..) };
+                sizes.push(BinaryHunk::Delta(Self::parse_usize(buf)));
             } else {
                 break;
             }
@@ -622,8 +697,8 @@ mod tests {
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: &buf };
-            assert_eq!(line.parse_numbers(), c.1);
+            let line = LineReader { buf: &buf, line: 1 };
+            assert_eq!(line.parse_numbers().unwrap(), c.1);
         }
     }
 
@@ -638,7 +713,7 @@ mod tests {
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let p = LineReader::get_filename(buf);
+            let p = LineReader::get_filename(buf, 0).unwrap();
             assert!(p == c.1);
         }
     }
@@ -648,7 +723,7 @@ mod tests {
         let cases = [("+++ hello", "+++"), ("+++ hello", "++++")];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: &buf };
+            let line = LineReader { buf: &buf, line: 1 };
             let pat = c.1.as_bytes();
             assert!(line.buf.starts_with(pat) == c.0.starts_with(c.1));
         }
@@ -662,6 +737,7 @@ mod tests {
         let mut p = PatchReader {
             buf: s.as_bytes(),
             pos: 0,
+            line: 1,
         };
         p.skip_until_empty_line();
         assert!(p.pos == cpos);
@@ -685,6 +761,7 @@ mod tests {
         let mut p = PatchReader {
             buf: s.as_bytes(),
             pos: 0,
+            line: 1,
         };
         let sizes = p.skip_binary();
         assert_eq!(p.pos, hpos);
@@ -710,8 +787,9 @@ mod tests {
         for s in diffs {
             let line = LineReader {
                 buf: s.0.as_bytes(),
+                line: 1,
             };
-            let (old, new) = line.parse_files();
+            let (old, new) = line.parse_files().unwrap();
             assert!(old == (s.1).0);
             assert!(new == (s.1).1);
         }
