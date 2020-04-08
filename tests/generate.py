@@ -85,7 +85,7 @@ for f in os.listdir(directory):
                     lines.append(
                         OrderedDict([('line', new), ('deleted', False), ('data', line)])
                     )
-                if new is None:
+                if new is None and old != 0:
                     lines.append(
                         OrderedDict([('line', old), ('deleted', True), ('data', line)])
                     )

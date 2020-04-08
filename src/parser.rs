@@ -138,20 +138,41 @@ impl<'a> LineReader<'a> {
         }
     }
 
-    pub fn parse_numbers(&self) -> (u32, u32) {
+    pub fn parse_numbers(&self) -> (u32, u32, u32, u32) {
         // we know that line is beginning with "@@ -"
         let buf = unsafe { self.buf.get_unchecked(4..) };
+
+        // NUMS_PAT = re.compile(r'^@@ -([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@')
         let iter = &mut buf.iter();
         let x = iter
             .take_while(|&&c| c >= b'0' && c <= b'9')
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
-        iter.skip_while(|&&c| c != b'+').next();
-        let y = iter
+        let c = *iter.next().unwrap();
+        let y = if c >= b'0' && c <= b'9' {
+            iter.take_while(|&&c| c >= b'0' && c <= b'9')
+                .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
+        } else {
+            1
+        };
+
+        if c != b'+' {
+            iter.skip_while(|&&c| c != b'+').next();
+        }
+
+        let z = iter
             .take_while(|&&c| c >= b'0' && c <= b'9')
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
-        (x, y)
+        let c = *iter.next().unwrap();
+        let t = if c >= b'0' && c <= b'9' {
+            iter.take_while(|&&c| c >= b'0' && c <= b'9')
+                .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
+        } else {
+            1
+        };
+
+        (x, y, z, t)
     }
 
     fn get_filename(buf: &[u8]) -> &str {
@@ -428,18 +449,22 @@ impl<'a> PatchReader<'a> {
     }
 
     fn parse_hunks<D: Diff>(&mut self, line: &mut LineReader, diff: &mut D) {
-        let (o1, n1) = line.parse_numbers();
-        self.parse_hunk(o1, n1, diff);
+        let (o1, o2, n1, n2) = line.parse_numbers();
+        self.parse_hunk(o1, o2, n1, n2, diff);
         while let Some(line) = self.next(PatchReader::hunk_at, true) {
-            let (o1, n1) = line.parse_numbers();
-            self.parse_hunk(o1, n1, diff);
+            let (o1, o2, n1, n2) = line.parse_numbers();
+            self.parse_hunk(o1, o2, n1, n2, diff);
         }
     }
 
-    fn parse_hunk<D: Diff>(&mut self, o: u32, n: u32, diff: &mut D) {
-        let mut old_count = o;
-        let mut new_count = n;
-
+    fn parse_hunk<D: Diff>(
+        &mut self,
+        mut old_count: u32,
+        mut old_lines: u32,
+        mut new_count: u32,
+        mut new_lines: u32,
+        diff: &mut D,
+    ) {
         diff.new_hunk();
 
         while let Some(line) = self.next(PatchReader::hunk_change, true) {
@@ -449,17 +474,24 @@ impl<'a> PatchReader<'a> {
                 b'-' => {
                     diff.add_line(old_count, 0, unsafe { line.buf.get_unchecked(1..) });
                     old_count += 1;
+                    old_lines -= 1;
                 }
                 b'+' => {
                     diff.add_line(0, new_count, unsafe { line.buf.get_unchecked(1..) });
                     new_count += 1;
+                    new_lines -= 1;
                 }
                 b' ' => {
                     diff.add_line(old_count, new_count, unsafe { line.buf.get_unchecked(1..) });
                     old_count += 1;
                     new_count += 1;
+                    old_lines -= 1;
+                    new_lines -= 1;
                 }
                 _ => {}
+            }
+            if old_lines == 0 && new_lines == 0 {
+                break;
             }
         }
     }
@@ -583,10 +615,10 @@ mod tests {
     #[test]
     fn test_numbers() {
         let cases = [
-            ("@@ -123,456 +789,101112 @@", (123, 789)),
-            ("@@ -123 +789,101112 @@", (123, 789)),
-            ("@@ -123,456 +789 @@", (123, 789)),
-            ("@@ -123 +789 @@", (123, 789)),
+            ("@@ -123,456 +789,101112 @@", (123, 456, 789, 101112)),
+            ("@@ -123 +789,101112 @@", (123, 1, 789, 101112)),
+            ("@@ -123,456 +789 @@", (123, 456, 789, 1)),
+            ("@@ -123 +789 @@", (123, 1, 789, 1)),
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();

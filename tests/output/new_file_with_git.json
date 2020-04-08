@@ -1,0 +1,32 @@
+{
+    "diffs": [
+        {
+            "filename": "a.txt",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 1,
+                            "deleted": false,
+                            "data": "a"
+                        },
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": "b"
+                        },
+                        {
+                            "line": 3,
+                            "deleted": false,
+                            "data": "c"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
