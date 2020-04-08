@@ -63,6 +63,9 @@ for f in os.listdir(directory):
         if new == rep:
             new = bp
 
+        if old == "/dev/null":
+            old = None
+
         r['filename'] = new
         r['new'] = False
         r['deleted'] = False

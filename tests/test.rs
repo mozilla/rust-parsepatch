@@ -242,8 +242,8 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
         assert!(
             cj.copied_from == cp.renamed_from || cj.copied_from == cp.copied_from,
             format!(
-                "Not the same filename: {:?} ({:?} expected)",
-                cj.filename, cp.filename
+                "Not renamed/copied (in {}): {:?} {:?} {:?}",
+                cp.filename, cj.copied_from, cp.renamed_from, cp.copied_from
             )
         );
         assert!(
@@ -280,7 +280,7 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
-            /*if path != PathBuf::from("./tests/output/6f5fc0d644dd.json") {
+            /*if path != PathBuf::from("./tests/output/f9b391e62608.json") {
                 continue;
             }*/
             let file = File::open(&path).unwrap();

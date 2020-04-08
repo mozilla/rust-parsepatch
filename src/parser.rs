@@ -113,7 +113,7 @@ impl<'a> LineReader<'a> {
     }
 
     fn is_triple_minus(&self) -> bool {
-        self.buf.starts_with(b"---")
+        self.buf.starts_with(b"--- ")
     }
 
     fn is_index(&self) -> bool {
