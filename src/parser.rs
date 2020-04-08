@@ -19,9 +19,9 @@ pub trait Diff {
     ///
     /// If a line is added (+) then old_line is 0 and new_line is the line in the destination file.
     ///
-    /// If a line is added (-) then old_line is the line in the source file and new_line is 0.
+    /// If a line is removed (-) then old_line is the line in the source file and new_line is 0.
     ///
-    /// If a line is added ( ) then old_line is the line in the source file and new_line is the line in the destination file.
+    /// If a line is nothing ( ) then old_line is the line in the source file and new_line is the line in the destination file.
     fn add_line(&mut self, old_line: u32, new_line: u32, line: &[u8]);
 
     /// A new hunk is created
@@ -141,28 +141,16 @@ impl<'a> LineReader<'a> {
     pub fn parse_numbers(&self) -> (u32, u32) {
         // we know that line is beginning with "@@ -"
         let buf = unsafe { self.buf.get_unchecked(4..) };
-        let mut x = 0;
-        let mut y = 0;
-        let mut iter = buf.iter();
-        while let Some(c) = iter.next() {
-            if *c >= b'0' && *c <= b'9' {
-                x = x * 10 + u32::from(*c - b'0');
-            } else {
-                break;
-            }
-        }
-        while let Some(c) = iter.next() {
-            if *c == b'+' {
-                break;
-            }
-        }
-        for c in iter {
-            if *c >= b'0' && *c <= b'9' {
-                y = y * 10 + u32::from(*c - b'0');
-            } else {
-                break;
-            }
-        }
+        let iter = &mut buf.iter();
+        let x = iter
+            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
+
+        iter.skip_while(|&&c| c != b'+').next();
+        let y = iter
+            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
+
         (x, y)
     }
 
@@ -228,15 +216,9 @@ impl<'a> LineReader<'a> {
         // we know that line is beginning with "old/new mode "
         // the following number is an octal number with 6 digits (so max is 8^6 - 1)
         let buf = unsafe { self.buf.get_unchecked(start.len()..) };
-        let mut x = 0;
-        for c in buf.iter() {
-            if *c >= b'0' && *c <= b'7' {
-                x = x * 8 + u32::from(*c - b'0');
-            } else {
-                break;
-            }
-        }
-        x
+        buf.iter()
+            .take_while(|&&c| c >= b'0' && c <= b'7')
+            .fold(0, |r, &c| r * 8 + u32::from(c - b'0'))
     }
 }
 
@@ -531,15 +513,9 @@ impl<'a> PatchReader<'a> {
     }
 
     fn parse_usize(buf: &[u8]) -> usize {
-        let mut x = 0;
-        for c in buf.iter() {
-            if *c >= b'0' && *c <= b'9' {
-                x = x * 10 + usize::from(*c - b'0');
-            } else {
-                break;
-            }
-        }
-        x
+        buf.iter()
+            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .fold(0, |r, &c| r * 10 + usize::from(c - b'0'))
     }
 
     fn skip_binary(&mut self) -> Vec<BinaryHunk> {
@@ -615,7 +591,7 @@ mod tests {
         for c in cases.iter() {
             let buf = c.0.as_bytes();
             let line = LineReader { buf: &buf };
-            assert!(line.parse_numbers() == c.1);
+            assert_eq!(line.parse_numbers(), c.1);
         }
     }
 
