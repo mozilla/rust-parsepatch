@@ -224,6 +224,8 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
         }
     }
 
+    //eprintln!("{:?}", patch);
+
     assert!(
         json.diffs.len() == patch.diffs.len(),
         "Not the same length in patch {:?}: {} ({} expected)",
@@ -280,7 +282,7 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
-            /*if path != PathBuf::from("./tests/output/f9b391e62608.json") {
+            /*if path != PathBuf::from("./tests/output/b8802b591ce2.json") {
                 continue;
             }*/
             let file = File::open(&path).unwrap();

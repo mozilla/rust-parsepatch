@@ -112,6 +112,7 @@ pub struct PatchReader<'a> {
     buf: &'a [u8],
     pos: usize,
     line: usize,
+    last: Option<LineReader<'a>>,
 }
 
 pub struct LineReader<'a> {
@@ -121,11 +122,15 @@ pub struct LineReader<'a> {
 
 impl<'a> Debug for LineReader<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "buffer: {}", std::str::from_utf8(self.buf).unwrap())
+        write!(f, "buffer: !{}!", std::str::from_utf8(self.buf).unwrap())
     }
 }
 
 impl<'a> LineReader<'a> {
+    fn is_empty(&self) -> bool {
+        self.buf.is_empty()
+    }
+
     fn is_binary(&self) -> bool {
         self.buf == b"GIT binary patch"
     }
@@ -311,6 +316,7 @@ impl<'a> PatchReader<'a> {
             buf,
             pos: 0,
             line: 1,
+            last: None,
         };
         p.parse(patch)
     }
@@ -387,7 +393,7 @@ impl<'a> PatchReader<'a> {
             line
         );
 
-        if PatchReader::diff(&line) {
+        if PatchReader::diff(&line) || line.is_empty() {
             let (old, new) = diff_line.parse_files()?;
 
             trace!("Single diff line: old: {} -- new: {}", old, new);
@@ -395,7 +401,7 @@ impl<'a> PatchReader<'a> {
             let diff = patch.new_diff();
             diff.set_info(old, new, FileOp::None, None, file_mode);
             diff.close();
-            self.parse_diff(&mut line, patch)?;
+            self.set_last(line);
             return Ok(());
         }
 
@@ -437,9 +443,7 @@ impl<'a> PatchReader<'a> {
                 } else {
                     // we just have a rename/copy but no changes in the file
                     diff.close();
-                    if PatchReader::diff(&_line) {
-                        self.parse_diff(&mut _line, patch)?;
-                    }
+                    self.set_last(_line);
                 }
             }
         } else {
@@ -480,12 +484,14 @@ impl<'a> PatchReader<'a> {
                     let diff = patch.new_diff();
                     diff.set_info(old, new, op, None, file_mode);
                     diff.close();
-                    self.parse_diff(&mut line, patch)?;
+                    self.set_last(line);
                     return Ok(());
                 }
             }
 
-            self.parse_minus(&mut line, op, file_mode, patch)?;
+            if line.is_triple_minus() {
+                self.parse_minus(&mut line, op, file_mode, patch)?;
+            }
         }
 
         Ok(())
@@ -498,11 +504,6 @@ impl<'a> PatchReader<'a> {
         file_mode: Option<FileMode>,
         patch: &mut P,
     ) -> Result<()> {
-        if !line.is_triple_minus() {
-            trace!("DEBUG (not a ---): {:?}", line);
-            return Ok(());
-        }
-
         trace!("DEBUG (---): {:?}", line);
 
         // here we've a ---
@@ -581,10 +582,25 @@ impl<'a> PatchReader<'a> {
         }
     }
 
+    fn set_last(&mut self, line: LineReader<'a>) {
+        self.last = Some(line);
+    }
+
     fn next<F>(&mut self, filter: F, return_on_false: bool) -> Option<LineReader<'a>>
     where
         F: Fn(&LineReader) -> bool,
     {
+        let mut l = None;
+        std::mem::swap(&mut l, &mut self.last);
+
+        if let Some(line) = l {
+            if filter(&line) {
+                return Some(line);
+            } else if return_on_false {
+                return None;
+            }
+        }
+
         let mut pos = self.pos;
         if let Some(buf) = self.buf.get(self.pos..) {
             for (n, c) in buf.iter().enumerate() {
@@ -747,6 +763,7 @@ mod tests {
             buf: s.as_bytes(),
             pos: 0,
             line: 1,
+            last: None,
         };
         p.skip_until_empty_line();
         assert!(p.pos == cpos);
@@ -771,6 +788,7 @@ mod tests {
             buf: s.as_bytes(),
             pos: 0,
             line: 1,
+            last: None,
         };
         let sizes = p.skip_binary();
         assert_eq!(p.pos, hpos);
