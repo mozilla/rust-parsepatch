@@ -1,0 +1,61 @@
+{
+    "diffs": [
+        {
+            "filename": "xpcom/stub/Makefile.in",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 75,
+                            "deleted": false,
+                            "data": "# Must be included before DEPENDENT_LIBS_LIST starts so that apps have a chance"
+                        },
+                        {
+                            "line": 76,
+                            "deleted": false,
+                            "data": "# of getting their stuff in before xul."
+                        },
+                        {
+                            "line": 77,
+                            "deleted": false,
+                            "data": "# It is ok for this file not to exist"
+                        },
+                        {
+                            "line": 78,
+                            "deleted": false,
+                            "data": "-include $(topsrcdir)/$(MOZ_BUILD_APP)/extradependlibs.mk"
+                        },
+                        {
+                            "line": 79,
+                            "deleted": false,
+                            "data": ""
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 120,
+                            "deleted": true,
+                            "data": "# It is ok for this file not to exist"
+                        },
+                        {
+                            "line": 121,
+                            "deleted": true,
+                            "data": "-include $(topsrcdir)/$(MOZ_BUILD_APP)/extradependlibs.mk"
+                        },
+                        {
+                            "line": 122,
+                            "deleted": true,
+                            "data": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

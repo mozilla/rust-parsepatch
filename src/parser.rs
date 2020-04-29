@@ -146,6 +146,10 @@ impl<'a> LineReader<'a> {
         self.buf.starts_with(b"--- ")
     }
 
+    fn is_triple_plus(&self) -> bool {
+        self.buf.starts_with(b"+++ ")
+    }
+
     fn is_index(&self) -> bool {
         self.buf.starts_with(b"index ")
     }
@@ -506,6 +510,11 @@ impl<'a> PatchReader<'a> {
         let _line = self
             .next(PatchReader::mv, false)
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
+
+        if !_line.is_triple_plus() {
+            trace!("DEBUG (not a +++): {:?}", _line);
+            return Ok(());
+        }
         // 3 == len("+++")
         let new = LineReader::get_filename(&_line.buf[3..], line.get_line())?;
 

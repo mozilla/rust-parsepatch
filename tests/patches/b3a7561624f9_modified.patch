@@ -1,0 +1,53 @@
+
+# HG changeset patch
+# User Mark Banner <bugzilla@standard8.plus.com>
+# Date 1329238200 18000
+# Node ID b3a7561624f974ee2d663cf247322dfba3df359c
+# Parent  62695656d7bda858b32fe59e6d5596e994049359
+Bug 722262 Fix ordering for extra app libs in dependentlibs.list. r=khuey
+--- Port |Bug 552864 - Throw away wrapper shell script on unix and lazily load libxul| to SeaMonkey
+diff --git a/xpcom/stub/Makefile.in b/xpcom/stub/Makefile.in
+--- a/xpcom/stub/Makefile.in
++++ b/xpcom/stub/Makefile.in
+@@ -67,16 +67,21 @@ else
+ SDK_LIBRARY = $(SHARED_LIBRARY)
+ endif
+ 
+ 
+ FORCE_SHARED_LIB = 1
+ 
+ EXTRA_DSO_LDOPTS = $(LIBS_DIR)
+ 
++# Must be included before DEPENDENT_LIBS_LIST starts so that apps have a chance
++# of getting their stuff in before xul.
++# It is ok for this file not to exist
++-include $(topsrcdir)/$(MOZ_BUILD_APP)/extradependlibs.mk
++
+ DEPENDENT_LIBS_LIST += \
+ 	$(DLL_PREFIX)nspr4$(DLL_SUFFIX) \
+ 	$(DLL_PREFIX)plc4$(DLL_SUFFIX) \
+ 	$(DLL_PREFIX)plds4$(DLL_SUFFIX) \
+ 	$(DLL_PREFIX)mozalloc$(DLL_SUFFIX) \
+ 	$(NULL)
+ 
+ ifndef MOZ_NATIVE_SQLITE
+@@ -112,18 +117,15 @@ DEPENDENT_LIBS_LIST += $(DLL_PREFIX)xul$
+ endif
+ 
+ EXTRA_DSO_LDOPTS +=				\
+ 	$(EXTRA_DSO_LIBS)			\
+ 	$(NSPR_LIBS)				\
+ 	$(MOZALLOC_LIB)				\
+ 	$(NULL)
+ 
+-# It is ok for this file not to exist
+--include $(topsrcdir)/$(MOZ_BUILD_APP)/extradependlibs.mk
+-
+ include $(topsrcdir)/config/rules.mk
+ 
+ libs:: $(FINAL_TARGET)/dependentlibs.list
+ 
+ $(FINAL_TARGET)/dependentlibs.list: Makefile.in $(DEPTH)/config/autoconf.mk
+ 	$(EXIT_ON_ERROR) \
+ 	( $(foreach dlib,$(DEPENDENT_LIBS_LIST),echo $(dlib);) ) > $@
+
