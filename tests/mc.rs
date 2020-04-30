@@ -2,8 +2,9 @@ extern crate parsepatch;
 use crate::parsepatch::*;
 
 use crossbeam::channel::Receiver;
-use crossbeam::crossbeam_channel::unbounded;
+use crossbeam::crossbeam_channel::bounded;
 use hglib::{export, hg, runcommand, Client, MkArg, Runner};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -62,10 +63,9 @@ fn consumer(
     path: String,
     receiver: Receiver<Option<Vec<String>>>,
     set: &Mutex<HashSet<String>>,
-    total: usize,
+    pb: &Mutex<ProgressBar>,
 ) {
     let mut client = Client::open(&path, "UTF-8", &[]).unwrap();
-    let poisons = num_cpus::get();
 
     while let Ok(nodes) = receiver.recv() {
         if nodes.is_none() {
@@ -73,6 +73,8 @@ fn consumer(
         }
 
         let mut nodes = nodes.unwrap();
+        let n_nodes = nodes.len();
+        
         for node in nodes.drain(..) {
             let patch = hg!(client, export, revs = &[&node]).unwrap();
 
@@ -90,57 +92,53 @@ fn consumer(
                 }
             }
         }
-
-        let queue_len = receiver.len();
-        if queue_len >= poisons {
-            let treated = (total - (queue_len - poisons));
-            let percent = treated as f64 / (total as f64) * 100.;
-            println!(
-                "{:.2}% of the chunks processed ({} / {})",
-                percent, treated, total
-            );
-        }
+        let pb = pb.lock().unwrap();
+        pb.inc(n_nodes as u64);
     }
 }
 
 #[test]
 fn test_mc() {
     let path = "/home/calixte/dev/mozilla/mozilla-central.hg";
-    let mut nodes = get_log(path, "");
+    let nodes = get_log(path, "0:tip");
     let total = nodes.len();
     let set = Arc::new(Mutex::new(HashSet::new()));
     let n_threads = num_cpus::get();
-    let (sender, receiver) = unbounded();
     let chunk_size = 32.min(total / n_threads + 1);
+    let (sender, receiver) = bounded(total / chunk_size + 1 + n_threads);
 
+    let pb = ProgressBar::new(total as u64);
+    pb.set_style(ProgressStyle::default_bar()
+                  .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos}/{len}"));
+    let pb = Arc::new(Mutex::new(pb));
+    
     println!(
         "Chunk size is {} for {} collected nodes.",
         chunk_size, total
     );
 
-    for c in nodes.chunks(chunk_size) {
-        sender.send(Some(c.to_vec())).unwrap();
-    }
-
-    let total = sender.len();
-
     let mut threads = Vec::new();
-    for i in 0..num_cpus::get() {
+    for i in 0..n_threads {
         let receiver = receiver.clone();
         let path = path.to_string();
         let set = Arc::clone(&set);
+        let pb = Arc::clone(&pb);
 
         let t = thread::Builder::new()
             .name(format!("Consumer {}", i))
             .spawn(move || {
-                consumer(path, receiver, &set, total);
+                consumer(path, receiver, &set, &pb);
             })
             .unwrap();
 
         threads.push(t);
     }
 
-    for _ in 0..num_cpus::get() {
+    for c in nodes.chunks(chunk_size) {
+        sender.send(Some(c.to_vec())).unwrap();
+    }
+
+    for _ in 0..n_threads {
         sender.send(None).unwrap();
     }
 
