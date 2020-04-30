@@ -59,44 +59,46 @@ fn get_log(path: &str, range: &str) -> Vec<String> {
 }
 
 fn consumer(
-    mut client: Client,
-    receiver: Receiver<Option<String>>,
+    path: String,
+    receiver: Receiver<Option<Vec<String>>>,
     set: &Mutex<HashSet<String>>,
     total: usize,
 ) {
+    let mut client = Client::open(&path, "UTF-8", &[]).unwrap();
     let poisons = num_cpus::get();
-    while let Ok(node) = receiver.recv() {
-        if node.is_none() {
+
+    while let Ok(nodes) = receiver.recv() {
+        if nodes.is_none() {
             break;
         }
 
-        let node = node.unwrap();
-        let patch = hg!(client, export, revs = &[&node]).unwrap();
+        let mut nodes = nodes.unwrap();
+        for node in nodes.drain(..) {
+            let patch = hg!(client, export, revs = &[&node]).unwrap();
 
-        if let Some(diff) = patch {
-            let mut patch = PatchImpl { diffs: Vec::new() };
+            if let Some(diff) = patch {
+                let mut patch = PatchImpl { diffs: Vec::new() };
 
-            {
-                let mut set = set.lock().unwrap();
-                set.insert(node.clone());
-            }
-            PatchReader::by_buf(&diff, &mut patch).unwrap();
-            {
-                let mut set = set.lock().unwrap();
-                set.remove(&node);
+                {
+                    let mut set = set.lock().unwrap();
+                    set.insert(node.clone());
+                }
+                PatchReader::by_buf(&diff, &mut patch).unwrap();
+                {
+                    let mut set = set.lock().unwrap();
+                    set.remove(&node);
+                }
             }
         }
 
         let queue_len = receiver.len();
         if queue_len >= poisons {
-            let treated = total - (queue_len - poisons);
-            if treated % 100 == 0 {
-                let percent = treated as f64 / (total as f64) * 100.;
-                println!(
-                    "{:.2}% of the patches processed ({} / {})",
-                    percent, treated, total
-                );
-            }
+            let treated = (total - (queue_len - poisons));
+            let percent = treated as f64 / (total as f64) * 100.;
+            println!(
+                "{:.2}% of the chunks processed ({} / {})",
+                percent, treated, total
+            );
         }
     }
 }
@@ -107,22 +109,31 @@ fn test_mc() {
     let mut nodes = get_log(path, "");
     let total = nodes.len();
     let set = Arc::new(Mutex::new(HashSet::new()));
-
+    let n_threads = num_cpus::get();
     let (sender, receiver) = unbounded();
-    for node in nodes.drain(..) {
-        sender.send(Some(node)).unwrap();
+    let chunk_size = 32.min(total / n_threads + 1);
+
+    println!(
+        "Chunk size is {} for {} collected nodes.",
+        chunk_size, total
+    );
+
+    for c in nodes.chunks(chunk_size) {
+        sender.send(Some(c.to_vec())).unwrap();
     }
+
+    let total = sender.len();
 
     let mut threads = Vec::new();
     for i in 0..num_cpus::get() {
         let receiver = receiver.clone();
-        let client = Client::open(&path, "UTF-8", &[]).unwrap();
+        let path = path.to_string();
         let set = Arc::clone(&set);
 
         let t = thread::Builder::new()
             .name(format!("Consumer {}", i))
             .spawn(move || {
-                consumer(client, receiver, &set, total);
+                consumer(path, receiver, &set, total);
             })
             .unwrap();
 
