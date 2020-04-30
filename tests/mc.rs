@@ -74,7 +74,7 @@ fn consumer(
 
         let mut nodes = nodes.unwrap();
         let n_nodes = nodes.len();
-        
+
         for node in nodes.drain(..) {
             let patch = hg!(client, export, revs = &[&node]).unwrap();
 
@@ -108,10 +108,12 @@ fn test_mc() {
     let (sender, receiver) = bounded(total / chunk_size + 1 + n_threads);
 
     let pb = ProgressBar::new(total as u64);
-    pb.set_style(ProgressStyle::default_bar()
-                  .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos}/{len}"));
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos}/{len}"),
+    );
     let pb = Arc::new(Mutex::new(pb));
-    
+
     println!(
         "Chunk size is {} for {} collected nodes.",
         chunk_size, total
