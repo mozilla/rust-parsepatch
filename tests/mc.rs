@@ -98,6 +98,7 @@ fn consumer(
 }
 
 #[test]
+#[ignore]
 fn test_mc() {
     let path = "/home/calixte/dev/mozilla/mozilla-central.hg";
     let nodes = get_log(path, "0:tip");
