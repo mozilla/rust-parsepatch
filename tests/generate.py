@@ -48,6 +48,11 @@ for f in os.listdir(directory):
         patch = patch.replace('diff commits', 'Diff commits')
         patch = patch.replace('diffs for', 'Diffs for')
 
+    if '044115544bf6' in f:
+        # wtp sees a diff entry because of the ---
+        # so workaround to avoid to have this entry in the output.
+        patch = patch.replace('--- target_task_set@d009f0738a', '___ target_task_set@d009f0738a')
+
     for diff in whatthepatch.parse_patch(patch):
         r = OrderedDict()
 

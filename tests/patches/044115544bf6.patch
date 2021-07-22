@@ -1,0 +1,465 @@
+
+# HG changeset patch
+# User Andrew Osmond <aosmond@mozilla.com>
+# Date 1626872072 0
+# Node ID 044115544bf6521f40c393d76c3f081daf39fa82
+# Parent  759bc741488b9391c07da95988593e6d3fb49490
+Bug 1717627 - Move Linux devtools tests to WebRender. r=ahal
+
+--- target_task_set@d009f0738a
++++ target_task_set@ao_ci_linux_devtools
++test-linux1804-64-asan-qr/opt-mochitest-devtools-chrome-e10s
+-test-linux1804-64-asan/opt-mochitest-devtools-chrome-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-fis-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-swr-e10s
++test-linux1804-64-qr/opt-mochitest-devtools-chrome-e10s
++test-linux1804-64-qr/opt-mochitest-devtools-chrome-fis-e10s
+-test-linux1804-64/debug-mochitest-devtools-chrome-e10s
+-test-linux1804-64/debug-mochitest-devtools-chrome-fis-e10s
+-test-linux1804-64/opt-mochitest-devtools-chrome-a11y-checks-e10s
+-test-linux1804-64/opt-mochitest-devtools-chrome-e10s
+-test-linux1804-64/opt-mochitest-devtools-chrome-fis-e10s
++test-macosx1015-64-qr/debug-mochitest-devtools-chrome-e10s
+
+mozilla-central
+
+--- target_task_set@d009f0738a
++++ target_task_set@ao_ci_linux_devtools
++test-linux1804-64-asan-qr/opt-mochitest-devtools-chrome-e10s
+-test-linux1804-64-asan/opt-mochitest-devtools-chrome-e10s
++test-linux1804-64-ccov-qr/opt-mochitest-devtools-chrome-e10s
+-test-linux1804-64-ccov/opt-mochitest-devtools-chrome-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-fis-e10s
++test-linux1804-64-qr/debug-mochitest-devtools-chrome-swr-e10s
++test-linux1804-64-shippable-qr/opt-mochitest-devtools-chrome-e10s
++test-linux1804-64-shippable-qr/opt-mochitest-devtools-chrome-fis-e10s
+-test-linux1804-64-shippable/opt-mochitest-devtools-chrome-a11y-checks-e10s
+-test-linux1804-64-shippable/opt-mochitest-devtools-chrome-e10s
+-test-linux1804-64-shippable/opt-mochitest-devtools-chrome-fis-e10s
+-test-linux1804-64/debug-mochitest-devtools-chrome-e10s
+-test-linux1804-64/debug-mochitest-devtools-chrome-fis-e10s
++test-macosx1015-64-qr/debug-mochitest-devtools-chrome-e10s
+
+Differential Revision: https://phabricator.services.mozilla.com/D120228
+
+diff --git a/devtools/client/debugger/test/mochitest/browser.ini b/devtools/client/debugger/test/mochitest/browser.ini
+--- a/devtools/client/debugger/test/mochitest/browser.ini
++++ b/devtools/client/debugger/test/mochitest/browser.ini
+@@ -136,17 +136,19 @@ skip-if = (verify && debug && (os == 'ma
+ [browser_dbg-pretty-print-breakpoints.js]
+ [browser_dbg-pretty-print-breakpoints-delete.js]
+ [browser_dbg-pretty-print-console.js]
+ [browser_dbg-pretty-print-paused.js]
+ [browser_dbg-pretty-print-paused-anonymous.js]
+ [browser_dbg-pretty-print-flow.js]
+ [browser_dbg-preview-getter.js]
+ [browser_dbg-preview.js]
+-skip-if = os == "win"
++skip-if =
++  os == "win"
++  (os == "linux" && !asan && !debug && !swgl && !ccov)
+ [browser_dbg-preview-frame.js]
+ skip-if = os == "win"
+ [browser_dbg-preview-module.js]
+ skip-if = os == "win"
+ [browser_dbg-preview-source-maps.js]
+ skip-if = os == "win"
+ [browser_dbg-react-jsx.js]
+ [browser_dbg-returnvalues.js]
+@@ -199,17 +201,19 @@ skip-if = os == "win"
+ [browser_dbg-wasm-sourcemaps.js]
+ skip-if = true #Bug 1571994
+ [browser_dbg-windowless-workers.js]
+ [browser_dbg-windowless-workers-early-breakpoint.js]
+ [browser_dbg-worker-exception.js]
+ [browser_dbg-windowless-service-workers-reload.js]
+ skip-if = !serviceworker_e10s # parent intercept mode required.
+ [browser_dbg-windowless-service-workers.js]
+-skip-if = !serviceworker_e10s || (os == 'linux' && ccov) # parent intercept mode is needed bug 1588154. Bug 1613543, the test consistently timeouts on Linux coverage builds.
++skip-if =
++  !serviceworker_e10s # parent intercept mode is needed bug 1588154. Bug 1613543, the test consistently timeouts on Linux coverage builds and WR debug builds.
++  (os == 'linux' && (ccov || (webrender && !swgl && debug)))
+ [browser_dbg-worker-scopes.js]
+ skip-if =
+   os == 'linux' && debug # Bug 1456013
+   ccov # Bug 1456013
+   os == 'linux' && asan # Bug 1559547
+   os == 'mac' # Bug 1607321
+   os == 'win' && os_version == '10.0' && bits == 64 # Bug 1607321
+ [browser_dbg-event-handler.js]
+diff --git a/devtools/client/inspector/animation/test/browser.ini b/devtools/client/inspector/animation/test/browser.ini
+--- a/devtools/client/inspector/animation/test/browser.ini
++++ b/devtools/client/inspector/animation/test/browser.ini
+@@ -35,17 +35,18 @@ support-files =
+ [browser_animation_animation-detail_title.js]
+ [browser_animation_animation-detail_visibility.js]
+ [browser_animation_animation-list.js]
+ [browser_animation_animation-list_one-animation-select.js]
+ [browser_animation_animation-list_select.js]
+ [browser_animation_animation-target.js]
+ [browser_animation_animation-target_highlight.js]
+ skip-if =
+-  apple_catalina && !debug # Disabled in Bug 1713158. Intemittent bug: Bug 1665011
++  (apple_catalina && !debug) # Disabled in Bug 1713158. Intemittent bug: Bug 1665011
++  (os == "linux" && !debug && !asan && !swgl && !ccov) # Bug 1665011
+ [browser_animation_animation-target_select.js]
+ [browser_animation_animation-timeline-tick.js]
+ [browser_animation_css-transition-with-playstate-idle.js]
+ [browser_animation_current-time-label.js]
+ [browser_animation_current-time-scrubber.js]
+ [browser_animation_current-time-scrubber-rtl.js]
+ [browser_animation_current-time-scrubber_each-different-creation-time-animations.js]
+ [browser_animation_current-time-scrubber-with-negative-delay.js]
+@@ -69,17 +70,20 @@ skip-if = (os == "win" && ccov) # Bug 14
+ [browser_animation_logic_adjust-time.js]
+ [browser_animation_logic_adjust-time-with-playback-rate.js]
+ [browser_animation_logic_auto-stop.js]
+ [browser_animation_logic_avoid-updating-during-hiding.js]
+ [browser_animation_logic_created-time.js]
+ [browser_animation_logic_mutations.js]
+ [browser_animation_logic_mutations_add_remove_immediately.js]
+ [browser_animation_logic_mutations_fast.js]
+-skip-if = debug || (os == "win" && bits == 32) # Bug 1567800
++skip-if =
++  debug
++  (os == "win" && bits == 32) # Bug 1567800
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1567800
+ [browser_animation_logic_mutations_properties.js]
+ [browser_animation_logic_overflowed_delay_end-delay.js]
+ skip-if = debug #bug 1480027
+ [browser_animation_logic_scroll-amount.js]
+ [browser_animation_pause-resume-button.js]
+ [browser_animation_pause-resume-button_end-time.js]
+ [browser_animation_pause-resume-button_respectively.js]
+ [browser_animation_pause-resume-button_spacebar.js]
+diff --git a/devtools/client/jsonview/test/browser.ini b/devtools/client/jsonview/test/browser.ini
+--- a/devtools/client/jsonview/test/browser.ini
++++ b/devtools/client/jsonview/test/browser.ini
+@@ -15,16 +15,17 @@ support-files =
+   passthrough-sw.js
+   simple_json.json
+   simple_json.json^headers^
+   valid_json.json
+   valid_json.json^headers^
+   !/devtools/client/framework/test/head.js
+   !/devtools/client/shared/test/shared-head.js
+   !/devtools/client/shared/test/telemetry-test-helpers.js
++skip-if = (os == 'linux' && webrender && !swgl) # bug 1720898
+ 
+ [browser_json_refresh.js]
+ [browser_jsonview_bug_1380828.js]
+ [browser_jsonview_chunked_json.js]
+ support-files =
+   chunked_json.sjs
+ [browser_jsonview_content_type.js]
+ [browser_jsonview_copy_headers.js]
+diff --git a/devtools/client/netmonitor/test/browser.ini b/devtools/client/netmonitor/test/browser.ini
+--- a/devtools/client/netmonitor/test/browser.ini
++++ b/devtools/client/netmonitor/test/browser.ini
+@@ -87,16 +87,17 @@ support-files =
+   !/devtools/client/shared/test/shared-head.js
+   !/devtools/client/shared/test/telemetry-test-helpers.js
+ 
+ [browser_net_accessibility-01.js]
+ [browser_net_accessibility-02.js]
+ [browser_net_api-calls.js]
+ [browser_net_basic-search.js]
+ [browser_net_search-results.js]
++skip-if = (os == 'linux' && a11y_checks) # Bug 1721160
+ [browser_net_background_update.js]
+ [browser_net_autoscroll.js]
+ [browser_net_block.js]
+ [browser_net_block-context.js]
+ [browser_net_block-csp.js]
+ [browser_net_block-draganddrop.js]
+ [browser_net_block-extensions.js]
+ [browser_net_block-pattern.js]
+diff --git a/devtools/client/shared/test/browser.ini b/devtools/client/shared/test/browser.ini
+--- a/devtools/client/shared/test/browser.ini
++++ b/devtools/client/shared/test/browser.ini
+@@ -68,22 +68,24 @@ support-files =
+ [browser_autocomplete_popup.js]
+ [browser_browserloader_mocks.js]
+ [browser_css_angle.js]
+ [browser_css_color.js]
+ [browser_cubic-bezier-01.js]
+ [browser_cubic-bezier-02.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_cubic-bezier-03.js]
+ [browser_cubic-bezier-04.js]
+ [browser_cubic-bezier-05.js]
+ [browser_cubic-bezier-06.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_cubic-bezier-07.js]
+ tags = addons
+ [browser_dbg_listworkers.js]
+ [browser_filter-editor-01.js]
+ [browser_filter-editor-02.js]
+ [browser_filter-editor-03.js]
+ [browser_filter-editor-04.js]
+ [browser_filter-editor-05.js]
+@@ -158,75 +160,90 @@ skip-if = e10s # Bug 1221911, bug 122228
+ [browser_graphs-15.js]
+ skip-if = e10s # Bug 1221911, bug 1222289, frequent e10s timeouts
+ [browser_graphs-16.js]
+ skip-if = e10s # Bug 1221911, bug 1222289, frequent e10s timeouts
+ [browser_html_tooltip-01.js]
+ [browser_html_tooltip-02.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip-03.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip-04.js]
++skip-if =
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip-05.js]
+ [browser_html_tooltip_arrow-01.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip_arrow-02.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip_consecutive-show.js]
+ [browser_html_tooltip_doorhanger-01.js]
+ [browser_html_tooltip_doorhanger-02.js]
+ [browser_html_tooltip_height-auto.js]
+ [browser_html_tooltip_hover.js]
+ [browser_html_tooltip_offset.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip_resize.js]
+ [browser_html_tooltip_rtl.js]
+ [browser_html_tooltip_screen_edge.js]
+ [browser_html_tooltip_variable-height.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip_width-auto.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_html_tooltip_xul-wrapper.js]
+ [browser_html_tooltip_zoom.js]
+ [browser_inplace-editor-01.js]
+ [browser_inplace-editor-02.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_inplace-editor_autoclose_parentheses.js]
+ [browser_inplace-editor_autocomplete_01.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_inplace-editor_autocomplete_02.js]
+ [browser_inplace-editor_autocomplete_offset.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_inplace-editor_autocomplete_css_variable.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_inplace-editor_maxwidth.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_keycodes.js]
+ [browser_key_shortcuts.js]
+ [browser_layoutHelpers.js]
+ [browser_layoutHelpers_getBoxQuads1.js]
+ skip-if = verify
+ [browser_layoutHelpers_getBoxQuads2.js]
+ [browser_link.js]
+ [browser_num-l10n.js]
+ [browser_options-view-01.js]
+ skip-if =
+   apple_catalina # Bug 1713158
++  (os == "linux" && !asan && !debug && !swgl && !ccov) # Bug 1721159
+ [browser_outputparser.js]
+ [browser_prefs-01.js]
+ [browser_prefs-02.js]
+ [browser_require_raw.js]
+ [browser_spectrum.js]
+ [browser_theme.js]
+ [browser_tableWidget_basic.js]
+ [browser_tableWidget_keyboard_interaction.js]
+diff --git a/devtools/client/webconsole/test/browser/_webconsole.ini b/devtools/client/webconsole/test/browser/_webconsole.ini
+--- a/devtools/client/webconsole/test/browser/_webconsole.ini
++++ b/devtools/client/webconsole/test/browser/_webconsole.ini
+@@ -298,17 +298,17 @@ skip-if =
+ [browser_webconsole_network_messages_openinnet.js]
+ fail-if = fission # Bug 1613081
+ [browser_webconsole_network_messages_resend_request.js]
+ fail-if = fission # Bug 1613081
+ [browser_webconsole_network_messages_stacktrace_console_initiated_request.js]
+ [browser_webconsole_network_messages_status_code.js]
+ [browser_webconsole_network_requests_from_chrome.js]
+ [browser_webconsole_network_reset_filter.js]
+-skip-if = (os == "linux" && fission && !ccov) || (os == "win" && fission) #Bug 1601331
++skip-if = (os == "linux" && fission && ccov) || (os == "win" && fission) #Bug 1601331
+ [browser_webconsole_network_unicode.js]
+ [browser_webconsole_nodes_highlight.js]
+ [browser_webconsole_nodes_select.js]
+ [browser_webconsole_non_javascript_mime_warning.js]
+ [browser_webconsole_non_javascript_mime_worker_error.js]
+ [browser_webconsole_object_ctrl_click.js]
+ skip-if =
+   apple_catalina # Bug 1713158
+diff --git a/taskcluster/ci/test/mochitest.yml b/taskcluster/ci/test/mochitest.yml
+--- a/taskcluster/ci/test/mochitest.yml
++++ b/taskcluster/ci/test/mochitest.yml
+@@ -268,59 +268,59 @@ mochitest-devtools-chrome:
+     description: "Mochitest devtools-chrome run"
+     suite:
+         name: mochitest-devtools-chrome
+     schedules-component: mochitest-browser-chrome
+     treeherder-symbol: M(dt)
+     loopback-video: true
+     variants:
+         by-test-platform:
+-            linux.*64(-shippable)?/opt: ['fission', 'a11y-checks', 'wayland']
++            linux.*64(-shippable)?-qr/opt: ['fission', 'a11y-checks', 'wayland']
+             linux.*64-qr/debug: ['webrender-sw', 'fission', 'wayland']
+             default: ['fission']
+     run-on-projects:
+         by-variant:
+             fission:
+                 by-test-platform:
+-                    linux.*64(-shippable)?/(opt|debug): ['trunk']
++                    linux.*64(-shippable)?-qr/(opt|debug): ['trunk']
+                     windows10-64(-shippable)?-qr/(opt|debug): ['trunk']
+                     default: []
+             default:
+                 by-test-platform:
+                     .*-tsan/opt: ['trunk']
+                     default: built-projects
+     tier:
+         by-variant:
+             fission:
+                 by-test-platform:
+-                    linux.*64(-shippable)?(-qr)?/(opt|debug): 1
+-                    windows10-64(-shippable)?(-qr)?/(opt|debug): 1
++                    linux.*64(-shippable)?-qr/(opt|debug): 1
++                    windows10-64(-shippable)?-qr/(opt|debug): 1
+                     default: 2
+             default: default
+     max-run-time:
+         by-test-platform:
+             windows10-64-ccov.*/.*: 10800
+             macosx.*64-ccov.*/.*: 9000
+             linux.*64-ccov.*/.*: 7200
+             linux.*64-tsan/opt: 7200
+             default: 5400
+     chunks:
+         by-test-platform:
+             .*-ccov.*/.*: 16
+-            linux.*64/debug: 12
+-            macosx.*64/debug: 8
++            linux.*64-qr/debug: 12
++            macosx.*64-qr/debug: 8
+             .*-asan(-qr)?/opt: 8
+             .*-tsan/opt: 16
+             default: 5
+     mozharness:
+         mochitest-flavor: chrome
+         chunked: true
+     instance-size:
+         by-test-platform:
+-            linux.*64-[at]san/opt: xlarge  # runs out of memory on default/m3.large
++            linux.*64-[at]san(-qr)?/opt: xlarge  # runs out of memory on default/m3.large
+             default: default
+     # Bug 1296086: high number of intermittents observed with software GL and large instances
+     allow-software-gl-layers: false
+ 
+ mochitest-plain-gpu:
+     description: "Mochitest plain GPU run"
+     suite:
+         name: mochitest-plain-gpu
+diff --git a/taskcluster/ci/test/test-sets.yml b/taskcluster/ci/test/test-sets.yml
+--- a/taskcluster/ci/test/test-sets.yml
++++ b/taskcluster/ci/test/test-sets.yml
+@@ -167,17 +167,16 @@ linux1804-tests:
+     - gtest
+     # - jittest  # See comment in linux1804-ccov-tests set.
+     - jsreftest
+     - marionette
+     - mochitest-a11y
+     - mochitest-browser-chrome
+     - mochitest-chrome
+     - mochitest-chrome-gpu
+-    - mochitest-devtools-chrome
+     - mochitest-media
+     - mochitest-plain
+     - mochitest-plain-gpu
+     - mochitest-remote
+     - mochitest-webgl1-core
+     - mochitest-webgl1-ext
+     - mochitest-webgl2-core
+     - mochitest-webgl2-ext
+@@ -195,16 +194,17 @@ linux1804-qr-tests:
+     - firefox-ui-functional-remote
+     - gtest
+     # - jittest  # See comment in linux1804-ccov-tests set.
+     - jsreftest
+     - marionette
+     - mochitest-a11y
+     - mochitest-chrome
+     - mochitest-chrome-gpu
++    - mochitest-devtools-chrome
+     - mochitest-media
+     - mochitest-plain
+     - mochitest-plain-gpu
+     - mochitest-remote
+     - mochitest-webgl1-core
+     - mochitest-webgl1-ext
+     - mochitest-webgl2-core
+     - mochitest-webgl2-ext
+@@ -212,16 +212,17 @@ linux1804-qr-tests:
+     - reftest-snapshot
+     - test-verify
+     - xpcshell
+ 
+ linux1804-ccov-qr-tests:
+     - reftest-snapshot
+     - reftest
+     - crashtest
++    - mochitest-devtools-chrome
+     - mochitest-media
+ 
+ linux1804-devedition-qr-tests:
+     - reftest-snapshot
+ 
+ linux1804-ccov-tests:
+     # jittest run on regular linux builds is redundant with SM(p), so we omit it
+     # from the linux1804-tests and linux1804-qr-tests sets. But, we still want
+@@ -235,16 +236,17 @@ linux-qr-smoketests:
+     - firefox-ui-functional-local
+     - firefox-ui-functional-remote
+     - gtest
+     - jsreftest
+     - marionette
+     - mochitest-a11y
+     - mochitest-chrome
+     - mochitest-chrome-gpu
++    - mochitest-devtools-chrome
+     - mochitest-media
+     - mochitest-remote
+     - mochitest-webgl1-core
+     - mochitest-webgl1-ext
+     - mochitest-webgl2-core
+     - mochitest-webgl2-ext
+     - reftest
+     - reftest-snapshot
+
