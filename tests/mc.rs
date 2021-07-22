@@ -1,8 +1,7 @@
 extern crate parsepatch;
 use crate::parsepatch::*;
 
-use crossbeam::channel::Receiver;
-use crossbeam::crossbeam_channel::bounded;
+use crossbeam::channel::{bounded, Receiver};
 use hglib::{export, hg, runcommand, Client, MkArg, Runner};
 use indicatif::{ProgressBar, ProgressStyle};
 use std::collections::HashSet;

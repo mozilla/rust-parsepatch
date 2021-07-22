@@ -14,15 +14,15 @@ log = "0.4"
 
 [dev-dependencies]
 chardet = "0.2"
-crossbeam = "^0.7"
+crossbeam = "^0.8"
 encoding = "0.2"
 num_cpus = "^1.12"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
-env_logger = "0.8"
+env_logger = "0.9"
 hglib-rs = "0.1"
-indicatif = "0.15"
+indicatif = "0.16"
 
 [lib]
 name = "parsepatch"
