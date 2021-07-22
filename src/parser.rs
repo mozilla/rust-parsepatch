@@ -341,6 +341,15 @@ impl<'a> PatchReader<'a> {
     ) -> Result<()> {
         trace!("Diff {:?}", diff_line);
         if diff_line.is_triple_minus() {
+            // The diff starts with a ---: need to look ahead for no "diff ..."
+            // to be sure that we aren't in the header.
+            let diff = b"\ndiff -";
+            let buf = unsafe { self.buf.get_unchecked(self.pos..) };
+            if let Some(pos) = buf.windows(diff.len()).position(|win| win == diff) {
+                // +1 for the '\n'
+                self.pos += pos + 1;
+                return Ok(());
+            }
             self.parse_minus(diff_line, FileOp::None, None, patch)?;
             return Ok(());
         }

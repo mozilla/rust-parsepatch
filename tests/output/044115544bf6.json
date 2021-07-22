@@ -1,0 +1,407 @@
+{
+    "diffs": [
+        {
+            "filename": "devtools/client/debugger/test/mochitest/browser.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 144,
+                            "deleted": true,
+                            "data": "skip-if = os == \"win\""
+                        },
+                        {
+                            "line": 144,
+                            "deleted": false,
+                            "data": "skip-if ="
+                        },
+                        {
+                            "line": 145,
+                            "deleted": false,
+                            "data": "  os == \"win\""
+                        },
+                        {
+                            "line": 146,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov)"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 207,
+                            "deleted": true,
+                            "data": "skip-if = !serviceworker_e10s || (os == 'linux' && ccov) # parent intercept mode is needed bug 1588154. Bug 1613543, the test consistently timeouts on Linux coverage builds."
+                        },
+                        {
+                            "line": 209,
+                            "deleted": false,
+                            "data": "skip-if ="
+                        },
+                        {
+                            "line": 210,
+                            "deleted": false,
+                            "data": "  !serviceworker_e10s # parent intercept mode is needed bug 1588154. Bug 1613543, the test consistently timeouts on Linux coverage builds and WR debug builds."
+                        },
+                        {
+                            "line": 211,
+                            "deleted": false,
+                            "data": "  (os == 'linux' && (ccov || (webrender && !swgl && debug)))"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "devtools/client/inspector/animation/test/browser.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 43,
+                            "deleted": true,
+                            "data": "  apple_catalina && !debug # Disabled in Bug 1713158. Intemittent bug: Bug 1665011"
+                        },
+                        {
+                            "line": 43,
+                            "deleted": false,
+                            "data": "  (apple_catalina && !debug) # Disabled in Bug 1713158. Intemittent bug: Bug 1665011"
+                        },
+                        {
+                            "line": 44,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !debug && !asan && !swgl && !ccov) # Bug 1665011"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 77,
+                            "deleted": true,
+                            "data": "skip-if = debug || (os == \"win\" && bits == 32) # Bug 1567800"
+                        },
+                        {
+                            "line": 78,
+                            "deleted": false,
+                            "data": "skip-if ="
+                        },
+                        {
+                            "line": 79,
+                            "deleted": false,
+                            "data": "  debug"
+                        },
+                        {
+                            "line": 80,
+                            "deleted": false,
+                            "data": "  (os == \"win\" && bits == 32) # Bug 1567800"
+                        },
+                        {
+                            "line": 81,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1567800"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "devtools/client/jsonview/test/browser.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 23,
+                            "deleted": false,
+                            "data": "skip-if = (os == 'linux' && webrender && !swgl) # bug 1720898"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "devtools/client/netmonitor/test/browser.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 95,
+                            "deleted": false,
+                            "data": "skip-if = (os == 'linux' && a11y_checks) # Bug 1721160"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "devtools/client/shared/test/browser.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 76,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 83,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 168,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 172,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 174,
+                            "deleted": false,
+                            "data": "skip-if ="
+                        },
+                        {
+                            "line": 175,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 180,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 184,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 193,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 200,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 204,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 211,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 216,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 221,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 225,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 229,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        },
+                        {
+                            "line": 241,
+                            "deleted": false,
+                            "data": "  (os == \"linux\" && !asan && !debug && !swgl && !ccov) # Bug 1721159"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "devtools/client/webconsole/test/browser/_webconsole.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 306,
+                            "deleted": true,
+                            "data": "skip-if = (os == \"linux\" && fission && !ccov) || (os == \"win\" && fission) #Bug 1601331"
+                        },
+                        {
+                            "line": 306,
+                            "deleted": false,
+                            "data": "skip-if = (os == \"linux\" && fission && ccov) || (os == \"win\" && fission) #Bug 1601331"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "taskcluster/ci/test/mochitest.yml",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 276,
+                            "deleted": true,
+                            "data": "            linux.*64(-shippable)?/opt: ['fission', 'a11y-checks', 'wayland']"
+                        },
+                        {
+                            "line": 276,
+                            "deleted": false,
+                            "data": "            linux.*64(-shippable)?-qr/opt: ['fission', 'a11y-checks', 'wayland']"
+                        },
+                        {
+                            "line": 283,
+                            "deleted": true,
+                            "data": "                    linux.*64(-shippable)?/(opt|debug): ['trunk']"
+                        },
+                        {
+                            "line": 283,
+                            "deleted": false,
+                            "data": "                    linux.*64(-shippable)?-qr/(opt|debug): ['trunk']"
+                        },
+                        {
+                            "line": 294,
+                            "deleted": true,
+                            "data": "                    linux.*64(-shippable)?(-qr)?/(opt|debug): 1"
+                        },
+                        {
+                            "line": 295,
+                            "deleted": true,
+                            "data": "                    windows10-64(-shippable)?(-qr)?/(opt|debug): 1"
+                        },
+                        {
+                            "line": 294,
+                            "deleted": false,
+                            "data": "                    linux.*64(-shippable)?-qr/(opt|debug): 1"
+                        },
+                        {
+                            "line": 295,
+                            "deleted": false,
+                            "data": "                    windows10-64(-shippable)?-qr/(opt|debug): 1"
+                        },
+                        {
+                            "line": 308,
+                            "deleted": true,
+                            "data": "            linux.*64/debug: 12"
+                        },
+                        {
+                            "line": 309,
+                            "deleted": true,
+                            "data": "            macosx.*64/debug: 8"
+                        },
+                        {
+                            "line": 308,
+                            "deleted": false,
+                            "data": "            linux.*64-qr/debug: 12"
+                        },
+                        {
+                            "line": 309,
+                            "deleted": false,
+                            "data": "            macosx.*64-qr/debug: 8"
+                        },
+                        {
+                            "line": 318,
+                            "deleted": true,
+                            "data": "            linux.*64-[at]san/opt: xlarge  # runs out of memory on default/m3.large"
+                        },
+                        {
+                            "line": 318,
+                            "deleted": false,
+                            "data": "            linux.*64-[at]san(-qr)?/opt: xlarge  # runs out of memory on default/m3.large"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "taskcluster/ci/test/test-sets.yml",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 175,
+                            "deleted": true,
+                            "data": "    - mochitest-devtools-chrome"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 202,
+                            "deleted": false,
+                            "data": "    - mochitest-devtools-chrome"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 220,
+                            "deleted": false,
+                            "data": "    - mochitest-devtools-chrome"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 244,
+                            "deleted": false,
+                            "data": "    - mochitest-devtools-chrome"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
