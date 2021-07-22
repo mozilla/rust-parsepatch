@@ -236,39 +236,37 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
     for (cj, cp) in json.diffs.iter().zip(patch.diffs.iter()) {
         assert!(
             cj.filename == cp.filename,
-            format!(
-                "Not the same filename: {} ({} expected)",
-                cp.filename, cj.filename
-            )
+            "Not the same filename: {} ({} expected)",
+            cp.filename,
+            cj.filename
         );
         assert!(
             cj.copied_from == cp.renamed_from || cj.copied_from == cp.copied_from,
-            format!(
-                "Not renamed/copied (in {}): {:?} {:?} {:?}",
-                cp.filename, cj.copied_from, cp.renamed_from, cp.copied_from
-            )
+            "Not renamed/copied (in {}): {:?} {:?} {:?}",
+            cp.filename,
+            cj.copied_from,
+            cp.renamed_from,
+            cp.copied_from
         );
         assert!(
             cj.hunks.len() == cp.hunks.len(),
-            format!(
-                "Not the same length for hunks: {} ({} expected)",
-                cp.hunks.len(),
-                cj.hunks.len()
-            )
+            "Not the same length for hunks: {} ({} expected)",
+            cp.hunks.len(),
+            cj.hunks.len()
         );
         for (hj, hp) in cj.hunks.iter().zip(cp.hunks.iter()) {
             assert!(
                 hj.lines.len() == hp.lines.len(),
-                format!(
-                    "Not the same length for changed lines: {} ({} expected)",
-                    hp.lines.len(),
-                    hj.lines.len()
-                )
+                "Not the same length for changed lines: {} ({} expected)",
+                hp.lines.len(),
+                hj.lines.len()
             );
             for (lj, lp) in hj.lines.iter().zip(hp.lines.iter()) {
                 assert!(
                     lj == lp,
-                    format!("Not the same line change: {:?} ({:?} expected", lp, lj)
+                    "Not the same line change: {:?} ({:?} expected",
+                    lp,
+                    lj
                 );
             }
         }
