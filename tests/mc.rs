@@ -40,7 +40,7 @@ impl Diff for DiffImpl {
 }
 
 fn get_log(path: &str, range: &str) -> Vec<String> {
-    let mut client = Client::open(&path, "UTF-8", &[]).unwrap();
+    let mut client = Client::open(path, "UTF-8", &[]).unwrap();
     let range = [range];
     let (mut data, _) = runcommand!(
         client,

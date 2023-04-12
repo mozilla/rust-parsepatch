@@ -153,12 +153,10 @@ impl Diff for DiffImpl {
         self.binary = binary_sizes.is_some();
 
         if self.file_mode.is_none() {
-            self.file_mode = file_mode.and_then(|c| {
-                Some(FileModeChange {
+            self.file_mode = file_mode.map(|c| FileModeChange {
                     old: c.old,
                     new: c.new,
-                })
-            });
+                });
         }
     }
 
