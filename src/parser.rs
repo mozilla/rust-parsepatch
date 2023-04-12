@@ -99,11 +99,7 @@ pub enum FileOp {
 
 impl FileOp {
     pub fn is_new_or_deleted(self) -> bool {
-        match self {
-            FileOp::New(_) => true,
-            FileOp::Deleted(_) => true,
-            _ => false,
-        }
+        matches!(self, FileOp::New(_) | FileOp::Deleted(_))
     }
 }
 
@@ -188,14 +184,14 @@ impl<'a> LineReader<'a> {
         // NUMS_PAT = re.compile(r'^@@ -([0-9]+),?([0-9]+)? \+([0-9]+),?([0-9]+)? @@')
         let iter = &mut buf.iter();
         let old_start = iter
-            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .take_while(|&&c| c.is_ascii_digit())
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
         let c = *iter
             .next()
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
-        let old_lines = if c >= b'0' && c <= b'9' {
-            iter.take_while(|&&c| c >= b'0' && c <= b'9')
+        let old_lines = if c.is_ascii_digit() {
+            iter.take_while(|&&c| c.is_ascii_digit())
                 .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
         } else {
             1
@@ -206,14 +202,14 @@ impl<'a> LineReader<'a> {
         }
 
         let new_start = iter
-            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .take_while(|&&c| c.is_ascii_digit())
             .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
 
         let c = *iter
             .next()
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
-        let new_lines = if c >= b'0' && c <= b'9' {
-            iter.take_while(|&&c| c >= b'0' && c <= b'9')
+        let new_lines = if c.is_ascii_digit() {
+            iter.take_while(|&&c| c.is_ascii_digit())
                 .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
         } else {
             1
@@ -226,7 +222,7 @@ impl<'a> LineReader<'a> {
         let mut iter = buf.iter();
         let pos1 = iter
             .position(|c| *c != b' ')
-            .ok_or_else(|| ParsepatchError::NoFilename(line))?;
+            .ok_or(ParsepatchError::NoFilename(line))?;
         let pos2 = iter.position(|c| *c == b'\t');
         let buf = if let Some(pos2) = pos2 {
             unsafe { buf.get_unchecked(pos1..=pos1 + pos2) }
@@ -290,7 +286,7 @@ impl<'a> LineReader<'a> {
         // the following number is an octal number with 6 digits (so max is 8^6 - 1)
         let buf = unsafe { self.buf.get_unchecked(start.len()..) };
         buf.iter()
-            .take_while(|&&c| c >= b'0' && c <= b'7')
+            .take_while(|&&c| (b'0'..=b'7').contains(&c))
             .fold(0, |r, &c| r * 8 + u32::from(c - b'0'))
     }
 }
@@ -659,7 +655,7 @@ impl<'a> PatchReader<'a> {
 
     fn parse_usize(buf: &[u8]) -> usize {
         buf.iter()
-            .take_while(|&&c| c >= b'0' && c <= b'9')
+            .take_while(|&&c| c.is_ascii_digit())
             .fold(0, |r, &c| r * 10 + usize::from(c - b'0'))
     }
 
@@ -683,11 +679,11 @@ impl<'a> PatchReader<'a> {
     }
 
     fn useful(line: &LineReader) -> bool {
-        line.is_binary() || line.is_triple_minus() || Self::diff(&line)
+        line.is_binary() || line.is_triple_minus() || Self::diff(line)
     }
 
     fn starter(line: &LineReader) -> bool {
-        line.is_triple_minus() || Self::diff(&line)
+        line.is_triple_minus() || Self::diff(line)
     }
 
     fn diff(line: &LineReader) -> bool {
@@ -707,7 +703,7 @@ impl<'a> PatchReader<'a> {
     }
 
     fn hunk_change(line: &LineReader) -> bool {
-        if let Some(c) = line.buf.get(0) {
+        if let Some(c) = line.buf.first() {
             let c = *c;
             c == b'-' || c == b'+' || c == b' ' || line.buf.starts_with(b"\\ No newline")
         } else {
@@ -731,7 +727,7 @@ mod tests {
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: &buf, line: 1 };
+            let line = LineReader { buf: buf, line: 1 };
             assert_eq!(line.parse_numbers().unwrap(), c.1);
         }
     }
@@ -757,7 +753,7 @@ mod tests {
         let cases = [("+++ hello", "+++"), ("+++ hello", "++++")];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: &buf, line: 1 };
+            let line = LineReader { buf: buf, line: 1 };
             let pat = c.1.as_bytes();
             assert!(line.buf.starts_with(pat) == c.0.starts_with(c.1));
         }
