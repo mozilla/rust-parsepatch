@@ -1,0 +1,285 @@
+{
+    "diffs": [
+        {
+            "filename": "toolkit/content/tests/widgets/mochitest.ini",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 51,
+                            "deleted": false,
+                            "data": "[test_videocontrols_scrubber_position_nopreload.html]"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": "<!-- Any copyright is dedicated to the Public Domain."
+                        },
+                        {
+                            "line": 3,
+                            "deleted": false,
+                            "data": "   - https://creativecommons.org/publicdomain/zero/1.0/ -->"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "toolkit/content/tests/widgets/test_videocontrols_scrubber_position_nopreload.html",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": "toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html",
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 2,
+                            "deleted": false,
+                            "data": "<!-- Any copyright is dedicated to the Public Domain."
+                        },
+                        {
+                            "line": 3,
+                            "deleted": false,
+                            "data": "   - https://creativecommons.org/publicdomain/zero/1.0/ -->"
+                        },
+                        {
+                            "line": 4,
+                            "deleted": true,
+                            "data": "  <title>Video controls test - Initial scrubber position</title>"
+                        },
+                        {
+                            "line": 6,
+                            "deleted": false,
+                            "data": "  <title>Video controls test - Initial scrubber position when preload is turned off</title>"
+                        },
+                        {
+                            "line": 14,
+                            "deleted": true,
+                            "data": "  <video width=\"320\" height=\"240\" id=\"video\" mozNoDynamicControls preload=\"auto\"></video>"
+                        },
+                        {
+                            "line": 16,
+                            "deleted": false,
+                            "data": "  <video width=\"320\" height=\"240\" id=\"video\" mozNoDynamicControls controls=\"true\" preload=\"none\" src=\"seek_with_sound.ogg\"></video>"
+                        },
+                        {
+                            "line": 24,
+                            "deleted": true,
+                            "data": "add_task(async function setup() {"
+                        },
+                        {
+                            "line": 25,
+                            "deleted": true,
+                            "data": "  await new Promise(resolve => {"
+                        },
+                        {
+                            "line": 26,
+                            "deleted": true,
+                            "data": "    video.addEventListener(\"canplaythrough\", resolve, {once: true});"
+                        },
+                        {
+                            "line": 27,
+                            "deleted": true,
+                            "data": "    video.src = \"seek_with_sound.ogg\";"
+                        },
+                        {
+                            "line": 28,
+                            "deleted": true,
+                            "data": "  });"
+                        },
+                        {
+                            "line": 29,
+                            "deleted": true,
+                            "data": ""
+                        },
+                        {
+                            "line": 26,
+                            "deleted": false,
+                            "data": "add_task(function test_initial_scrubber_position() {"
+                        },
+                        {
+                            "line": 32,
+                            "deleted": true,
+                            "data": "});"
+                        },
+                        {
+                            "line": 34,
+                            "deleted": true,
+                            "data": "add_task(function test_initial_scrubber_position() {"
+                        },
+                        {
+                            "line": 35,
+                            "deleted": true,
+                            "data": "  // When the controls are shown after the initial video frame,"
+                        },
+                        {
+                            "line": 36,
+                            "deleted": true,
+                            "data": "  // reflowedDimensions might not be set..."
+                        },
+                        {
+                            "line": 37,
+                            "deleted": true,
+                            "data": "  video.setAttribute(\"controls\", \"true\");"
+                        },
+                        {
+                            "line": 38,
+                            "deleted": true,
+                            "data": ""
+                        },
+                        {
+                            "line": 39,
+                            "deleted": true,
+                            "data": "  // ... but we still want to ensure the initial scrubber position"
+                        },
+                        {
+                            "line": 40,
+                            "deleted": true,
+                            "data": "  // is reasonable."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "toolkit/content/widgets/videocontrols.js",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 1237,
+                            "deleted": false,
+                            "data": "        let scrubberProgress = Math.abs("
+                        },
+                        {
+                            "line": 1238,
+                            "deleted": false,
+                            "data": "          currentTimeMs / durationMs - this.scrubber.value / this.scrubber.max"
+                        },
+                        {
+                            "line": 1239,
+                            "deleted": false,
+                            "data": "        );"
+                        },
+                        {
+                            "line": 1240,
+                            "deleted": false,
+                            "data": "        let devPxProgress ="
+                        },
+                        {
+                            "line": 1241,
+                            "deleted": false,
+                            "data": "          scrubberProgress *"
+                        },
+                        {
+                            "line": 1242,
+                            "deleted": false,
+                            "data": "          this.reflowedDimensions.scrubberWidth *"
+                        },
+                        {
+                            "line": 1243,
+                            "deleted": false,
+                            "data": "          this.window.devicePixelRatio;"
+                        },
+                        {
+                            "line": 1238,
+                            "deleted": true,
+                            "data": "        if ("
+                        },
+                        {
+                            "line": 1239,
+                            "deleted": true,
+                            "data": "          Math.abs("
+                        },
+                        {
+                            "line": 1240,
+                            "deleted": true,
+                            "data": "            currentTimeMs / durationMs - this.scrubber.value / this.scrubber.max"
+                        },
+                        {
+                            "line": 1241,
+                            "deleted": true,
+                            "data": "          ) *"
+                        },
+                        {
+                            "line": 1242,
+                            "deleted": true,
+                            "data": "            this.reflowedDimensions.scrubberWidth *"
+                        },
+                        {
+                            "line": 1243,
+                            "deleted": true,
+                            "data": "            this.window.devicePixelRatio >"
+                        },
+                        {
+                            "line": 1244,
+                            "deleted": true,
+                            "data": "          0.5"
+                        },
+                        {
+                            "line": 1245,
+                            "deleted": true,
+                            "data": "        ) {"
+                        },
+                        {
+                            "line": 1245,
+                            "deleted": false,
+                            "data": "        // Note that this.scrubber.max can be \"\" if unitialized,"
+                        },
+                        {
+                            "line": 1246,
+                            "deleted": false,
+                            "data": "        // and either or both of currentTimeMs or durationMs can be 0, leading"
+                        },
+                        {
+                            "line": 1247,
+                            "deleted": false,
+                            "data": "        // to NaN or Infinity values for devPxProgress."
+                        },
+                        {
+                            "line": 1248,
+                            "deleted": false,
+                            "data": "        if (!this.scrubber.max || isNaN(devPxProgress) || devPxProgress > 0.5) {"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 2879,
+                            "deleted": true,
+                            "data": "                <input type=\"range\" id=\"scrubber\" class=\"scrubber\" tabindex=\"-1\" data-l10n-attrs=\"aria-valuetext\"/>"
+                        },
+                        {
+                            "line": 2882,
+                            "deleted": false,
+                            "data": "                <input type=\"range\" id=\"scrubber\" class=\"scrubber\" tabindex=\"-1\" data-l10n-attrs=\"aria-valuetext\" value=\"0\"/>"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
