@@ -434,7 +434,7 @@ impl<'a> PatchReader<'a> {
             trace!("Copy/Renamed from {} to {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::Renamed, None, file_mode);
+            diff.set_info(old, new, op, None, file_mode);
 
             if let Some(mut _line) = self.next(PatchReader::mv, false) {
                 if _line.is_triple_minus() {

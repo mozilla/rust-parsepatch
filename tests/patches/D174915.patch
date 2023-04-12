@@ -1,0 +1,131 @@
+diff --git a/toolkit/content/tests/widgets/mochitest.ini b/toolkit/content/tests/widgets/mochitest.ini
+--- a/toolkit/content/tests/widgets/mochitest.ini
++++ b/toolkit/content/tests/widgets/mochitest.ini
+@@ -46,10 +46,11 @@
+ [test_videocontrols_audio_direction.html]
+ skip-if = xorigin # Rendering of reftest videocontrols_direction-2a.html should not be different to the reference, fails/passes inconsistently
+ [test_videocontrols_jsdisabled.html]
+ skip-if = toolkit == 'android' # bug 1272646
+ [test_videocontrols_scrubber_position.html]
++[test_videocontrols_scrubber_position_nopreload.html]
+ [test_videocontrols_standalone.html]
+ skip-if = toolkit == 'android' # bug 1075573
+ [test_videocontrols_video_direction.html]
+ skip-if =
+     os == 'win'
+diff --git a/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html b/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html
+--- a/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html
++++ b/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html
+@@ -1,6 +1,8 @@
+ <!DOCTYPE HTML>
++<!-- Any copyright is dedicated to the Public Domain.
++   - https://creativecommons.org/publicdomain/zero/1.0/ -->
+ <html>
+ <head>
+   <title>Video controls test - Initial scrubber position</title>
+   <script src="/tests/SimpleTest/SimpleTest.js"></script>
+   <script src="/tests/SimpleTest/EventUtils.js"></script>
+diff --git a/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html b/toolkit/content/tests/widgets/test_videocontrols_scrubber_position_nopreload.html
+copy from toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html
+copy to toolkit/content/tests/widgets/test_videocontrols_scrubber_position_nopreload.html
+--- a/toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html
++++ b/toolkit/content/tests/widgets/test_videocontrols_scrubber_position_nopreload.html
+@@ -1,45 +1,34 @@
+ <!DOCTYPE HTML>
++<!-- Any copyright is dedicated to the Public Domain.
++   - https://creativecommons.org/publicdomain/zero/1.0/ -->
+ <html>
+ <head>
+-  <title>Video controls test - Initial scrubber position</title>
++  <title>Video controls test - Initial scrubber position when preload is turned off</title>
+   <script src="/tests/SimpleTest/SimpleTest.js"></script>
+   <script src="/tests/SimpleTest/EventUtils.js"></script>
+   <script type="text/javascript" src="head.js"></script>
+   <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css" />
+ </head>
+ <body>
+ <p id="display"></p>
+ 
+ <div id="content">
+-  <video width="320" height="240" id="video" mozNoDynamicControls preload="auto"></video>
++  <video width="320" height="240" id="video" mozNoDynamicControls controls="true" preload="none" src="seek_with_sound.ogg"></video>
+ </div>
+ 
+ <div id="host"></div>
+ 
+ <pre id="test">
+ <script class="testbody" type="text/javascript">
+ 
+ const video = document.getElementById("video");
+ 
+-add_task(async function setup() {
+-  await new Promise(resolve => {
+-    video.addEventListener("canplaythrough", resolve, {once: true});
+-    video.src = "seek_with_sound.ogg";
+-  });
+-
++add_task(function test_initial_scrubber_position() {
+   // Check initial state upon load
+   is(video.paused, true, "checking video play state");
+-});
+ 
+-add_task(function test_initial_scrubber_position() {
+-  // When the controls are shown after the initial video frame,
+-  // reflowedDimensions might not be set...
+-  video.setAttribute("controls", "true");
+-
+-  // ... but we still want to ensure the initial scrubber position
+-  // is reasonable.
+   const scrubber = getElementWithinVideo(video, "scrubber");
+   ok(scrubber.max, "The max value should be set on the scrubber");
+   is(parseInt(scrubber.value), 0, "The initial position should be 0");
+ });
+ 
+diff --git a/toolkit/content/widgets/videocontrols.js b/toolkit/content/widgets/videocontrols.js
+--- a/toolkit/content/widgets/videocontrols.js
++++ b/toolkit/content/widgets/videocontrols.js
+@@ -1232,19 +1232,22 @@
+         if (isNaN(durationMs) || durationIsInfinite) {
+           durationMs = this.maxCurrentTimeSeen;
+         }
+         this.log("durationMs is " + durationMs + "ms.\n");
+ 
++        let scrubberProgress = Math.abs(
++          currentTimeMs / durationMs - this.scrubber.value / this.scrubber.max
++        );
++        let devPxProgress =
++          scrubberProgress *
++          this.reflowedDimensions.scrubberWidth *
++          this.window.devicePixelRatio;
+         // Update the scrubber only if it will move by at least 1 pixel
+-        if (
+-          Math.abs(
+-            currentTimeMs / durationMs - this.scrubber.value / this.scrubber.max
+-          ) *
+-            this.reflowedDimensions.scrubberWidth *
+-            this.window.devicePixelRatio >
+-          0.5
+-        ) {
++        // Note that this.scrubber.max can be "" if unitialized,
++        // and either or both of currentTimeMs or durationMs can be 0, leading
++        // to NaN or Infinity values for devPxProgress.
++        if (!this.scrubber.max || isNaN(devPxProgress) || devPxProgress > 0.5) {
+           this.scrubber.max = durationMs;
+           this.scrubber.value = currentTimeMs;
+           this.updateScrubberProgress();
+         }
+ 
+@@ -2874,11 +2877,11 @@
+                       <span id="bufferA11yVal"></span>
+                     </span>
+                     <progress id="progressBar" class="progressBar" value="0" max="100" aria-hidden="true"></progress>
+                   </div>
+                 </div>
+-                <input type="range" id="scrubber" class="scrubber" tabindex="-1" data-l10n-attrs="aria-valuetext"/>
++                <input type="range" id="scrubber" class="scrubber" tabindex="-1" data-l10n-attrs="aria-valuetext" value="0"/>
+               </div>
+               <bdi id="positionLabel" class="positionLabel" role="presentation"></bdi>
+               <bdi id="durationLabel" class="durationLabel" role="presentation"></bdi>
+               <bdi id="positionDurationBox" class="positionDurationBox" aria-hidden="true">
+                 <span id="durationSpan" class="duration" role="none"
+

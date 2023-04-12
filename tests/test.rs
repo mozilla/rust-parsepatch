@@ -142,6 +142,10 @@ impl Diff for DiffImpl {
                 self.filename = old_name.to_string();
                 self.file_mode = Some(FileModeChange { old: m, new: 0 });
             }
+            FileOp::Copied => {
+                self.filename = new_name.to_string();
+                self.copied_from = Some(old_name.to_string());
+            }
             FileOp::Renamed => {
                 self.filename = new_name.to_string();
                 self.renamed_from = Some(old_name.to_string());
@@ -212,7 +216,7 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
     }
 
     if path == PathBuf::from("./tests/patches/d7a700707ddb.patch") {
-        eprintln!("{:?}", patch);
+        //eprintln!("{:?}", patch);
         for diff in patch.diffs.iter() {
             if diff.filename == "layout/style/test/test_overscroll_behavior_pref.html" {
                 let modes = diff.file_mode.as_ref().unwrap();
@@ -231,7 +235,13 @@ fn compare(path: PathBuf, json: &PatchImpl, patch: &mut PatchImpl) {
         patch.diffs.len(),
         json.diffs.len(),
     );
+
     for (cj, cp) in json.diffs.iter().zip(patch.diffs.iter()) {
+        if path == PathBuf::from("./tests/patches/D174915.patch") && cp.filename == "toolkit/content/tests/widgets/test_videocontrols_scrubber_position_nopreload.html" {
+            assert!(cp.copied_from.as_ref().is_some(), "The file must have been copied");
+            assert!(cp.copied_from.as_ref().unwrap() == "toolkit/content/tests/widgets/test_videocontrols_scrubber_position.html", "Source file must be correct");
+        }
+
         assert!(
             cj.filename == cp.filename,
             "Not the same filename: {} ({} expected)",
@@ -278,7 +288,7 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
-            /*if path != PathBuf::from("./tests/output/b8802b591ce2.json") {
+            /*if path != PathBuf::from("./tests/output/D175240.json") && path != PathBuf::from("./tests/output/D174915.json") {
                 continue;
             }*/
             let file = File::open(&path).unwrap();
