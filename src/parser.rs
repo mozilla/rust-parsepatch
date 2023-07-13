@@ -122,6 +122,22 @@ impl<'a> Debug for LineReader<'a> {
     }
 }
 
+fn is_octal_digit(c: &&u8) -> bool {
+    (b'0'..=b'7').contains(**c)
+}
+
+fn decimal_reducer_usize(r: usize, c: &u8) -> usize {
+    r * 10 + usize::from(*c - b'0')
+}
+
+fn decimal_reducer_u32(r: u32, c: &u8) -> u32 {
+    r * 10 + u32::from(*c - b'0')
+}
+
+fn octal_reducer_u32(r: u32, c: &u8) -> u32 {
+    r * 8 + u32::from(*c - b'0')
+}
+
 impl<'a> LineReader<'a> {
     fn is_empty(&self) -> bool {
         self.buf.is_empty()
@@ -185,14 +201,14 @@ impl<'a> LineReader<'a> {
         let iter = &mut buf.iter();
         let old_start = iter
             .take_while(|&&c| c.is_ascii_digit())
-            .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
+            .fold(0, decimal_reducer_u32);
 
         let c = *iter
             .next()
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
         let old_lines = if c.is_ascii_digit() {
             iter.take_while(|&&c| c.is_ascii_digit())
-                .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
+                .fold(u32::from(c - b'0'), decimal_reducer_u32)
         } else {
             1
         };
@@ -203,14 +219,14 @@ impl<'a> LineReader<'a> {
 
         let new_start = iter
             .take_while(|&&c| c.is_ascii_digit())
-            .fold(0, |r, &c| r * 10 + u32::from(c - b'0'));
+            .fold(0, decimal_reducer_u32);
 
         let c = *iter
             .next()
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
         let new_lines = if c.is_ascii_digit() {
             iter.take_while(|&&c| c.is_ascii_digit())
-                .fold(u32::from(c - b'0'), |r, &c| r * 10 + u32::from(c - b'0'))
+                .fold(u32::from(c - b'0'), decimal_reducer_u32)
         } else {
             1
         };
@@ -286,8 +302,8 @@ impl<'a> LineReader<'a> {
         // the following number is an octal number with 6 digits (so max is 8^6 - 1)
         let buf = unsafe { self.buf.get_unchecked(start.len()..) };
         buf.iter()
-            .take_while(|&&c| (b'0'..=b'7').contains(&c))
-            .fold(0, |r, &c| r * 8 + u32::from(c - b'0'))
+            .take_while(is_octal_digit)
+            .fold(0, octal_reducer_u32)
     }
 }
 
@@ -662,7 +678,7 @@ impl<'a> PatchReader<'a> {
     fn parse_usize(buf: &[u8]) -> usize {
         buf.iter()
             .take_while(|&&c| c.is_ascii_digit())
-            .fold(0, |r, &c| r * 10 + usize::from(c - b'0'))
+            .fold(0, decimal_reducer_usize)
     }
 
     fn skip_binary(&mut self) -> Vec<BinaryHunk> {
