@@ -8,3 +8,6 @@
 
 Published under the MPL 2.0 license.
 
+## Ports
+* [C++](https://github.com/KOLANICH-libs/ParsePatch.cpp)
+* Python: [PyO3 bindings](https://github.com/mozilla/pyo3-parsepatch), [pure python impl](https://github.com/mozilla/parsepatch)
