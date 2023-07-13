@@ -158,9 +158,9 @@ impl Diff for DiffImpl {
 
         if self.file_mode.is_none() {
             self.file_mode = file_mode.map(|c| FileModeChange {
-                    old: c.old,
-                    new: c.new,
-                });
+                old: c.old,
+                new: c.new,
+            });
         }
     }
 
@@ -288,7 +288,7 @@ fn test_parse() {
         let entry = entry.unwrap();
         let path = entry.path();
         if !path.is_dir() && path.extension().unwrap() == "json" {
-            /*if path != PathBuf::from("./tests/output/D175240.json") && path != PathBuf::from("./tests/output/D174915.json") {
+            /*if path != PathBuf::from("./tests/output/issue68.json") {
                 continue;
             }*/
             let file = File::open(&path).unwrap();

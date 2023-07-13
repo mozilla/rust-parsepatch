@@ -110,7 +110,8 @@ fn test_mc() {
     let pb = ProgressBar::new(total as u64);
     pb.set_style(
         ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos}/{len}").unwrap(),
+            .template("[{elapsed_precise}] {bar:100.cyan/blue} {pos}/{len}")
+            .unwrap(),
     );
     let pb = Arc::new(Mutex::new(pb));
 

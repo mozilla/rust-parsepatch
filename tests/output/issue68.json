@@ -1,0 +1,74 @@
+{
+    "diffs": [
+        {
+            "filename": "js/src/vm/Printer.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 55,
+                            "deleted": true,
+                            "data": "  for (char16_t c: str) {"
+                        },
+                        {
+                            "line": 55,
+                            "deleted": false,
+                            "data": "  for (char16_t c : str) {"
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "line": 248,
+                            "deleted": true,
+                            "data": "  for (char16_t c: str) {"
+                        },
+                        {
+                            "line": 248,
+                            "deleted": false,
+                            "data": "  for (char16_t c : str) {"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "filename": "js/src/vm/BytecodeUtil.cpp",
+            "new": false,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": [
+                {
+                    "lines": [
+                        {
+                            "line": 2311,
+                            "deleted": true,
+                            "data": "UniqueChars ExpressionDecompiler::getOutput() {"
+                        },
+                        {
+                            "line": 2312,
+                            "deleted": true,
+                            "data": "  return sprinter.release();"
+                        },
+                        {
+                            "line": 2313,
+                            "deleted": true,
+                            "data": "}"
+                        },
+                        {
+                            "line": 2311,
+                            "deleted": false,
+                            "data": "UniqueChars ExpressionDecompiler::getOutput() { return sprinter.release(); }"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
