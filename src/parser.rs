@@ -559,27 +559,33 @@ impl<'a> PatchReader<'a> {
         diff.new_hunk();
 
         while let Some(line) = self.next(PatchReader::hunk_change, true) {
-            // we know that line is beginning with -, +, ... so no need to check bounds
-            let first = unsafe { *line.buf.get_unchecked(0) };
-            match first {
-                b'-' => {
-                    diff.add_line(old_count, 0, unsafe { line.buf.get_unchecked(1..) });
-                    old_count += 1;
-                    old_lines -= 1;
+            if let Some(first) = line.buf.first() {
+                match *first {
+                    b'-' => {
+                        diff.add_line(old_count, 0, unsafe { line.buf.get_unchecked(1..) });
+                        old_count += 1;
+                        old_lines -= 1;
+                    }
+                    b'+' => {
+                        diff.add_line(0, new_count, unsafe { line.buf.get_unchecked(1..) });
+                        new_count += 1;
+                        new_lines -= 1;
+                    }
+                    b' ' => {
+                        diff.add_line(old_count, new_count, unsafe { line.buf.get_unchecked(1..) });
+                        old_count += 1;
+                        new_count += 1;
+                        old_lines -= 1;
+                        new_lines -= 1;
+                    }
+                    _ => {}
                 }
-                b'+' => {
-                    diff.add_line(0, new_count, unsafe { line.buf.get_unchecked(1..) });
-                    new_count += 1;
-                    new_lines -= 1;
-                }
-                b' ' => {
-                    diff.add_line(old_count, new_count, unsafe { line.buf.get_unchecked(1..) });
-                    old_count += 1;
-                    new_count += 1;
-                    old_lines -= 1;
-                    new_lines -= 1;
-                }
-                _ => {}
+            } else {
+                diff.add_line(old_count, new_count, b"");
+                old_count += 1;
+                new_count += 1;
+                old_lines -= 1;
+                new_lines -= 1;
             }
             if old_lines == 0 && new_lines == 0 {
                 break;
@@ -707,7 +713,7 @@ impl<'a> PatchReader<'a> {
             let c = *c;
             c == b'-' || c == b'+' || c == b' ' || line.buf.starts_with(b"\\ No newline")
         } else {
-            false
+            true
         }
     }
 }
@@ -727,7 +733,7 @@ mod tests {
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: buf, line: 1 };
+            let line = LineReader { buf, line: 1 };
             assert_eq!(line.parse_numbers().unwrap(), c.1);
         }
     }
@@ -753,7 +759,7 @@ mod tests {
         let cases = [("+++ hello", "+++"), ("+++ hello", "++++")];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let line = LineReader { buf: buf, line: 1 };
+            let line = LineReader { buf, line: 1 };
             let pat = c.1.as_bytes();
             assert!(line.buf.starts_with(pat) == c.0.starts_with(c.1));
         }

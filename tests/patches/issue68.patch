@@ -1,0 +1,35 @@
+--- a/js/src/vm/Printer.cpp	2023-06-20 15:04:32.907323769 +0000
++++ b/js/src/vm/Printer.cpp	2023-06-20 15:05:18.491323769 +0000
+@@ -52,7 +52,7 @@
+ }
+ 
+ bool GenericPrinter::put(mozilla::Span<const char16_t> str) {
+-  for (char16_t c: str) {
++  for (char16_t c : str) {
+     if (!putChar(c)) {
+       return false;
+     }
+@@ -245,7 +245,7 @@
+     return false;
+   }
+ 
+-  for (char16_t c: str) {
++  for (char16_t c : str) {
+     MOZ_ASSERT(IsAsciiPrintable(c));
+     *bp++ = char(c);
+   }
+ 
+--- a/js/src/vm/BytecodeUtil.cpp	2023-06-20 15:04:32.907323769 +0000
++++ b/js/src/vm/BytecodeUtil.cpp	2023-06-20 15:05:18.439323769 +0000
+@@ -2308,9 +2308,7 @@
+   MOZ_CRASH("No binding");
+ }
+ 
+-UniqueChars ExpressionDecompiler::getOutput() {
+-  return sprinter.release();
+-}
++UniqueChars ExpressionDecompiler::getOutput() { return sprinter.release(); }
+
+ }  // anonymous namespace
+
+
