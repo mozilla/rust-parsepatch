@@ -1,0 +1,13 @@
+commit 2405028d3e6566d4a34dad2f48fcc6ee33417e43
+Author: Olivier Mehani <omehani@mozilla.com>
+Date:   Tue Sep 8 16:20:51 2026 +1000
+
+    héhéhé.txt
+
+diff --git "a/h\303\251h\303\251h\303\251.txt" "b/h\303\251h\303\251h\303\251.txt"
+new file mode 100644
+index 0000000..e69de29
+
+diff --git "a/\"quote" "b/\"quote"
+new file mode 100644
+index 0000000..e69de29
