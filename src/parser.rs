@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::fs::File;
 use std::io::Read;
@@ -10,7 +11,15 @@ pub enum ParsepatchError {
     NewModeExpected(usize),
     NoFilename(usize),
     IOError(String),
+    InvalidQuotedString(usize),
     InvalidString(usize),
+}
+
+#[derive(Debug)]
+pub enum UnquoteError {
+    InvalidQuotedString,
+    InvalidQuotedCharacter,
+    QuotedStringOverflow,
 }
 
 pub type Result<T> = result::Result<T, ParsepatchError>;
@@ -26,7 +35,20 @@ impl Display for ParsepatchError {
             }
             ParsepatchError::NoFilename(n) => writeln!(f, "Cannot get filename at line {}", n),
             ParsepatchError::IOError(s) => writeln!(f, "Cannot read the file {}", s),
+            ParsepatchError::InvalidQuotedString(n) => {
+                writeln!(f, "Invalid quoted string at line {}", n)
+            }
             ParsepatchError::InvalidString(n) => writeln!(f, "Invalid utf-8 at line {}", n),
+        }
+    }
+}
+
+impl Display for UnquoteError {
+    fn fmt(&self, f: &mut Formatter) -> result::Result<(), fmt::Error> {
+        match self {
+            UnquoteError::InvalidQuotedString => writeln!(f, "Invalid quoted string"),
+            UnquoteError::InvalidQuotedCharacter => writeln!(f, "Invalid quoted character"),
+            UnquoteError::QuotedStringOverflow => writeln!(f, "Quoted string overflow"),
         }
     }
 }
@@ -218,7 +240,7 @@ impl<'a> LineReader<'a> {
         Ok((old_start, old_lines, new_start, new_lines))
     }
 
-    fn get_filename(buf: &[u8], line: usize) -> Result<&str> {
+    fn get_filename(buf: &'a [u8], line: usize) -> Result<Cow<'a, str>> {
         let mut iter = buf.iter();
         let pos1 = iter
             .position(|c| *c != b' ')
@@ -229,9 +251,12 @@ impl<'a> LineReader<'a> {
         } else {
             unsafe { buf.get_unchecked(pos1..) }
         };
+
+        let buf = Self::unquote(buf).map_err(|_| ParsepatchError::InvalidQuotedString(line))?;
+
         let buf = if let Some(start) = buf.get(..2) {
             if start == b"a/" || start == b"b/" {
-                unsafe { buf.get_unchecked(2..) }
+                Cow::Borrowed(unsafe { buf.get_unchecked(2..) })
             } else {
                 buf
             }
@@ -239,30 +264,97 @@ impl<'a> LineReader<'a> {
             buf
         };
 
-        if buf == b"/dev/null" {
-            Ok("")
+        // Get the whole slice out of the Cow.
+        if *buf == *b"/dev/null" {
+            Ok(Cow::Borrowed(""))
         } else {
-            std::str::from_utf8(buf).map_err(|_| ParsepatchError::InvalidString(line))
+            String::from_utf8(buf.to_vec())
+                .map_err(|_| ParsepatchError::InvalidString(line))
+                .map(Cow::Owned)
         }
     }
 
-    fn get_file<'b>(slice: Option<&'b [u8]>, starter: &[u8]) -> &'b [u8] {
-        if let Some(path) = slice {
-            if let Some(start) = path.get(..2) {
-                if start == starter {
-                    unsafe { path.get_unchecked(2..) }
-                } else {
-                    path
-                }
-            } else {
-                path
+    /// Unquote C-style strings.
+    ///
+    /// Based on [0].
+    ///
+    /// [0] https://github.com/git/git/blob/b8242b093d9e941a34460d715e3ce616a34ac3fe/quote.c#L386
+    ///
+    fn unquote(slice: &'a [u8]) -> result::Result<Cow<'a, [u8]>, UnquoteError> {
+        // First, make sure we have a quoted string.
+        //
+        if let Some(s) = slice.first() {
+            if *s != b'\"' {
+                return Ok(Cow::Borrowed(slice));
             }
         } else {
-            &[]
+            return Ok(Cow::Borrowed(slice));
         }
+
+        if slice.len() < 2 {
+            return Err(UnquoteError::InvalidQuotedString);
+        }
+
+        if let Some(e) = slice.last() {
+            if *e != b'\"' {
+                return Err(UnquoteError::InvalidQuotedString);
+            }
+        };
+        let slice = slice
+            .get(1..slice.len() - 1)
+            .ok_or(UnquoteError::InvalidQuotedString)?;
+
+        let mut out = Vec::with_capacity(slice.len());
+
+        let mut r = 0;
+
+        fn advance_checked(r: &mut usize, slice: &[u8]) -> result::Result<u8, UnquoteError> {
+            let c = slice.get(*r).ok_or(UnquoteError::QuotedStringOverflow)?;
+            *r += 1;
+            Ok(*c)
+        }
+
+        while r < slice.len() {
+            let mut c = advance_checked(&mut r, slice)?;
+
+            let new_c = match c {
+                b'\\' => {
+                    c = advance_checked(&mut r, slice)?;
+                    match c {
+                        //
+                        b'a' => b'\x07',
+                        b'b' => b'\x08',
+                        b'f' => b'\x0C',
+                        b'n' => b'\n',
+                        b'r' => b'\r',
+                        b't' => b'\t',
+                        b'v' => b'\x0B',
+                        b'\\' | b'"' => c,
+                        b'0'..b'7' => {
+                            // Octal escapes have three characters between 0 and 7.
+                            let mut code: u8 = (c - b'0') << 6;
+
+                            c = advance_checked(&mut r, slice)?;
+                            code |= (c - b'0') << 3;
+
+                            c = advance_checked(&mut r, slice)?;
+                            code |= c - b'0';
+
+                            code
+                        }
+                        _ => return Err(UnquoteError::InvalidQuotedCharacter),
+                    }
+                }
+                _ => c,
+            };
+
+            out.push(new_c);
+        }
+
+        Ok(Cow::Owned(out))
     }
 
-    fn parse_files(&self) -> Result<(&str, &str)> {
+    fn parse_files(&self) -> Result<(Cow<'a, str>, Cow<'a, str>)> {
         // We know we start with 'diff '
         let buf = unsafe { self.buf.get_unchecked(5..) };
         let mut iter = buf.split(|c| *c == b' ');
@@ -270,15 +362,18 @@ impl<'a> LineReader<'a> {
         // skip --git or -r
         iter.next();
 
-        let old_path = LineReader::get_file(iter.next(), b"a/");
-        let new_path = LineReader::get_file(iter.next(), b"b/");
+        let old_path = iter
+            .next()
+            .ok_or(ParsepatchError::InvalidString(self.get_line()))
+            .map(|s| LineReader::get_filename(s, self.get_line()))?
+            .expect("old_path should be OK");
+        let new_path = iter
+            .next()
+            .ok_or(ParsepatchError::InvalidString(self.get_line()))
+            .map(|s| LineReader::get_filename(s, self.get_line()))?
+            .expect("new_path should be OK");
 
-        let old = std::str::from_utf8(old_path)
-            .map_err(|_| ParsepatchError::InvalidString(self.get_line()))?;
-        let new = std::str::from_utf8(new_path)
-            .map_err(|_| ParsepatchError::InvalidString(self.get_line()))?;
-
-        Ok((old, new))
+        Ok((old_path, new_path))
     }
 
     fn parse_mode(&self, start: &'static str) -> u32 {
@@ -359,7 +454,7 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: new: {}", new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, None, None);
+            diff.set_info(&old, &new, FileOp::None, None, None);
             diff.close();
             return Ok(());
         };
@@ -381,7 +476,7 @@ impl<'a> PatchReader<'a> {
                 trace!("Single diff line (mode change): new: {}", new);
 
                 let diff = patch.new_diff();
-                diff.set_info(old, new, FileOp::None, None, Some(file_mode));
+                diff.set_info(&old, &new, FileOp::None, None, Some(file_mode));
                 diff.close();
                 return Ok(());
             }
@@ -404,7 +499,7 @@ impl<'a> PatchReader<'a> {
             trace!("Single diff line: old: {} -- new: {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, FileOp::None, None, file_mode);
+            diff.set_info(&old, &new, FileOp::None, None, file_mode);
             diff.close();
             self.set_last(line);
             return Ok(());
@@ -434,7 +529,7 @@ impl<'a> PatchReader<'a> {
             trace!("Copy/Renamed from {} to {}", old, new);
 
             let diff = patch.new_diff();
-            diff.set_info(old, new, op, None, file_mode);
+            diff.set_info(&old, &new, op, None, file_mode);
 
             if let Some(mut _line) = self.next(PatchReader::mv, false) {
                 if _line.is_triple_minus() {
@@ -463,7 +558,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, None, file_mode);
+                    diff.set_info(&old, &new, op, None, file_mode);
                     diff.close();
                     return Ok(());
                 };
@@ -478,7 +573,7 @@ impl<'a> PatchReader<'a> {
                     let diff = patch.new_diff();
                     let sizes = self.skip_binary();
 
-                    diff.set_info(old, new, op, Some(sizes), file_mode);
+                    diff.set_info(&old, &new, op, Some(sizes), file_mode);
                     diff.close();
                     return Ok(());
                 } else if PatchReader::diff(&line) {
@@ -487,7 +582,7 @@ impl<'a> PatchReader<'a> {
                     trace!("Single new/delete diff line: new: {}", new);
 
                     let diff = patch.new_diff();
-                    diff.set_info(old, new, op, None, file_mode);
+                    diff.set_info(&old, &new, op, None, file_mode);
                     diff.close();
                     self.set_last(line);
                     return Ok(());
@@ -527,7 +622,7 @@ impl<'a> PatchReader<'a> {
         trace!("Files: old: {} -- new: {}", old, new);
 
         let diff = patch.new_diff();
-        diff.set_info(old, new, op, None, file_mode);
+        diff.set_info(&old, &new, op, None, file_mode);
         let mut line = self
             .next(PatchReader::mv, false)
             .ok_or_else(|| ParsepatchError::InvalidHunkHeader(self.get_line()))?;
@@ -739,6 +834,45 @@ mod tests {
     }
 
     #[test]
+    fn test_unquote() {
+        let cases = [
+            ("a/hello/world", "a/hello/world"),
+            ("b/world/hello", "b/world/hello"),
+            ("/dev/null", "/dev/null"),
+            ("\"a/h\\303\\251\"", "a/hé"),
+            ("\"a/\\\"quote\"", "a/\"quote"),
+            ("\"\"", ""),
+        ];
+        for c in cases.iter() {
+            let buf = c.0.as_bytes();
+            let v = LineReader::unquote(buf).expect(format!("Should parse {}", c.0).as_str());
+            assert!(
+                v == c.1.as_bytes(),
+                "Expected `{}` for `{}`, but got `{}`.",
+                c.1,
+                c.0,
+                String::from_utf8(v.to_vec()).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn test_unquote_error() {
+        let cases = [
+            "\"",     // single quote
+            "\"uu",   // unterminated quoted string
+            "\"\\\"", // single quote followed by quoted quote
+        ];
+        for c in cases.iter() {
+            let buf = c.as_bytes();
+            match LineReader::unquote(buf) {
+                Err(_) => continue,
+                Ok(_) => assert!(false, "An error was expected"),
+            }
+        }
+    }
+
+    #[test]
     fn test_get_filename() {
         let cases = [
             (" a/hello/world", "hello/world"),
@@ -746,11 +880,20 @@ mod tests {
             ("  a/hello/world", "hello/world"),
             ("   b/world/hello\t", "world/hello"),
             (" /dev/null\t", ""),
+            (" \"a/h\\303\\251\"", "hé"),
+            (" \"a/\\\"quote\"", "\"quote"),
         ];
         for c in cases.iter() {
             let buf = c.0.as_bytes();
-            let p = LineReader::get_filename(buf, 0).unwrap();
-            assert!(p == c.1);
+            let p =
+                LineReader::get_filename(buf, 0).expect(format!("Should parse {}", c.0).as_str());
+            assert!(
+                p == c.1,
+                "Expected `{}` for `{}`, but got `{}`.",
+                c.1,
+                c.0,
+                p
+            );
         }
     }
 
@@ -821,6 +964,10 @@ mod tests {
                 "diff --git foo/bar.cpp Foo/Bar/bar.cpp",
                 ("foo/bar.cpp", "Foo/Bar/bar.cpp"),
             ),
+            (
+                "diff --git \"h\\303\\251\" \"b/Foo/Bar/bar.cpp\"",
+                ("hé", "Foo/Bar/bar.cpp"),
+            ),
         ];
         for s in diffs {
             let line = LineReader {
@@ -828,8 +975,20 @@ mod tests {
                 line: 1,
             };
             let (old, new) = line.parse_files().unwrap();
-            assert!(old == (s.1).0);
-            assert!(new == (s.1).1);
+            assert!(
+                old == (s.1).0,
+                "Expected `{}` for old `{}`, but got `{}`.",
+                (s.1).0,
+                s.0,
+                old
+            );
+            assert!(
+                new == (s.1).1,
+                "Expected `{}` for new `{}`, but got `{}`.",
+                (s.1).1,
+                s.0,
+                new
+            );
         }
     }
 }

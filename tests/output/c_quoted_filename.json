@@ -1,0 +1,20 @@
+{
+    "diffs": [
+        {
+            "filename": "héhéhé.txt",
+            "new": true,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": []
+        },
+        {
+            "filename": "\"quote",
+            "new": true,
+            "deleted": false,
+            "binary": false,
+            "copied_from": null,
+            "hunks": []
+        }
+    ]
+}
